@@ -74,7 +74,7 @@ int _dl_search(char *buf, int len, const char *filename)
   }
 
   /* 3. search all pathes in the the /etc/diet.ld.conf, a dietlibc extension :) */
-  if ((fd=_dl_search_conf(buf,len,"/etc/diet.ld.conf",filename))!=-1) return fd;
+  if ((fd=_dl_search_conf(buf,len,"/etc/diet.so.conf",filename))!=-1) return fd;
 
 #ifdef WANT_LD_SO_CONF_SEARCH
   /* 4. search all pathes in the the /etc/ld.so.conf / can't handle this ...=lib?? crap */

@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# A simple wrapper script for gcc which act as a replacement
+# for Felix's diet.
+#
+# This one doesn't handle cross compilers as a special case,
+# although that will definitely change.
+#
+# Written by Abraham vd Merwe <abz@debian.org>
+
+#
+# CHANGES:
+#
+#    2001/12/04   Major update. dietlibc now supports dynamic
+#                 linking, so I had to change the script to
+#                 include support for that. Also, all the paths,
+#                 stub names, and library names changed, so I
+#                 had to change those too.
+#
+#    2001/06/16   Added includes to real kernel sources to override
+#                 debian kernel headers.
+#
+#    2001/06/15   Initial version.
+#
+
+#
+# TODO:
+#
+#   Add optimizations per platform
+#
+
+LIBDIR=/usr/lib/dietlibc
+INCDIR=/usr/include/dietlibc
+KERNELDIR=/usr/src/linux
+
+link=1
+static=0
+shared=0
+
+function check_args()
+{
+	while [[ $# -gt 0 ]]
+	do
+		case $1 in
+			"-c"|"-S"|"-E")
+				link=0
+				;;
+			"-shared")
+				shared=1
+				;;
+			"-static")
+				static=1
+				;;
+			*)
+				;;
+		esac
+		shift
+	done
+	if [[ ! -f $LIBDIR/diet-linux.so ]]; then static=1; shared=0; fi
+}
+
+if [[ $# -lt 1 ]]
+then
+	echo "usage: ${0/*\//} [gcc command line]"
+	echo "e.g.   ${0/*\//} gcc -c t.c"
+	echo "or     ${0/*\//} sparc-linux-gcc -o foo foo.c bar.o"
+	exit 1
+fi
+
+CC=$1
+CPPFLAGS="-L$LIBDIR -I$KERNELDIR/include -I$INCDIR"
+
+shift
+
+check_args "$@"
+
+if [[ $link -eq 0 ]]
+then
+	$CC $CPPFLAGS "$@"
+elif [[ $static -eq 1 ]]
+then
+	$CC -nostdlib $LIBDIR/start.o $CPPFLAGS "$@" $LIBDIR/libc.a -lgcc
+else
+	$CC -nostdlib $LIBDIR/start.o $LIBDIR/dyn_start.o $CPPFLAGS "$@" \
+		-lc -lgcc $LIBDIR/dyn_stop.o -Wl,-dynamic-linker=$LIBDIR/diet-linux.so
+fi
+

@@ -1,14 +1,18 @@
+
+# -*- sh -*-
+
 INSTALL=install
-prefix=/opt/diet
+prefix=/usr
 # Set the following to install to a different root
-#DESTDIR=/tmp/fefix
+#DESTDIR=/some/dir
 # Use "make DEBUG=1" to compile a debug version.
 
+INCDIR=${prefix}/include/dietlibc
 LIBDIR=${prefix}/lib
 BINDIR=${prefix}/bin
-MAN1DIR=${prefix}/man/man1
+MAN1DIR=${prefix}/share/man/man1
 
-MYARCH=$(shell uname -m | sed 's/i[4-9]86/i386/')
+MYARCH=$(shell uname -m | sed 's/i[4-9]86/i386/' | sed 's/armv4l/arm/' | sed 's/sparc64/sparc/')
 
 # This extra-ugly cruft is here so make will not run uname and sed each
 # time it looks at $(OBJDIR).  This alone sped up running make when
@@ -46,7 +50,7 @@ endif
 # ARCH=$(MYARCH)
 
 OBJDIR=bin-$(ARCH)
-ILIBDIR=$(LIBDIR)-$(ARCH)
+ILIBDIR=$(LIBDIR)/dietlibc
 
 HOME=$(shell pwd)
 
@@ -199,7 +203,7 @@ $(OBJDIR)/diet: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietlib
 	$(CROSS)strip -R .comment -R .note $@
 
 $(OBJDIR)/diet-i: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietlibc.a $(OBJDIR)/dyn_stop.o
-	$(CROSS)$(CC) -Iinclude $(CFLAGS) -nostdlib -o $@ $^ -DDIETHOME=\"$(prefix)\" -DINSTALLVERSION
+	$(CROSS)$(CC) -Iinclude $(CFLAGS) -nostdlib -o $@ $^ -DDIETHOME=\"$(DESTDIR)\" -DINSTALLVERSION
 	$(CROSS)strip -R .comment -R .note $@
 
 $(PICODIR)/diet-gen: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietlibc.a $(OBJDIR)/dyn_stop.o
@@ -211,7 +215,7 @@ $(PICODIR)/diet-dyn: $(PICODIR)/start.o $(PICODIR)/dyn_start.o diet.c
 	$(CROSS)strip -R .command -R .note $@
 
 $(PICODIR)/diet-dyn-i: $(PICODIR)/start.o $(PICODIR)/dyn_start.o diet.c
-	$(CROSS)$(CC) -Iinclude $(CFLAGS) -nostdlib -o $@ $^ -DDIETHOME=\"$(prefix)\" -D__DYN_LIB -L$(PICODIR) -ldietc -lgcc $(PICODIR)/dyn_stop.o -Wl,-dynamic-linker=$(ILIBDIR)/diet-linux.so -DINSTALLVERSION
+	$(CROSS)$(CC) -Iinclude $(CFLAGS) -nostdlib -o $@ $^ -DDIETHOME=\"$(DESTDIR)\" -D__DYN_LIB -L$(PICODIR) -ldietc -lgcc $(PICODIR)/dyn_stop.o -Wl,-dynamic-linker=$(ILIBDIR)/diet-linux.so -DINSTALLVERSION
 	$(CROSS)strip -R .command -R .note $@
 
 $(OBJDIR)/djb: $(OBJDIR)/compile $(OBJDIR)/load
@@ -247,20 +251,20 @@ t1:
 	$(CROSS)$(CC) -g -o t1 t.c
 
 install: $(OBJDIR)/start.o $(OBJDIR)/dietlibc.a $(OBJDIR)/liblatin1.a $(OBJDIR)/elftrunc $(OBJDIR)/diet-i
-	$(INSTALL) -d $(DESTDIR)$(ILIBDIR) $(DESTDIR)$(MAN1DIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) $(OBJDIR)/start.o $(DESTDIR)$(ILIBDIR)/start.o
-	$(INSTALL) $(OBJDIR)/dietlibc.a $(DESTDIR)$(ILIBDIR)/libc.a
-	$(INSTALL) $(OBJDIR)/liblatin1.a $(DESTDIR)$(ILIBDIR)/liblatin1.a
-	$(INSTALL) $(OBJDIR)/diet-i $(DESTDIR)$(BINDIR)/diet
-	-$(INSTALL) $(PICODIR)/diet-dyn-i $(DESTDIR)$(BINDIR)/diet-dyn
-	-$(INSTALL) $(PICODIR)/libdietc.so $(DESTDIR)$(ILIBDIR)/libc.so
-	-$(INSTALL) $(PICODIR)/libpthread.so $(DESTDIR)$(ILIBDIR)/libpthread.so
-	-$(INSTALL) $(PICODIR)/libdl.so $(DESTDIR)$(ILIBDIR)/libdl.so
-	-$(INSTALL) $(PICODIR)/dyn_start.o $(PICODIR)/dyn_stop.o $(DESTDIR)$(ILIBDIR)
-	-$(INSTALL) dynlinker/diet-linux.so $(DESTDIR)$(ILIBDIR)/diet-linux.so
-	$(INSTALL) -m 644 diet.1 $(DESTDIR)$(MAN1DIR)/diet.1
+	$(INSTALL) -d $(DESTDIR)/$(ILIBDIR) $(DESTDIR)/$(MAN1DIR) $(DESTDIR)/$(BINDIR)
+	$(INSTALL) $(OBJDIR)/start.o $(DESTDIR)/$(ILIBDIR)/start.o
+	$(INSTALL) $(OBJDIR)/dietlibc.a $(DESTDIR)/$(ILIBDIR)/libc.a
+	$(INSTALL) $(OBJDIR)/liblatin1.a $(DESTDIR)/$(ILIBDIR)/liblatin1.a
+	$(INSTALL) $(OBJDIR)/diet-i $(DESTDIR)/$(BINDIR)/diet
+	-$(INSTALL) $(PICODIR)/diet-dyn-i $(DESTDIR)/$(BINDIR)/diet-dyn
+	-$(INSTALL) $(PICODIR)/libdietc.so $(DESTDIR)/$(ILIBDIR)/libc.so
+	-$(INSTALL) $(PICODIR)/libpthread.so $(DESTDIR)/$(ILIBDIR)/libpthread.so
+	-$(INSTALL) $(PICODIR)/libdl.so $(DESTDIR)/$(ILIBDIR)/libdl.so
+	-$(INSTALL) $(PICODIR)/dyn_start.o $(PICODIR)/dyn_stop.o $(DESTDIR)/$(ILIBDIR)
+	-$(INSTALL) dynlinker/diet-linux.so $(DESTDIR)/$(ILIBDIR)/diet-linux.so
+	$(INSTALL) -m 644 diet.1 $(DESTDIR)/$(MAN1DIR)/diet.1
 	if ! test -f $(DESTDIR)/etc/diet.so.conf; then echo "$(ILIBDIR)" > $(DESTDIR)/etc/diet.so.conf; fi
-	for i in `find include -name \*.h`; do install -m 644 -D $$i $(DESTDIR)$(prefix)/$$i; done
+	cp -a include $(DESTDIR)/$(INCDIR)
 
 .PHONY: sparc ppc mips arm alpha i386
 

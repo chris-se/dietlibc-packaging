@@ -1,0 +1,117 @@
+dietlibc (0.12-2.5) stable-security; urgency=high
+
+  * Non-maintainer upload by the Security Team
+  * Added upstream patch to fix integer overflows in XDR RPC library
+    (CAN-2003-0028)
+
+ -- Martin Schulze <joey@infodrom.org>  Sat, 22 Mar 2003 07:43:03 +0100
+
+dietlibc (0.12-2.4) stable-security; urgency=medium
+
+  * Fix potential division by zero chance in calloc integer overflow check
+    (discussed with and forwarded from upstream).
+
+ -- Martin Schulze <joey@finlandia.infodrom.north.de>  Thu,  8 Aug 2002 15:28:41 +0200
+
+dietlibc (0.12-2.3) stable-security; urgency=medium
+
+  * Fix potential division by zero chance in fwrite integer overflow check
+    (forwarded from upstream).
+
+ -- Martin Schulze <joey@finlandia.infodrom.north.de>  Thu,  8 Aug 2002 12:08:50 +0200
+
+dietlibc (0.12-2.2) stable-security; urgency=high
+
+  * Non-maintainer upload by security team
+  * Second try actually since it turned out that there were two versions
+    of 0.12-2.1, since there can only be one, a new version was required
+    for an override.
+  * Backport of four security related fixes:
+    . Be more strict regarding hostile DNS packets
+    . Add integer overflow fix in xdr_array after CERT advisory
+      (VU#192995, CAN-2002-0391)
+    . Add calloc integer overflow fix after RUS-CERT advisor
+    . Add fread and fwrite integer overflow fix
+  * Fixed main Makefile to recognize ``sparc64'' as ``sparc''
+  * Fixed a dangling reference to a label in lib/alloc.c
+  * Corrected maintainer address
+
+ -- Martin Schulze <joey@finlandia.infodrom.north.de>  Wed,  7 Aug 2002 21:10:10 +0200
+
+dietlibc (0.12-2.1) stable-security; urgency=high
+
+  * Non-maintainer upload by security team
+  * Backport of four security related fixes:
+    . Be more strict regarding hostile DNS packets
+    . Add integer overflow fix in xdr_array after CERT advisory
+      (VU#192995, CAN-2002-0391)
+    . Add calloc integer overflow fix after RUS-CERT advisor
+    . Add fread and fwrite integer overflow fix
+  * Fixed main Makefile to recognize ``sparc64'' as ``sparc''
+  * Fixed a dangling reference to a label in lib/alloc.c
+
+ -- Martin Schulze <joey@finlandia.infodrom.north.de>  Wed,  7 Aug 2002 12:41:28 +0200
+
+dietlibc (0.12-2) unstable; urgency=low
+
+  * Fixed mipsel bug in Makefile.add (Closes: #125781)
+  * Changed debian rules file so that copyright can be installed
+    for architecture dependant files as well (Closes: #124152)
+
+ -- Abraham vd Merwe <abz@debian.org>  Wed, 19 Dec 2001 22:17:51 +0200
+
+dietlibc (0.12-1) unstable; urgency=low
+
+  * New upstream version
+  * I've changed debian/rules to make diet executable after
+    replacing the default diet wrappers (Closes: #120297)
+  * Added the new documents to debian/docs
+  * Added Russel Nelson's patch (posted on dietlibc-dev). Dietlibc
+    should build on ARM now (Closes: #120396)
+  * The fputc('\n',stderr) bug seems to be fixed in 0.12 (Closes: #122164)
+  * I've split the package up into three seperate packages.
+
+ -- Abraham vd Merwe <abz@debian.org>  Thu, 4 Dec 2001 22:19:07 +0200
+
+dietlibc (0.11-4) unstable; urgency=low
+
+  * Changed Makefile and debian/rules to use 'uname -m' again in order
+    to determine the architecture (Closes: #119715)
+
+ -- Abraham vd Merwe <abz@debian.org>  Thu, 15 Nov 2001 19:50:32 +0200
+
+dietlibc (0.11-3) unstable; urgency=low
+
+  * Removed the -EB flag from mips/Makefile.add. The mipsel bug should
+    hopefully now be fixed. (Closes: #109209)
+
+ -- Abraham vd Merwe <abz@debian.org>  Sat, 10 Nov 2001 11:11:09 +0200
+
+dietlibc (0.11-2) unstable; urgency=low
+
+  * Changed Makefile and debian/rules to use 'dpkg --print-architecture'
+    in order to determine the host architecture (Closes: #109209)
+  * Added a rule in debian/rules to remove backup files (Closes: #117273)
+
+ -- Abraham vd Merwe <abz@debian.org>  Mon, 29 Oct 2001 18:29:15 +0200
+
+dietlibc (0.11-1) unstable; urgency=low
+
+  * Updated README.Debian
+  * Dietlibc will now only build for all the officially supported
+    platforms (Closes: #104688)
+  * Removed preinst kernel header compatibility hack. Since the new
+    dietlibc doesn't depend on the kernel headers, this is not necessary
+    anymore.
+
+ -- Abraham vd Merwe <abz@debian.org>  Thu, 2 Aug 2001 00:16:23 +0200
+
+dietlibc (0.10-1) unstable; urgency=low
+
+  * Initial Release. (Closes: #99955)
+
+ -- Abraham vd Merwe <abz@debian.org>  Sat, 16 Jun 2001 01:06:56 +0200
+
+Local variables:
+mode: debian-changelog
+End:

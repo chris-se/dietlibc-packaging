@@ -1,0 +1,4 @@
+usr/bin/diet
+usr/include/dietlibc
+usr/lib/dietlibc/*.[ao]
+usr/share/man/man1/diet.1

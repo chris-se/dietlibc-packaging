@@ -1,0 +1,52 @@
+Source: dietlibc
+Section: devel
+Priority: optional
+Maintainer: Abraham vd Merwe <abz@debian.org>
+Build-Depends: debhelper (>> 3.0.0)
+Standards-Version: 3.5.2
+
+Package: dietlibc
+Architecture: i386
+Section: devel
+Suggests: dietlibc-dev (>= 0.12), dietlibc-doc (>= 0.12)
+Description: Lightweight C library for embedded applications
+ The diet libc is a C library that is optimized for small size. It
+ can be used to create small statically linked binaries for Linux
+ on alpha, arm, mips, sparc, ppc and x86.
+ .
+ As of version 0.12, dietlibc now also supports dynamic linking
+ on the x86 platform. ARM support is on the way (:
+ .
+ This package contains files needed if you wish to use compile
+ dynamically linked programs or as a prerequisite for dynamically
+ linked programs.
+
+Package: dietlibc-dev
+Architecture: i386 alpha arm powerpc sparc mips mipsel
+Section: devel
+Suggests: dietlibc (>= 0.12), dietlibc-doc (>= 0.12)
+Description: Development files for the diet libc library
+ The diet libc is a C library that is optimized for small size. It
+ can be used to create small statically linked binaries for Linux
+ on alpha, arm, mips, sparc, ppc and x86.
+ .
+ As of version 0.12, dietlibc now also supports dynamic linking
+ on the x86 platform. ARM support is on the way (:
+ .
+ This package contains files needed if you wish to use diet libc
+ in your own programs.
+
+Package: dietlibc-doc
+Architecture: all
+Section: devel
+Suggests: dietlibc (>= 0.12), dietlibc-dev (>= 0.12)
+Description: Documentation for the diet libc library
+ The diet libc is a C library that is optimized for small size. It
+ can be used to create small statically linked binaries for Linux
+ on alpha, arm, mips, sparc, ppc and x86.
+ .
+ As of version 0.12, dietlibc now also supports dynamic linking
+ on the x86 platform. ARM support is on the way (:
+ .
+ This package contains the documentation for diet libc.
+
