@@ -1,3 +1,20 @@
+dietlibc (0.28-2) unstable; urgency=low
+
+  * debian/control: add Architecture: ppc64 (thx Andreas Jochens, closes:
+    #299226).
+  * debian/diff/LD_RUN_PATH.diff: new; from upstream cvs: oops, fix
+    LD_RUN_PATH unsetting (Enrico Scholz).
+  * debian/diff/__powerpc__.diff: new; from upstream cvs: #ifdef powerpc ->
+    #ifdef __powerpc__ (Enrico Scholz) (closes: #300917).
+  * debian/diff/dns-decoding.diff: new; from upstream cvs: fix stupid dns
+    decoding bug (Gernot Tenchio) (plus undocumented __NO_STAT64 fix).
+  * debian/diff/siginfo-64bit.diff: new; from upstream cvs: struct siginfo
+    was wrong for 64-bit platforms.
+  * debian/diff/fcntl.h.diff: new; update to include/fcntl.h from cvs
+    20050325 (don't include readahead(2)).
+
+ -- Gerrit Pape <pape@smarden.org>  Fri, 25 Mar 2005 13:22:38 +0000
+
 dietlibc (0.28-1) unstable; urgency=low
 
   * new upstream version (.orig.tar.gz re-packaged without CVS/

@@ -1,0 +1,294 @@
+  #ifdef powerpc -> #ifdef __powerpc__ (Enrico Scholz)
+
+Index: diet.c
+===================================================================
+RCS file: /cvs/dietlibc/diet.c,v
+retrieving revision 1.60
+retrieving revision 1.61
+diff -u -r1.60 -r1.61
+--- diet.c	17 Dec 2004 18:47:58 -0000	1.60
++++ diet.c	7 Mar 2005 09:07:40 -0000	1.61
+@@ -137,7 +137,7 @@
+       shortplatform="sparc";
+ #endif
+ #endif
+-#ifdef powerpc
++#ifdef __powerpc__
+       shortplatform="ppc";
+ #endif
+ #ifdef __powerpc64__
+Index: syscalls.h
+===================================================================
+RCS file: /cvs/dietlibc/syscalls.h,v
+retrieving revision 1.12
+retrieving revision 1.13
+diff -u -r1.12 -r1.13
+--- syscalls.h	10 Oct 2003 13:37:34 -0000	1.12
++++ syscalls.h	7 Mar 2005 09:07:40 -0000	1.13
+@@ -11,7 +11,7 @@
+ #include "sparc/syscalls.h"
+ #endif
+ 
+-#elif defined(powerpc)
++#elif defined(__powerpc__)
+ #include "ppc/syscalls.h"
+ 
+ #elif defined(__powerpc64__)
+Index: include/fcntl.h
+===================================================================
+RCS file: /cvs/dietlibc/include/fcntl.h,v
+retrieving revision 1.14
+retrieving revision 1.15
+diff -u -r1.14 -r1.15
+--- include/fcntl.h	3 Jan 2004 02:10:02 -0000	1.14
++++ include/fcntl.h	7 Mar 2005 09:07:40 -0000	1.15
+@@ -322,7 +322,7 @@
+ };
+ #endif
+ 
+-#elif defined(powerpc) || defined(__powerpc64__)
++#elif defined(__powerpc__) || defined(__powerpc64__)
+ 
+ /* open/fcntl - O_SYNC is only implemented on blocks devices and on files
+    located on an ext2 file system */
+Index: include/setjmp.h
+===================================================================
+RCS file: /cvs/dietlibc/include/setjmp.h,v
+retrieving revision 1.22
+retrieving revision 1.23
+diff -u -r1.22 -r1.23
+--- include/setjmp.h	10 Oct 2003 13:37:34 -0000	1.22
++++ include/setjmp.h	7 Mar 2005 09:07:40 -0000	1.23
+@@ -170,7 +170,7 @@
+ #endif
+ #endif
+ 
+-#if defined(powerpc) || defined(__powerpc64__)
++#if defined(__powerpc__) || defined(__powerpc64__)
+ # define JB_GPR1   0  /* Also known as the stack pointer */
+ # define JB_GPR2   1
+ # define JB_LR     2  /* The address we will return to */
+Index: include/signal.h
+===================================================================
+RCS file: /cvs/dietlibc/include/signal.h,v
+retrieving revision 1.48
+retrieving revision 1.49
+diff -u -r1.48 -r1.49
+--- include/signal.h	17 Dec 2004 19:14:49 -0000	1.48
++++ include/signal.h	7 Mar 2005 09:07:40 -0000	1.49
+@@ -31,7 +31,7 @@
+ #define SIGALRM		14
+ #define SIGTERM		15
+ #define SIGUNUSED	31
+-#if defined(__i386__) || defined(__x86_64__) || defined(powerpc) || defined(__arm__) \
++#if defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__arm__) \
+ 	|| defined(__s390__) || defined(__ia64__) || defined(__powerpc64__)
+ #define SIGBUS		 7
+ #define SIGUSR1		10
+Index: include/stdarg-cruft.h
+===================================================================
+RCS file: /cvs/dietlibc/include/stdarg-cruft.h,v
+retrieving revision 1.6
+retrieving revision 1.7
+diff -u -r1.6 -r1.7
+--- include/stdarg-cruft.h	10 Oct 2003 13:37:34 -0000	1.6
++++ include/stdarg-cruft.h	7 Mar 2005 09:07:40 -0000	1.7
+@@ -109,7 +109,7 @@
+ #endif
+ #endif
+ 
+-#elif defined(powerpc)
++#elif defined(__powerpc__)
+ 
+ typedef struct __va_list_tag {
+   unsigned char gpr;		/* index into the array of 8 GPRs stored in the
+@@ -275,7 +275,7 @@
+ 		   == __real_type_class) && (__va).__offset <= (6 * 8))	\
+ 		 ? (6 * 8) + 8 : __va_tsize (__type)))))
+ 
+-#else	/* !__sparc__ && !powerpc && !__mips__ && !__alpha__*/
++#else	/* !__sparc__ && !__powerpc__ && !__mips__ && !__alpha__*/
+ 
+ typedef char* va_list;
+ 
+Index: include/termios.h
+===================================================================
+RCS file: /cvs/dietlibc/include/termios.h,v
+retrieving revision 1.16
+retrieving revision 1.17
+diff -u -r1.16 -r1.17
+--- include/termios.h	3 Aug 2004 22:28:46 -0000	1.16
++++ include/termios.h	7 Mar 2005 09:07:40 -0000	1.17
+@@ -103,7 +103,7 @@
+ 	cc_t c_line;			/* line discipline */
+ 	cc_t c_cc[NCCS];		/* control characters */
+ };
+-#elif defined(powerpc) || defined(__powerpc64__) || defined(__alpha__)
++#elif defined(__powerpc__) || defined(__powerpc64__) || defined(__alpha__)
+ #define NCCS	19
+ struct termios {
+ 	tcflag_t c_iflag;		/* input mode flags */
+@@ -167,7 +167,7 @@
+ #define VLNEXT	15
+ #define VEOF	16
+ #define VEOL	17
+-#elif defined(powerpc) || defined(__powerpc64__)
++#elif defined(__powerpc__) || defined(__powerpc64__)
+ #define VINTR	0
+ #define VQUIT	1
+ #define VERASE	2
+Index: include/asm/sigcontext.h
+===================================================================
+RCS file: /cvs/dietlibc/include/asm/sigcontext.h,v
+retrieving revision 1.9
+retrieving revision 1.10
+diff -u -r1.9 -r1.10
+--- include/asm/sigcontext.h	10 Oct 2003 13:37:34 -0000	1.9
++++ include/asm/sigcontext.h	7 Mar 2005 09:07:40 -0000	1.10
+@@ -21,7 +21,7 @@
+ #include <asm/mips-sigcontext.h>
+ #endif
+ 
+-#if defined(powerpc) || defined(__powerpc64__)
++#if defined(__powerpc__) || defined(__powerpc64__)
+ #include <asm/ppc-sigcontext.h>
+ #endif
+ 
+Index: include/sys/ioctl.h
+===================================================================
+RCS file: /cvs/dietlibc/include/sys/ioctl.h,v
+retrieving revision 1.10
+retrieving revision 1.11
+diff -u -r1.10 -r1.11
+--- include/sys/ioctl.h	10 Oct 2003 13:37:34 -0000	1.10
++++ include/sys/ioctl.h	7 Mar 2005 09:07:40 -0000	1.11
+@@ -15,7 +15,7 @@
+ #include <sys/sparc-ioctl.h>
+ #elif defined(__mips__)
+ #include <sys/mips-ioctl.h>
+-#elif defined(powerpc) || defined(__powerpc64__)
++#elif defined(__powerpc__) || defined(__powerpc64__)
+ #include <sys/ppc-ioctl.h>
+ #elif defined(__s390__)
+ #include <sys/s390-ioctl.h>
+Index: include/sys/mman.h
+===================================================================
+RCS file: /cvs/dietlibc/include/sys/mman.h,v
+retrieving revision 1.20
+retrieving revision 1.21
+diff -u -r1.20 -r1.21
+--- include/sys/mman.h	30 Nov 2004 15:37:29 -0000	1.20
++++ include/sys/mman.h	7 Mar 2005 09:07:40 -0000	1.21
+@@ -73,7 +73,7 @@
+ #define MADV_SEQUENTIAL	0x2		/* read-ahead aggressively */
+ #define MADV_WILLNEED	0x3		/* pre-fault pages */
+ #define MADV_DONTNEED	0x4		/* discard these pages */
+-#elif defined(__sparc__) || defined (powerpc) || defined (__powerpc64__)
++#elif defined(__sparc__) || defined (__powerpc__) || defined (__powerpc64__)
+ #define MAP_FIXED	0x10		/* Interpret addr exactly */
+ #define MAP_ANONYMOUS	0x20		/* don't use a file */
+ #define MAP_RENAME	MAP_ANONYMOUS	/* In SunOS terminology */
+Index: include/sys/ptrace.h
+===================================================================
+RCS file: /cvs/dietlibc/include/sys/ptrace.h,v
+retrieving revision 1.15
+retrieving revision 1.16
+diff -u -r1.15 -r1.16
+--- include/sys/ptrace.h	18 Nov 2004 16:44:39 -0000	1.15
++++ include/sys/ptrace.h	7 Mar 2005 09:07:40 -0000	1.16
+@@ -637,7 +637,7 @@
+ 
+ #define PTRACE_GETUCODE           29  /* stupid bsd-ism */
+ 
+-#elif defined(powerpc) || defined (__powerpc64__)
++#elif defined(__powerpc__) || defined (__powerpc64__)
+ 
+ #include <asm/sigcontext.h>
+ 
+Index: include/sys/shm.h
+===================================================================
+RCS file: /cvs/dietlibc/include/sys/shm.h,v
+retrieving revision 1.13
+retrieving revision 1.14
+diff -u -r1.13 -r1.14
+--- include/sys/shm.h	10 Oct 2003 13:37:34 -0000	1.13
++++ include/sys/shm.h	7 Mar 2005 09:07:40 -0000	1.14
+@@ -60,7 +60,7 @@
+   unsigned long swap_successes;
+ };
+ 
+-#if defined(__i386__) || defined(__mips__) || defined(__arm__) || defined(powerpc) || defined (__powerpc64__) || defined(__s390__) || defined(__hppa__) || defined(__x86_64__) || defined(__ia64__)
++#if defined(__i386__) || defined(__mips__) || defined(__arm__) || defined(__powerpc__) || defined (__powerpc64__) || defined(__s390__) || defined(__hppa__) || defined(__x86_64__) || defined(__ia64__)
+ #define PAGE_SIZE 4096UL
+ #define PAGE_SHIFT 12
+ #elif defined(__alpha__) || defined(__sparc__)
+Index: include/sys/stat.h
+===================================================================
+RCS file: /cvs/dietlibc/include/sys/stat.h,v
+retrieving revision 1.28
+retrieving revision 1.29
+diff -u -r1.28 -r1.29
+--- include/sys/stat.h	26 Mar 2004 15:25:15 -0000	1.28
++++ include/sys/stat.h	7 Mar 2005 09:07:40 -0000	1.29
+@@ -248,8 +248,8 @@
+ 	unsigned long	st_pad2;
+ __extension__ long long	st_blocks;
+ };
+-#elif defined(powerpc) || defined(__powerpc64__)
+-#if defined(powerpc)
++#elif defined(__powerpc__) || defined(__powerpc64__)
++#if defined(__powerpc__)
+ struct stat {
+ 	dev_t		st_dev;
+ 	ino_t		st_ino;
+Index: include/sys/types.h
+===================================================================
+RCS file: /cvs/dietlibc/include/sys/types.h,v
+retrieving revision 1.26
+retrieving revision 1.27
+diff -u -r1.26 -r1.27
+--- include/sys/types.h	14 Apr 2004 13:33:41 -0000	1.26
++++ include/sys/types.h	7 Mar 2005 09:07:40 -0000	1.27
+@@ -67,7 +67,7 @@
+     typedef unsigned int mode_t;
+     typedef int nlink_t;
+     typedef int uid_t;
+-#elif defined(powerpc)
++#elif defined(__powerpc__)
+     typedef unsigned int dev_t;
+     typedef unsigned int gid_t;
+     typedef unsigned int mode_t;
+Index: include/sys/ucontext.h
+===================================================================
+RCS file: /cvs/dietlibc/include/sys/ucontext.h,v
+retrieving revision 1.6
+retrieving revision 1.7
+diff -u -r1.6 -r1.7
+--- include/sys/ucontext.h	10 Oct 2003 13:37:34 -0000	1.6
++++ include/sys/ucontext.h	7 Mar 2005 09:07:40 -0000	1.7
+@@ -10,7 +10,7 @@
+ typedef struct sigcontext mcontext_t;
+ #endif
+ 
+-#if defined(__i386__) || defined(__arm__) || defined(__mips__) || defined(__mips64__) || defined(powerpc) || defined(__powerpc64__) || defined(__hppa__)
++#if defined(__i386__) || defined(__arm__) || defined(__mips__) || defined(__mips64__) || defined(__powerpc__) || defined(__powerpc64__) || defined(__hppa__)
+ struct ucontext {
+   unsigned long		uc_flags;
+   struct ucontext	*uc_link;
+Index: libdl/_dl_rel.h
+===================================================================
+RCS file: /cvs/dietlibc/libdl/_dl_rel.h,v
+retrieving revision 1.4
+retrieving revision 1.5
+diff -u -r1.4 -r1.5
+--- libdl/_dl_rel.h	29 Jan 2005 02:34:22 -0000	1.4
++++ libdl/_dl_rel.h	7 Mar 2005 09:07:40 -0000	1.5
+@@ -9,7 +9,7 @@
+ 
+ #define _DL_REL_PLT(b,r)	(*(unsigned long*)((b)+(r)->r_offset)+=(unsigned long)(b))
+ 
+-#elif defined(__alpha__) || defined(__hppa__) || defined(__ppc__) || defined(__sparc__) || defined(__s390__) \
++#elif defined(__alpha__) || defined(__hppa__) || defined(__powerpc__) || defined(__sparc__) || defined(__s390__) \
+   || defined(__x86_64__)
+ /* this are RELA only archs: alpha, chris, hppa, ia64, m68k, ppc, sparc, sparc64, sh, s390, x86_64 */
+ 

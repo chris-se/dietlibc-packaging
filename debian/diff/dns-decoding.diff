@@ -1,0 +1,52 @@
+  fix stupid dns decoding bug (Gernot Tenchio)
+  (plus undocumented __NO_STAT64 fix)
+
+Index: include/unistd.h
+===================================================================
+RCS file: /cvs/dietlibc/include/unistd.h,v
+retrieving revision 1.82
+retrieving revision 1.83
+diff -u -r1.82 -r1.83
+--- include/unistd.h	2 Jul 2004 14:47:06 -0000	1.82
++++ include/unistd.h	26 Feb 2005 00:14:54 -0000	1.83
+@@ -243,6 +243,7 @@
+ 
+ extern char **__environ;
+ 
++#ifndef __NO_STAT64
+ #if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64
+ #define open open64
+ #define creat creat64
+@@ -250,6 +251,7 @@
+ #define ftruncate ftruncate64
+ #define getdents getdents64
+ #endif
++#endif
+ 
+ #ifdef _LINUX_SOURCE
+ int pivot_root(const char *new_root, const char *put_old) __THROW;
+Index: libcruft/dnscruft2.c
+===================================================================
+RCS file: /cvs/dietlibc/libcruft/dnscruft2.c,v
+retrieving revision 1.27
+retrieving revision 1.28
+diff -u -r1.27 -r1.28
+--- libcruft/dnscruft2.c	21 Feb 2003 02:33:21 -0000	1.27
++++ libcruft/dnscruft2.c	26 Feb 2005 00:29:55 -0000	1.28
+@@ -117,14 +117,14 @@
+ 	  result->h_addr_list[ips++] = cur;
+ 	  if (lookfor==1) /* A */ {
+ 	    *(int*)cur=*(int*)tmp;
+-	    cur+=4;
++	    cur+=4; tmp+=4;
+ 	    result->h_addr_list[ips]=0;
+ 	  } else if (lookfor==28) /* AAAA */ {
+ 	    {
+ 	      int k;
+ 	      for (k=0; k<16; ++k) cur[k]=tmp[k];
+ 	    }
+-	    cur+=16;
++	    cur+=16; tmp+=16;
+ 	    result->h_addr_list[ips]=0;
+ 	  }
+ 	}
