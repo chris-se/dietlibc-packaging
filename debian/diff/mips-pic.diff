@@ -1,0 +1,35 @@
+* avoid -fno-pic on mips/mipsel, libgcc.a is compiled with -fPIC on Debian
+  (at the expense of a few wasted bytes and CPU cycles, thx Johannes
+  Stezenbach).
+
+Index: diet.c
+===================================================================
+RCS file: /cvs/dietlibc/diet.c,v
+retrieving revision 1.59
+diff -u -r1.59 diet.c
+--- diet.c	13 Aug 2004 14:03:30 -0000	1.59
++++ diet.c	10 Dec 2004 12:07:52 -0000
+@@ -33,7 +33,7 @@
+   "sparc64","-Os","-m64","-mhard-quad-float",0,
+   "alpha","-Os","-fomit-frame-pointer",0,
+   "arm","-Os","-fomit-frame-pointer",0,
+-  "mips","-Os","-fomit-frame-pointer","-mno-abicalls","-fno-pic","-G","0",0,
++  "mips","-Os","-fomit-frame-pointer",0,
+   "mipsel","-Os","-fomit-frame-pointer","-mno-abicalls","-fno-pic","-G","0",0,
+   "ppc","-Os","-fomit-frame-pointer","-mpowerpc-gpopt","-mpowerpc-gfxopt",0,
+   "ppc64","-Os","-fomit-frame-pointer","-mpowerpc-gpopt","-mpowerpc-gfxopt",0,
+Index: mips/Makefile.add
+===================================================================
+RCS file: /cvs/dietlibc/mips/Makefile.add,v
+retrieving revision 1.14
+diff -u -r1.14 Makefile.add
+--- mips/Makefile.add	12 Aug 2004 12:51:36 -0000	1.14
++++ mips/Makefile.add	10 Dec 2004 12:07:55 -0000
+@@ -9,6 +9,6 @@
+ ifeq ($(CROSS),mips-linux-)
+ ENDIAN=-EB
+ endif
+-CFLAGS+=$(ENDIAN) -Os -G 0 -fstrict-aliasing -fno-pic -mno-abicalls
++CFLAGS+=$(ENDIAN) -Os -fstrict-aliasing
+ VPATH:=mips:syscalls.s:$(VPATH)
+ LIBOBJ+=$(OBJDIR)/pread64.o $(OBJDIR)/pwrite64.o $(OBJDIR)/divdi3.o

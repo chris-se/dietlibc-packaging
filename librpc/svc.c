@@ -44,11 +44,9 @@ static char sccsid[] = "@(#)svc.c 1.41 87/10/13 Copyr 1984 Sun Micro";
 #include <errno.h>
 #include <rpc/rpc.h>
 #include <rpc/pmap_clnt.h>
-#ifdef __linux__
+#include <string.h>
+#include <strings.h>
 #include <sys/types.h>
-#endif
-
-extern int errno;
 
 #ifdef FD_SETSIZE
 static SVCXPRT **xports;
@@ -74,7 +72,7 @@ static struct svc_callout {
 	void (*sc_dispatch) ();
 } *svc_head;
 
-static struct svc_callout *svc_find();
+static struct svc_callout *svc_find(unsigned long prog, unsigned long vers, struct svc_callout **prev);
 
 /* ***************  SVCXPRT related stuff **************** */
 

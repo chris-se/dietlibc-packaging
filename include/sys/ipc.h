@@ -2,6 +2,9 @@
 #define _SYS_IPC_H
 
 #include <sys/cdefs.h>
+#include <sys/types.h>
+
+__BEGIN_DECLS
 
 #define SEMOP		 1
 #define SEMGET		 2
@@ -15,7 +18,7 @@
 #define SHMGET		23
 #define SHMCTL		24
 
-#define IPC_PRIVATE ((key_t) 0)  
+#define IPC_PRIVATE ((key_t) 0)
 
 #define IPC_CREAT  00001000   /* create if key is nonexistent */
 #define IPC_EXCL   00002000   /* fail if key exists */
@@ -44,5 +47,10 @@ struct ipc_perm {
   mode_t	mode; 
   unsigned short	seq;
 };
+
+/* this is so bad, we moved it to -lcompat */
+key_t ftok(const char *pathname, int proj_id);
+
+__END_DECLS
 
 #endif

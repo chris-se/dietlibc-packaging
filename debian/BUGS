@@ -1,8 +1,0 @@
-
-1. Cross compiling is broken
-
-2. *.docs is the same for both packages and should only go in dietlibc, but
-   dietlibc is not necessarily on the system if dietlibc-dev is installed
-   so in order to be sure that there's docs on the system I install it for
-   both packages.
-

@@ -1,4 +1,6 @@
 #include "syscalls.h"
+#include <errno.h>
+#include "PIC.h"
 
 .text
 .type clone,@function
@@ -7,6 +9,8 @@ clone:
 .type __clone,@function
 .global __clone
 __clone:
+	mov	$-EINVAL, %eax
+
 	movl	4(%esp), %ecx	/* have non null thread_funcion */
 	jecxz	.Lclone_error
 
@@ -42,16 +46,15 @@ __clone:
 	negl	%eax
 	pushl	%eax
 #ifdef PIC
-	call	1f
-1:	popl	%ebx
-	addl	$_GLOBAL_OFFSET_TABLE_+[.-1b], %ebx
+	pushl	%ebx
+	PIC_INIT
 	call	__errno_location@PLT
+	popl	%ebx
 #else
 	call	__errno_location
 #endif
 	popl	%ecx
 	movl	%ecx, (%eax)
-	xorl	%eax, %eax
-	decl	%eax
-.Lreturn:	
+	orl	$-1, %eax
+.Lreturn:
 	ret

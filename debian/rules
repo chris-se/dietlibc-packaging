@@ -1,97 +1,130 @@
 #!/usr/bin/make -f
 
-# -*- sh -*-
+ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
+  DEBUG =DEBUG=1
+else
+  DEBUG =
+endif
 
-export DH_VERBOSE=1
-export DH_COMPAT=3
+ARCH ?=$(shell dpkg-architecture -qDEB_HOST_ARCH)
+ifeq ($(ARCH),amd64)
+  ARCH =x86_64
+else
+ifeq ($(ARCH),powerpc)
+  ARCH =ppc
+else
+ifeq ($(ARCH),hppa)
+  ARCH =parisc
+else
+ifeq ($(ARCH),mipsel)
+  ARCH =mips
+endif
+endif
+endif
+endif
 
-DESTDIR=$(CURDIR)/debian/tmp
+DYN =1
+ifneq ($(ARCH),arm)
+ifneq ($(ARCH),i386)
+  DYN =0
+endif
+endif
 
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-	# Add here commands to configure the package.
-	
+DIR =$(shell pwd)/debian/dietlibc
+VERSION =$(shell head -n1 debian/changelog |sed -e 's/.*(\(.*\)).*/\1/')
 
-	touch configure-stamp
+patch: deb-checkdir patch-stamp
+patch-stamp:
+	for i in `ls -1 debian/diff/*.diff || :`; do \
+	  patch -p0 <$$i || exit 1; \
+	done
+	touch patch-stamp
 
-build: configure-stamp build-stamp
-build-stamp:
-	dh_testdir
-
-	# Remove backup files
-	find . \( -name "*~" -o -name ".#*" \) -exec rm {} \;
-
-	# Add here commands to compile the package.
-	-$(MAKE)
-	#-$(MAKE) dyn
-
+build: deb-checkdir build-stamp
+build-stamp: patch-stamp 
+	$(MAKE) prefix=/usr/lib/diet \
+	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
+	test '$(DYN)' -eq 0 || \
+	  $(MAKE) dyn prefix=/usr/lib/diet \
+	    MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
 	touch build-stamp
 
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-stamp configure-stamp
-
-	# Add here commands to clean up after the build process.
+clean: deb-checkdir deb-checkuid
 	-$(MAKE) clean
+	test ! -e patch-stamp || \
+	  for i in `ls -1r debian/diff/*.diff || :`; do patch -p0 -R <$$i; done
+	rm -f build-stamp install-stamp patch-stamp
+	rm -f dynlinker.README libdl.README libpthread.CHANGES \
+	  libpthread.README profiling.PORTING profiling.README \
+	  sparc64.README ia64.README changelog
+	rm -rf '$(DIR)' '$(DIR)'-dev '$(DIR)'-doc
+	rm -f debian/files debian/substvars debian/dietlibc-dev.postinst
 
-	dh_clean
-	rm -f $(CURDIR)/debian/{build,configure}-stamp
-	rm -rf $(CURDIR)/debian/dietlibc-dev
+install: deb-checkdir deb-checkuid install-stamp
+install-stamp: build-stamp
+	rm -rf '$(DIR)' '$(DIR)'-dev '$(DIR)'-doc
+	install -d -m0755 '$(DIR)'/etc
+	$(MAKE) install prefix=/usr/lib/diet DESTDIR='$(DIR)'
+	# dietlibc dietlibc-dev dietlibc-doc
+	echo '/usr/lib/diet/lib' >'$(DIR)'/etc/diet.ld.conf
+	install -d -m0755 '$(DIR)'-dev/usr/include
+	mv '$(DIR)'/usr/lib/diet/include '$(DIR)'-dev/usr/include/diet
+	install -d -m0755 '$(DIR)'-dev/usr/lib/diet
+	ln -s ../../include/diet '$(DIR)'-dev/usr/lib/diet/include
+	mv '$(DIR)'/usr/lib/diet/lib-'$(ARCH)' '$(DIR)'/usr/lib/diet/lib
+	cp -pr '$(DIR)'/usr/lib/diet/lib '$(DIR)'-dev/usr/lib/diet/
+	rm -f '$(DIR)'/usr/lib/diet/lib/*.[ao]
+	rm -f '$(DIR)'-dev/usr/lib/diet/lib/*.so
+	#ln -s lib '$(DIR)'-dev/usr/lib/diet/lib-'$(ARCH)'
+	mv '$(DIR)'/usr/lib/diet/bin '$(DIR)'-dev/usr/lib/diet/
+	install -d -m0755 '$(DIR)'-dev/usr/bin
+	mv '$(DIR)'-dev/usr/lib/diet/bin/diet* '$(DIR)'-dev/usr/bin/
+	ln -s ../../../bin/diet '$(DIR)'-dev/usr/lib/diet/bin/
+	if test '$(DYN)' -eq 1; then \
+	  ln -s ../../../bin/diet-dyn '$(DIR)'-dev/usr/lib/diet/bin/ && \
+	  chmod 0644 '$(DIR)'/usr/lib/diet/lib/*.so && \
+	  chmod 0755 '$(DIR)'/usr/lib/diet/lib/libdl.so; \
+	fi
+	install -d -m0755 $(DIR)-dev/usr/share/man
+	mv $(DIR)/usr/lib/diet/man/man? $(DIR)-dev/usr/share/man/
+	gzip -9 $(DIR)-dev/usr/share/man/man?/*
+	rmdir $(DIR)/usr/lib/diet/man
+	install -d -m0755 $(DIR)-doc
+	# .in
+	sed -e 's/|ARCH|/$(ARCH)/' <debian/dietlibc-dev.postinst.in \
+	  >debian/dietlibc-dev.postinst
+	# lintian overrides
+	install -d -m0755 '$(DIR)'-dev/usr/share/lintian/overrides
+	install -m0644 debian/dietlibc-dev.lintian \
+	  '$(DIR)'-dev/usr/share/lintian/overrides/dietlibc-dev
+	# doc
+	rm -f dynlinker.README libdl.README libpthread.CHANGES \
+	  libpthread.README profiling.PORTING profiling.README \
+	  sparc64.README ia64.README changelog
+	ln -s dynlinker/README dynlinker.README
+	ln -s libdl/README libdl.README
+	ln -s libpthread/CHANGES libpthread.CHANGES
+	ln -s libpthread/README libpthread.README
+	ln -s profiling/PORTING profiling.PORTING
+	ln -s profiling/README profiling.README
+	ln -s sparc64/README sparc64.README
+	ln -s ia64/README ia64.README
+	ln -s CHANGES changelog
+	touch install-stamp
 
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
+binary-indep: deb-checkdir deb-checkuid install dietlibc-doc.deb
+	dpkg-gencontrol -isp -pdietlibc-doc -P'$(DIR)'-doc
+	dpkg -b '$(DIR)'-doc ..
 
-	# This is a hack to get around bugs in the Makefile
-	install -d $(DESTDIR)/etc $(DESTDIR)/usr/include
-
-	# Add here commands to install the package into debian/tmp
-	$(MAKE) DESTDIR=$(DESTDIR) install
-
-	# I don't like Felix's diet binaries. They just complicate
-	# things, so we use my diet bash script instead.
-	rm -rf $(DESTDIR)/usr/bin/*
-	cp $(CURDIR)/debian/diet $(DESTDIR)/usr/bin
-	chmod 0755 $(DESTDIR)/usr/bin/diet
-
-	dh_movefiles
-
-# Build architecture-independent files here.
-binary-indep: build install
-	dh_testdir -i
-	dh_testroot -i
-	dh_installdocs -i
-	dh_installchangelogs -i CHANGES
-	dh_link -i
-	dh_strip -i
-	dh_compress -i
-	dh_fixperms -i
-	dh_installdeb -i
-	dh_gencontrol -i
-	dh_md5sums -i
-	dh_builddeb -i
-
-# Build architecture-dependent files here.
-binary-arch: build install
-	dh_testdir -a
-	dh_testroot -a
-	dh_installdocs -a
-	dh_installexamples -a
-	dh_installman -a
-	dh_installchangelogs -a CHANGES
-	dh_link -a
-	dh_strip -a
-	dh_compress -a
-	dh_fixperms -a
-	dh_makeshlibs -a --exclude=diet.so.conf
-	dh_installdeb -a
-	dh_gencontrol -a
-	dh_md5sums -a
-	dh_builddeb -a
+binary-arch: deb-checkdir deb-checkuid install dietlibc-dev.deb dietlibc.deb
+	dpkg-gencontrol -isp -pdietlibc-dev -P'$(DIR)'-dev
+	dpkg -b '$(DIR)'-dev ..
+	if test '$(DYN)' -eq 1; then \
+	  dpkg-gencontrol -isp -pdietlibc -P'$(DIR)'; \
+	  dpkg -b '$(DIR)' ..; \
+	fi
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure
+.PHONY: patch build clean install binary-indep binary-arch binary
+
+include debian/implicit

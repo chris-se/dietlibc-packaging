@@ -3,12 +3,14 @@
 
 #include <sys/cdefs.h>
 
+__BEGIN_DECLS
+
 extern int ioperm(unsigned long from, unsigned long num, int turn_on) __THROW;
 extern int iopl(int level) __THROW;
 
 #ifndef __STRICT_ANSI__
 /* anyone have a cleaner solution for this mess? */
-#ifdef __i386__
+#if defined(__i386__) || defined(__x86_64__)
 static inline unsigned char inb (unsigned short int port) {
   unsigned char _v;
   __asm__ __volatile__ ("inb %w1,%0":"=a" (_v):"Nd" (port));
@@ -40,5 +42,7 @@ static inline void outl (unsigned int value, unsigned short int port) {
 }
 #endif
 #endif
+
+__END_DECLS
 
 #endif

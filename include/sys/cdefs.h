@@ -1,8 +1,6 @@
 #ifndef _SYS_CDEFS_H
 #define _SYS_CDEFS_H
 
-#define __dietlibc__
-
 #ifndef __cplusplus
 #define __THROW
 #define __BEGIN_DECLS
@@ -18,11 +16,10 @@
 #define __extension__
 #endif
 
-#define __pure__
-#ifdef __GNUC__
 #if (__GNUC__ > 2) || ((__GNUC__ == 2) && (__GNUC_MINOR__ >= 96))
-#undef __pure__
-#define __pure__ __attribute__ ((__pure__))
+#define __pure __attribute__ ((__pure__))
+#else
+#define __pure
 #endif
 
 #if (__GNUC__ == 2) && (__GNUC_MINOR__ < 95)
@@ -30,29 +27,46 @@
 #endif
 
 #ifndef __STRICT_ANSI__
-#if (__GNUC__ < 3)
+#if __GNUC__ < 3
 #define __builtin_expect(foo,bar) (foo)
-#define expect(foo,bar) (foo)
+#define __expect(foo,bar) (foo)
 #else
-#define expect(foo,bar) __builtin_expect(foo,bar)
+#define __expect(foo,bar) __builtin_expect((long)(foo),bar)
+#define __attribute_malloc__ __attribute__((__malloc__))
 #endif
 #endif
+
+/* idea for these macros taken from Linux kernel */
+#define __likely(foo) __expect((foo),1)
+#define __unlikely(foo) __expect((foo),0)
+
+#ifndef __attribute_malloc__
+#define __attribute_malloc__
 #endif
 
 #define __P(x) x
 
 #define __ptr_t void*
 
-#ifdef __STRICT_ANSI__
+#if defined(__STRICT_ANSI__) && __STDC_VERSION__ + 0 < 199900L
 #define inline
-#endif
-
-#ifndef __GNUC__
-#define __extension__
 #endif
 
 #ifndef __i386__
 #define regparm(x)
+#endif
+
+#if (__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 2))
+#define __attribute_dontuse__ __attribute__((__deprecated__))
+#else
+#define __attribute_dontuse__
+#define __deprecated__
+#endif
+
+#if (__GNUC_ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3))
+# define __nonnull(params) __attribute__ ((__nonnull__ params))
+#else
+# define __nonnull(params)
 #endif
 
 #endif

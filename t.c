@@ -43,6 +43,8 @@
 #include <fcntl.h>
 #include <iconv.h>
 #include <features.h>
+#include <sys/ioctl.h>
+#include <pty.h>
 #ifdef __dietlibc__
 #include <md5.h>
 #include <write12.h>
@@ -102,10 +104,69 @@ extern char* strcpy2(char*a,char*b);
      __asm__ __volatile__ ("rdtsc" : "=a" (low) : : "edx")
 
 int main(int argc,char *argv[]) {
+  char buf[100];
+  __write2("foo!\n");
+  memset(buf,0,200);
+#if 0
+  printf("%+05d\n",500);
+#endif
+#if 0
+  char* c;
+  printf("%d\n",asprintf(&c,"foo %d",23));
+  puts(c);
+#endif
+#if 0
+  struct winsize ws;
+  if (!ioctl(0, TIOCGWINSZ, &ws)) {
+    printf("%dx%d\n",ws.ws_col,ws.ws_row);
+  }
+#endif
+#if 0
+  struct termios t;
+  if (tcgetattr(1,&t)) { puts("tcgetattr failed!"); return 1; }
+  printf("%d\n",cfgetospeed(&t));
+#endif
+#if 0
+  printf("%p\n",malloc(0));
+#endif
+#if 0
+  char* argv[]={"sh","-i",0};
+  char buf[PATH_MAX+100];
+  int i;
+  for (i=0; i<PATH_MAX+20; ++i) buf[i]='a';
+  memmove(buf,"PATH=/",6);
+  strcpy(buf+i,"/bin:/bin");
+  putenv(buf);
+  execvp("sh",argv);
+  printf("%d\n",islower('ü'));
+#endif
+#if 0
+  char buf[101];
+  __dtostr(-123456789.456,buf,100,6,2);
+  puts(buf);
+  return 0;
+#endif
+#if 0
+  time_t t=1009921588;
+  puts(asctime(localtime(&t)));
+#endif
+#if 0
+  printf("%g\n",atof("30"));
+#endif
+#if 0
+  char* buf[]={"FOO=FNORD","A=B","C=D","PATH=/usr/bin:/bin",0};
+  environ=buf;
+  putenv("FOO=BAR");
+  putenv("FOO=BAZ");
+  putenv("BLUB=DUH");
+  system("printenv");
+#endif
+#if 0
   char buf[1024];
   time_t t1=time(0);
   struct tm* t=localtime(&t1);
   printf("%d %s\n",strftime(buf,sizeof buf,"%b %d %H:%M",t),buf);
+#endif
 #if 0
   tzset();
   printf("%d\n",daylight);
@@ -329,7 +390,9 @@ int main(int argc,char *argv[]) {
 #if 0
   char buf[1024];
   struct hostent* r;
-  r=gethostbyname("www.convergence.de");
+  int i=0;
+  r=gethostbyname("cyberelks.net");
+again:
   if (!r) {
     printf("dns error: %s\n",hstrerror(h_errno));
   }
@@ -349,6 +412,11 @@ int main(int argc,char *argv[]) {
       }
       putchar('\n');
     }
+  }
+  if (!i) {
+    i=1;
+    r=gethostbyname("prdownloads.sourceforge.net");
+    goto again;
   }
 #endif
 #if 0
@@ -647,6 +715,7 @@ int main(int argc,char *argv[]) {
 #endif
 #if 0
   time_t t=time(0);
+  printf("%lu\n",t);
   puts(asctime(localtime(&t)));
 #endif
 #if 0

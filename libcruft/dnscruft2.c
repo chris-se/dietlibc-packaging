@@ -13,9 +13,6 @@
 #include "dietfeatures.h"
 #include "dietdns.h"
 
-extern void __dns_make_fd(void);
-extern int __dns_fd;
-
 extern void __dns_readstartfiles(void);
 
 extern int __dns_decodename(unsigned char *packet,unsigned int offset,unsigned char *dest,
@@ -46,16 +43,14 @@ int __dns_gethostbyx_r(const char* name, struct hostent* result,
   int size;
 
   if (lookfor==1) {
-    result->h_aliases=(char**)(buf+8*4);
     result->h_addrtype=AF_INET;
     result->h_length=4;
-    result->h_addr_list=(char**)buf;
   } else {
-    result->h_aliases=(char**)(buf+8*16);
     result->h_addrtype=AF_INET6;
     result->h_length=16;
-    result->h_addr_list=(char**)buf;
   }
+  result->h_aliases=(char**)(buf+8*sizeof(char*));
+  result->h_addr_list=(char**)buf;
   result->h_aliases[0]=0;
 
   cur=buf+16*sizeof(char*);
@@ -73,12 +68,12 @@ invalidpacket:
       char Name[257];
       unsigned short q=((unsigned short)inpkg[4]<<8)+inpkg[5];
       while (q>0) {
-	if (tmp>inpkg+size) goto invalidpacket;
-	while (*tmp) { tmp+=*tmp+1; if (tmp>inpkg+size) goto invalidpacket; }
+	if (tmp>(char*)inpkg+size) goto invalidpacket;
+	while (*tmp) { tmp+=*tmp+1; if (tmp>(char*)inpkg+size) goto invalidpacket; }
 	tmp+=5;
 	--q;
       }
-      if (tmp>inpkg+size) goto invalidpacket;
+      if (tmp>(char*)inpkg+size) goto invalidpacket;
       q=((unsigned short)inpkg[6]<<8)+inpkg[7];
       if (q<1) goto nodata;
       while (q>0) {
@@ -116,7 +111,7 @@ invalidpacket:
 	  else
 	    result->h_aliases[names-1]=cur;
 	  result->h_aliases[names]=0;
-	  ++names;
+	  if (names<8) ++names;
 /*		cur+=slen+1; */
 	  cur+=(slen|3)+1;
 	  result->h_addr_list[ips++] = cur;
@@ -159,6 +154,7 @@ int __dns_gethostbyx_r(const char* name, struct hostent* result,
   int res;
   size_t len=strlen(name);
   int count=0;
+  __dns_readstartfiles();
   memmove(Buf,name,len);
   Buf[len]=Buf[MAXDNAME]=0;
 //  printf("appending %d: %p\n",count,__dns_domains[count]);
@@ -167,7 +163,7 @@ int __dns_gethostbyx_r(const char* name, struct hostent* result,
     if (count==__dns_search) break;
     Buf[len]='.';
 //    printf("appending %d: %p (%s)\n",count,__dns_domains[count],__dns_domains[count]);
-    strncpy(Buf+len+1,__dns_domains[count],MAXDNAME-len-1);
+    memccpy(Buf+len+1,__dns_domains[count],0,MAXDNAME-len-1);
     tmp=Buf;
     ++count;
   }

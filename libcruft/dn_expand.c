@@ -1,3 +1,6 @@
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>
 
 extern int __dns_decodename(unsigned char *packet,unsigned int ofs,unsigned char *dest,
 			    unsigned int maxlen,unsigned char* behindpacket);

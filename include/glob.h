@@ -1,6 +1,10 @@
 #ifndef _GLOB_H
 #define _GLOB_H
 
+#include <sys/cdefs.h>
+#include <sys/types.h>
+
+__BEGIN_DECLS
 
 typedef struct {
 	size_t gl_pathc;    /* Count of paths matched so far  */
@@ -51,5 +55,6 @@ void globfree(glob_t *pglob) __THROW;
    GLOB_ABORTED.  Provide a compatibility definition here.  */
 #define GLOB_ABEND GLOB_ABORTED
 
+__END_DECLS
 
 #endif

@@ -5,14 +5,17 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
+#include "dietdirent.h"
 
 int ftw(const char*dir,int(*f)(const char*file,const struct stat*sb,int flag),int dpth){
-  char*cd;
+  char* cd;
   size_t cdl;
-  DIR*d;
-  struct dirent*de;
+  DIR* d;
+  struct dirent* de;
   struct stat sb;
   int r;
+  unsigned int oldlen=0;
+  char* filename;	/* the warning gcc issues here is bogus */
   if(chdir(dir))return-1;
   cd=alloca(PATH_MAX+1);
   if(!getcwd(cd,PATH_MAX))return-1;
@@ -22,10 +25,10 @@ int ftw(const char*dir,int(*f)(const char*file,const struct stat*sb,int flag),in
   while((de=readdir(d))){
     int flg;
     size_t nl;
-    char*filename;
     if(de->d_name[0]=='.'){if(!de->d_name[1])continue;if(de->d_name[1]=='.'&&!de->d_name[2])continue;}
     nl=strlen(de->d_name);
-    filename=alloca(nl+cdl+2);
+    if (nl+cdl+2>oldlen)
+      filename=alloca(oldlen=nl+cdl+2);
     memmove(filename,cd,cdl);
     filename[cdl]='/';
     memmove(filename+cdl+1,de->d_name,nl+1);
@@ -36,7 +39,7 @@ int ftw(const char*dir,int(*f)(const char*file,const struct stat*sb,int flag),in
     if(r){closedir(d);return r;}
     if(flg==FTW_D&&dpth){
       r=ftw(filename,f,dpth-1);
-      chdir(dir);
+      fchdir(d->fd);
       if (r){closedir(d);return r;}
     }
   }

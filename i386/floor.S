@@ -1,22 +1,46 @@
+#include "PIC.h"
 
 .text
-.type   floor,@function
-.global floor
+
+.global floorf,floor,floorl
+	.type floorf,@function
+	.type floor,@function
+	.type floorl,@function
+
+floorf:
+	flds 4(%esp)
+	movb $0x04,%ah
+#ifdef __DYN_LIB
+	PIC_SAVE
+	PIC_INIT
+	jmp __flcetr@PLT
+#else
+	jmp __flcetr
+#endif
+
 floor:
-        fldl   4(%esp)
-        push   %ecx
-        movl   %esp,%ecx
-        fnstcw (%ecx)
-        movw   0(%ecx),%ax
-        andb   $0xF7,%ah
-        orb    $0x04,%ah
-        movw   %ax,2(%ecx)
-        fldcw  2(%ecx)
-        frndint
-        fldcw  0(%ecx)
-        pop    %ecx
-        ret
+	fldl 4(%esp)
+	movb $0x04,%ah
+#ifdef __DYN_LIB
+	PIC_SAVE
+	PIC_INIT
+	jmp __flcetr@PLT
+#else
+	jmp __flcetr
+#endif
 
-.ende:
-.size    floor,.ende-floor
+floorl:
+	fldt 4(%esp)
+	movb $0x04,%ah
+#ifdef __DYN_LIB
+	PIC_SAVE
+	PIC_INIT
+	jmp __flcetr@PLT
+#else
+	jmp __flcetr
+#endif
 
+.Lende:
+.size    floor,.Lende-floor
+.size    floorl,.Lende-floorl
+.size    floorf,.Lende-floorf

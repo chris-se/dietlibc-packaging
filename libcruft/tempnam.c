@@ -2,7 +2,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <dietwarning.h>
 
 link_warning("tempnam","\e[1;33;41m>>> tempnam stinks! NEVER ! NEVER USE IT ! <<<\e[0m");
@@ -12,7 +13,7 @@ char* tempnam(char* dir,char* template) {
   int len=sizeof(buf)-1,fd;
   buf[len]=0;
   if ((dir)&&(*dir)) {
-    strncpy(buf,dir,len);
+    memccpy(buf,dir,0,len);
     strncat(buf,"/",1);
   }
   else

@@ -5,7 +5,7 @@ typedef void (*function)(void);
 #define NUM_ATEXIT	32
 
 static function __atexitlist[NUM_ATEXIT];
-static int atexit_counter = 0;
+static int atexit_counter;
 
 int atexit(function t) {
   if (atexit_counter<NUM_ATEXIT) {
@@ -17,11 +17,15 @@ int atexit(function t) {
 }
 
 extern void _exit(int code) __attribute__((noreturn));
+extern void __thread_doexit(int doexit);
 
-void exit(int code) {
+void __libc_exit(int code);
+void __libc_exit(int code) {
   register int i=atexit_counter;
+  __thread_doexit(code);
   while(i) {
     __atexitlist[--i]();
   }
   _exit(code);
 }
+void exit(int code) __attribute__((alias("__libc_exit")));

@@ -50,12 +50,18 @@ static char sccsid[] = "@(#)clnt_udp.c 1.39 87/08/11 Copyr 1984 Sun Micro";
 /*
  * UDP bases client side rpc operations
  */
-static enum clnt_stat clntudp_call();
-static void clntudp_abort();
-static void clntudp_geterr();
-static bool_t clntudp_freeres();
-static bool_t clntudp_control();
-static void clntudp_destroy();
+static enum clnt_stat clntudp_call(register CLIENT *cl,         /* client handle */
+		unsigned long proc,                             /* procedure number */
+		xdrproc_t xargs,                                /* xdr routine for args */
+		char* argsp,                                    /* pointer to args */
+		xdrproc_t xresults,                             /* xdr routine for results */
+		char* resultsp,                                 /* pointer to results */
+		struct timeval utimeout);
+static void clntudp_abort(void);
+static void clntudp_geterr(CLIENT *, struct rpc_err *);
+static bool_t clntudp_freeres(CLIENT *, xdrproc_t, char*);
+static bool_t clntudp_control(CLIENT *, int, char *);
+static void clntudp_destroy(CLIENT *);
 
 static struct clnt_ops udp_ops = {
 	clntudp_call,
@@ -65,6 +71,7 @@ static struct clnt_ops udp_ops = {
 	clntudp_destroy,
 	clntudp_control
 };
+
 
 /* 
  * Private data kept per client handle
@@ -112,7 +119,7 @@ unsigned int sendsz;
 unsigned int recvsz;
 {
 	CLIENT *cl;
-	register struct cu_data *cu;
+	register struct cu_data *cu = NULL;
 	struct timeval now;
 	struct rpc_msg call_msg;
 
@@ -217,6 +224,7 @@ struct timeval utimeout;		/* seconds to wait before giving up */
 	register XDR *xdrs;
 	register int outlen;
 	register int inlen;
+	struct timeval singlewait;
 	int fromlen;
 
 #ifdef FD_SETSIZE
@@ -249,7 +257,7 @@ struct timeval utimeout;		/* seconds to wait before giving up */
 	/*
 	 * the transaction is the first thing in the out buffer
 	 */
-	(*(unsigned short *) (cu->cu_outbuf))++;
+	(*(uint32_t *) (cu->cu_outbuf))++;
 	if ((!XDR_PUTLONG(xdrs, (long *) &proc)) ||
 		(!AUTH_MARSHALL(cl->cl_auth, xdrs)) || (!(*xargs) (xdrs, argsp)))
 		return (cu->cu_error.re_status = RPC_CANTENCODEARGS);
@@ -285,7 +293,8 @@ struct timeval utimeout;		/* seconds to wait before giving up */
 #endif							/* def FD_SETSIZE */
 	for (;;) {
 		readfds = mask;
-		switch (select(_rpc_dtablesize(), &readfds, 0, 0, &(cu->cu_wait))) {
+		singlewait = cu->cu_wait;
+		switch (select(_rpc_dtablesize(), &readfds, 0, 0, &singlewait)) {
 
 		case 0:
 			time_waited.tv_sec += cu->cu_wait.tv_sec;
@@ -323,10 +332,10 @@ struct timeval utimeout;		/* seconds to wait before giving up */
 			cu->cu_error.re_errno = errno;
 			return (cu->cu_error.re_status = RPC_CANTRECV);
 		}
-		if (inlen < sizeof(unsigned long))
+		if (inlen < 4)
 			continue;
 		/* see if reply transaction id matches sent id */
-		if (*((unsigned long *) (cu->cu_inbuf)) != *((unsigned long *) (cu->cu_outbuf)))
+		if (*((uint32_t *) (cu->cu_inbuf)) != *((uint32_t *) (cu->cu_outbuf)))
 			continue;
 		/* we now assume we have the proper reply */
 		break;
@@ -434,3 +443,4 @@ CLIENT *cl;
 	mem_free((char*) cu, (sizeof(*cu) + cu->cu_sendsz + cu->cu_recvsz));
 	mem_free((char*) cl, sizeof(CLIENT));
 }
+

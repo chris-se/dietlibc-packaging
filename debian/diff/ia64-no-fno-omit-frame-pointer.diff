@@ -1,0 +1,16 @@
+Index: diet.c
+===================================================================
+RCS file: /cvs/dietlibc/diet.c,v
+retrieving revision 1.60
+diff -u -r1.60 diet.c
+--- diet.c	17 Dec 2004 18:47:58 -0000	1.60
++++ diet.c	23 Dec 2004 09:20:56 -0000
+@@ -40,7 +40,7 @@
+   "s390","-Os","-fomit-frame-pointer",0,
+   "s390x","-Os","-fomit-frame-pointer",0,
+   "sh","-Os","-fomit-frame-pointer",0,
+-  "ia64","-Os","-fno-omit-frame-pointer",0,
++  "ia64","-Os",0,
+   "x86_64","-Os","-fstrict-aliasing","-momit-leaf-frame-pointer","-mfancy-math-387",0,
+   0};
+ 
