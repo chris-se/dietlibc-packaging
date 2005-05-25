@@ -1,3 +1,15 @@
+dietlibc (0.29-1) unstable; urgency=low
+
+  * new upstream version.
+    - switches gcc option -malign-functions to -falign-functions in diet on
+      i386 (no longer supports gcc 2, closes: #234961).
+  * debian/diff/LD_RUN_PATH.diff, debian/diff/__powerpc__.diff,
+    debian/diff/dns-decoding.diff, debian/diff/fcntl.h.diff,
+    debian/diff/s390-select.diff, debian/diff/siginfo-64bit.diff: remove;
+    obsolete.
+
+ -- Gerrit Pape <pape@smarden.org>  Wed, 25 May 2005 19:33:41 +0000
+
 dietlibc (0.28-3) unstable; urgency=medium
 
   * debian/diff/s390-select.diff: new; add select for s390 (using
