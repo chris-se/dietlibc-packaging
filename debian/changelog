@@ -1,3 +1,11 @@
+dietlibc (0.29-2) unstable; urgency=low
+
+  * debian/diff/arm-waitpid.diff: new; re-add #define __NR_waitpid for arm
+    (works around build failure of dynamic lib on arm; still not really
+    usable though).
+
+ -- Gerrit Pape <pape@smarden.org>  Sun, 29 May 2005 10:51:51 +0000
+
 dietlibc (0.29-1) unstable; urgency=low
 
   * new upstream version.

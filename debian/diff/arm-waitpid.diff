@@ -1,0 +1,19 @@
+re-add #define __NR_waitpid for arm (works around build failure of
+dynamic lib on arm; still not really usable though).
+
+Index: arm/syscalls.h
+===================================================================
+RCS file: /cvs/dietlibc/arm/syscalls.h,v
+retrieving revision 1.5
+diff -u -r1.5 syscalls.h
+--- arm/syscalls.h	25 May 2005 08:39:59 -0000	1.5
++++ arm/syscalls.h	29 May 2005 10:47:50 -0000
+@@ -6,7 +6,7 @@
+ #define __NR_write			(__NR_SYSCALL_BASE+  4)
+ #define __NR_open			(__NR_SYSCALL_BASE+  5)
+ #define __NR_close			(__NR_SYSCALL_BASE+  6)
+-					/* 7 was sys_waitpid */
++#define __NR_waitpid			(__NR_SYSCALL_BASE+  7)
+ #define __NR_creat			(__NR_SYSCALL_BASE+  8)
+ #define __NR_link			(__NR_SYSCALL_BASE+  9)
+ #define __NR_unlink			(__NR_SYSCALL_BASE+ 10)
