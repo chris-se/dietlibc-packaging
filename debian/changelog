@@ -1,3 +1,9 @@
+dietlibc (0.29-3) unstable; urgency=low
+
+  * debian/diff/cvs-20050731.diff: new; cvs snapshot from 200507311100.
+
+ -- Gerrit Pape <pape@smarden.org>  Sun, 31 Jul 2005 11:25:07 +0000
+
 dietlibc (0.29-2) unstable; urgency=low
 
   * debian/diff/arm-waitpid.diff: new; re-add #define __NR_waitpid for arm
