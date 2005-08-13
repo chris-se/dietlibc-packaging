@@ -24,10 +24,8 @@ endif
 endif
 
 DYN =1
-ifneq ($(ARCH),arm)
 ifneq ($(ARCH),i386)
   DYN =0
-endif
 endif
 
 DIR =$(shell pwd)/debian/dietlibc

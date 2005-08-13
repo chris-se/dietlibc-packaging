@@ -1,0 +1,58 @@
+Index: ia64/clone.S
+===================================================================
+RCS file: /cvs/dietlibc/ia64/clone.S,v
+retrieving revision 1.1
+diff -u -r1.1 clone.S
+--- ia64/clone.S	13 May 2002 15:55:50 -0000	1.1
++++ ia64/clone.S	12 Aug 2005 17:51:49 -0000
+@@ -37,5 +37,4 @@
+ 	br.call.dptk.few b0=__error_unified_syscall
+ 	br.ret.sptk.few b0
+ .endp __clone
+-.endp __clone2
+ .size __clone, . - __clone
+Index: ia64/unified.S
+===================================================================
+RCS file: /cvs/dietlibc/ia64/unified.S,v
+retrieving revision 1.2
+diff -u -r1.2 unified.S
+--- ia64/unified.S	24 Jul 2002 12:47:33 -0000	1.2
++++ ia64/unified.S	12 Aug 2005 17:51:49 -0000
+@@ -16,9 +16,7 @@
+ .text
+ 
+ .globl __unified_syscall
+-.proc  __unified_syscall
+ .globl __error_unified_syscall
+-.proc  __error_unified_syscall
+ .globl _exit
+ .proc  _exit
+ 
+@@ -27,11 +25,18 @@
+ .endp _exit
+ .size _exit, . - _exit
+ 
++.proc  __unified_syscall
++
+ __unified_syscall:
+ 	break.i 0x100000
+ 	movl r2=errno
+ 	cmp.eq p6,p0=-1,r10
+ 	;;
++.endp __unified_syscall
++.size __unified_syscall, . - __unified_syscall
++
++.proc  __error_unified_syscall
++
+ __error_unified_syscall:
+ (p6)    st4 [r2]=r8
+ (p6)    mov r8=-1
+@@ -39,8 +44,5 @@
+ #include "dietuglyweaks.h"
+ 
+ 	br.ret.sptk.few rp
+-
+-.endp __unified_syscall
+ .endp __error_unified_syscall
+-.size __unified_syscall, __error_unified_syscall - __unified_syscall
+ .size __error_unified_syscall, . - __error_unified_syscall

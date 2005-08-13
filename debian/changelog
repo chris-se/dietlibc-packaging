@@ -1,3 +1,12 @@
+dietlibc (0.29-4) unstable; urgency=low
+
+  * ia64-proc-endp.diff: new; ia64 asm: A2124 previous proedure not yet
+    ended (fixes build failure on ia64).
+  * debian/control, debian/rules: no longer build dynamic library on arm,
+    it's not really usable anyway (fixes build failure on arm).
+
+ -- Gerrit Pape <pape@smarden.org>  Sat, 13 Aug 2005 13:59:57 +0000
+
 dietlibc (0.29-3) unstable; urgency=low
 
   * debian/diff/cvs-20050731.diff: new; cvs snapshot from 200507311100.

@@ -24,7 +24,7 @@ Description: diet libc - a libc optimized for small size
 
 Package: dietlibc
 Section: libs
-Architecture: arm i386
+Architecture: i386
 Suggests: dietlibc-doc, dietlibc-dev
 Description: diet libc shared libraries - a libc optimized for small size
  The diet libc is a C library that is optimized for small size. It
