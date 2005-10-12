@@ -1,3 +1,15 @@
+dietlibc (0.29-5) unstable; urgency=low
+
+  * debian/dietlibc-dev.prerm.in: new; remove /usr/lib/diet/lib-|ARCH| on
+    'remove'.
+  * debian/rules: create debian/dietlibc-dev.prerm from
+    debian/dietlibc-dev.prerm.in (closes: #328283).
+  * debian/diff/cvs-20051012.diff: new; cvs snapshot from 200510120900.
+  * debian/diff/cvs-20050731.diff, debian/diff/rpc_svcauth_.diff: remove;
+    obsolete.
+
+ -- Gerrit Pape <pape@smarden.org>  Wed, 12 Oct 2005 09:12:58 +0000
+
 dietlibc (0.29-4) unstable; urgency=low
 
   * ia64-proc-endp.diff: new; ia64 asm: A2124 previous proedure not yet

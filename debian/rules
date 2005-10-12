@@ -56,7 +56,8 @@ clean: deb-checkdir deb-checkuid
 	  libpthread.README profiling.PORTING profiling.README \
 	  sparc64.README ia64.README changelog
 	rm -rf '$(DIR)' '$(DIR)'-dev '$(DIR)'-doc
-	rm -f debian/files debian/substvars debian/dietlibc-dev.postinst
+	rm -f debian/files debian/substvars debian/dietlibc-dev.postinst \
+	  debian/dietlibc-dev.prerm
 
 install: deb-checkdir deb-checkuid install-stamp
 install-stamp: build-stamp
@@ -91,6 +92,8 @@ install-stamp: build-stamp
 	# .in
 	sed -e 's/|ARCH|/$(ARCH)/' <debian/dietlibc-dev.postinst.in \
 	  >debian/dietlibc-dev.postinst
+	sed -e 's/|ARCH|/$(ARCH)/' <debian/dietlibc-dev.prerm.in \
+	  >debian/dietlibc-dev.prerm
 	# lintian overrides
 	install -d -m0755 '$(DIR)'-dev/usr/share/lintian/overrides
 	install -m0644 debian/dietlibc-dev.lintian \
