@@ -1,0 +1,13 @@
+Index: parisc/clone.S
+===================================================================
+RCS file: /cvs/dietlibc/parisc/clone.S,v
+retrieving revision 1.2
+diff -u -r1.2 clone.S
+--- parisc/clone.S	20 Jul 2002 13:29:26 -0000	1.2
++++ parisc/clone.S	16 Oct 2005 18:28:55 -0000
+@@ -37,4 +37,4 @@
+ 	bl	_exit,%r2		/* exit thread */
+ 	copy	%r28,%r26		/* return -> arg0 */
+ 
+-	iitlbp	%r0,(%r0)		/* DIE ! DIE ! */
++	iitlbp	%r0,(%sr0,%r0)		/* DIE ! DIE ! */

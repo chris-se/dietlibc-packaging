@@ -1,3 +1,10 @@
+dietlibc (0.29-6) unstable; urgency=low
+
+  * debian/diff/parisc-iitlbp.diff: new; from glibc: Update hppa assembly
+    for current CVS binutils (fixes build failure on hppa).
+
+ -- Gerrit Pape <pape@smarden.org>  Sun, 16 Oct 2005 18:29:25 +0000
+
 dietlibc (0.29-5) unstable; urgency=low
 
   * debian/dietlibc-dev.prerm.in: new; remove /usr/lib/diet/lib-|ARCH| on
