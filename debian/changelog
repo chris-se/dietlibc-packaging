@@ -1,3 +1,10 @@
+dietlibc (0.29-7) unstable; urgency=low
+
+  * debian/diff/parisc-sendto-recvfrom.diff: new: fix sendto(), recvfrom()
+    on hppa.
+
+ -- Gerrit Pape <pape@smarden.org>  Tue, 20 Dec 2005 13:14:04 +0000
+
 dietlibc (0.29-6) unstable; urgency=low
 
   * debian/diff/parisc-iitlbp.diff: new; from glibc: Update hppa assembly
