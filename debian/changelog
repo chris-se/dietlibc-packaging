@@ -1,3 +1,10 @@
+dietlibc (0.29-8) unstable; urgency=low
+
+  * debian/rules: binary-arch: set MYARCH on make install also (fixes build
+    failure on sparc).
+
+ -- Gerrit Pape <pape@smarden.org>  Thu, 22 Dec 2005 16:30:02 +0000
+
 dietlibc (0.29-7) unstable; urgency=low
 
   * debian/diff/parisc-sendto-recvfrom.diff: new: fix sendto(), recvfrom()

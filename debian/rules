@@ -63,7 +63,8 @@ install: deb-checkdir deb-checkuid install-stamp
 install-stamp: build-stamp
 	rm -rf '$(DIR)' '$(DIR)'-dev '$(DIR)'-doc
 	install -d -m0755 '$(DIR)'/etc
-	$(MAKE) install prefix=/usr/lib/diet DESTDIR='$(DIR)'
+	$(MAKE) install prefix=/usr/lib/diet DESTDIR='$(DIR)' \
+	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
 	# dietlibc dietlibc-dev dietlibc-doc
 	echo '/usr/lib/diet/lib' >'$(DIR)'/etc/diet.ld.conf
 	install -d -m0755 '$(DIR)'-dev/usr/include
