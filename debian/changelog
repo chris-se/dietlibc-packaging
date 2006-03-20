@@ -1,3 +1,10 @@
+dietlibc (0.29-9) unstable; urgency=low
+
+  * debian/diff/s390-mmap.diff: new; fix mmap and missing mmap64
+    implementation for s390 (thx Bastian Blank, closes: #356557).
+
+ -- Gerrit Pape <pape@smarden.org>  Mon, 20 Mar 2006 20:27:13 +0000
+
 dietlibc (0.29-8) unstable; urgency=low
 
   * debian/rules: binary-arch: set MYARCH on make install also (fixes build
