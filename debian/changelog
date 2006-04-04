@@ -1,3 +1,18 @@
+dietlibc (0.29-9bpo1) sarge-backports; urgency=low
+
+  * Unstable version 0.29-10 recompiled for <http://www.backports.org/>
+
+ -- Micah Anderson <micah@debian.org>  Tue,  4 Apr 2006 18:03:16 -0400
+
+dietlibc (0.29-10) unstable; urgency=low
+
+  * debian/diff/patch-diet-parisc-fix06.diff: new; fixes issues with the
+    parisc syscalls that all contain 5 or 6 arguments (thx Herbert Poetzl,
+    Micah Anderson, closes: #351875, #360007).
+  * debian/diff/parisc-sendto-recvfrom.diff: remove; obsolete.
+
+ -- Gerrit Pape <pape@smarden.org>  Sat,  1 Apr 2006 10:31:30 +0000
+
 dietlibc (0.29-9) unstable; urgency=low
 
   * debian/diff/s390-mmap.diff: new; fix mmap and missing mmap64
