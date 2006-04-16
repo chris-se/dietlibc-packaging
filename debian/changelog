@@ -1,3 +1,13 @@
+dietlibc (0.29-11) unstable; urgency=low
+
+  * debian/diff/cvs-20060416.diff: new: cvs snapshot from 200604161700.
+  * debian/diff/cvs-20051012.diff: remove; obsolete.
+  * debian/diff/patch-diet-parisc-fix06.diff, debian/diff/s390-mmap.diff:
+    remove; applied upstream cvs.
+  * debian/implicit: update to revision 1.11.
+
+ -- Gerrit Pape <pape@smarden.org>  Sun, 16 Apr 2006 17:55:52 +0000
+
 dietlibc (0.29-10) unstable; urgency=low
 
   * debian/diff/patch-diet-parisc-fix06.diff: new; fixes issues with the
