@@ -2,4 +2,4 @@
 set -e
 
 test "$1" = 'remove' || exit 0
-test ! -h /usr/lib/diet/lib-|ARCH| || rm -f $_ 
+test ! -h /usr/lib/diet/lib-|ARCH| || rm -f /usr/lib/diet/lib-|ARCH|

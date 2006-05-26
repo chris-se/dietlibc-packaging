@@ -1,3 +1,12 @@
+dietlibc (0.29-12) unstable; urgency=low
+
+  * debian/diff/fflush-null.diff: new; fflush(NULL): don't flush input
+    streams (stdin) (closes: #346437).
+  * debian/control: Standards-Version: 3.7.2.0.
+  * debian/dietlibc-dev.prerm.in: minor.
+
+ -- Gerrit Pape <pape@smarden.org>  Fri, 26 May 2006 18:29:49 +0000
+
 dietlibc (0.29-11) unstable; urgency=low
 
   * debian/diff/cvs-20060416.diff: new: cvs snapshot from 200604161700.
