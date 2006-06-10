@@ -1,6 +1,11 @@
---- libstdio/fflush.c   21 Sep 2005 07:33:08 -0000      1.19
-+++ libstdio/fflush.c   9 May 2006 11:06:19 -0000
-@@ -17,10 +17,10 @@
+Index: libstdio/fflush.c
+===================================================================
+RCS file: /cvs/dietlibc/libstdio/fflush.c,v
+retrieving revision 1.20
+diff -u -r1.20 fflush.c
+--- libstdio/fflush.c	1 Jun 2006 06:11:34 -0000	1.20
++++ libstdio/fflush.c	9 Jun 2006 11:22:33 -0000
+@@ -17,7 +17,6 @@
    if (stream==0) {
      int res;
      FILE *f;
@@ -8,7 +13,3 @@
      __fflush_stdout();
      __fflush_stderr();
      for (res=0, f=__stdio_root; f; f=f->next)
-+      if (!f->flags&BUFINPUT)
-       if (fflush(f))
-        res=-1;
-     return res;

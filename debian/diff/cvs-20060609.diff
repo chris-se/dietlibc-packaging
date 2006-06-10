@@ -1,7 +1,7 @@
 diff -urNxCVS -xdebian ../../dietlibc/CHANGES ./CHANGES
---- ../../dietlibc/CHANGES	2006-04-16 17:46:49.000000000 +0000
-+++ ./CHANGES	2006-04-16 17:23:47.000000000 +0000
-@@ -1,4 +1,68 @@
+--- ../../dietlibc/CHANGES	2005-05-25 08:39:59.000000000 +0000
++++ ./CHANGES	2006-06-01 06:11:34.000000000 +0000
+@@ -1,4 +1,70 @@
 -0.29
 +0.30:
 +  put exception handling frames in read-only section on AMD64 and S/390
@@ -66,14 +66,16 @@ diff -urNxCVS -xdebian ../../dietlibc/CHANGES ./CHANGES
 +  update SSP (ProPolice) support (with help from Eduardo Tongson)
 +  fix buffer underflow in strncpy if n==0 and WANT_FULL_POSIX_COMPAT
 +    is defined (it's normally not) (Ilja van Sprundel)
++  reading from stdin used to flush stdout.  Now it only does that
++    if stdin is a tty.
 +
 +0.29:
    oops, fix LD_RUN_PATH unsetting (Enrico Scholz)
    Markus Oberhumer sent the following diffs:
      dl_iterate_phdr for libgcc_eh
 diff -urNxCVS -xdebian ../../dietlibc/Makefile ./Makefile
---- ../../dietlibc/Makefile	2006-04-16 17:46:49.000000000 +0000
-+++ ./Makefile	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/Makefile	2005-05-25 08:39:59.000000000 +0000
++++ ./Makefile	2006-05-07 04:16:59.000000000 +0000
 @@ -8,7 +8,7 @@
  BINDIR=${prefix}/bin
  MAN1DIR=${prefix}/man/man1
@@ -187,7 +189,30 @@ diff -urNxCVS -xdebian ../../dietlibc/Makefile ./Makefile
  
  #$(PICODIR)/libdl.so: $(DYN_LIBDL_OBJS) dietfeatures.h
  #	$(CROSS)$(CC) -nostdlib -shared -o $@ $(CFLAGS) -fPIC $(DYN_LIBDL_OBJS) -L$(PICODIR) -ldietc -Wl,-soname=libdl.so
-@@ -405,7 +419,7 @@
+@@ -374,7 +388,7 @@
+ .PHONY: sparc ppc mips arm alpha i386 parisc mipsel powerpc s390 sparc64
+ .PHONY: x86_64 ia64 ppc64 s390x
+ 
+-arm sparc ppc alpha mips parisc s390 sparc64 x86_64 ia64 ppc64 s390x:
++arm sparc alpha mips parisc s390 sparc64 x86_64 ia64 ppc64 s390x:
+ 	$(MAKE) ARCH=$@ CROSS=$@-linux- all
+ 
+ i386:
+@@ -384,6 +398,13 @@
+ 	$(MAKE) ARCH=$@ CROSS=$@-linux- all
+ endif
+ 
++ppc:
++ifeq ($(MYARCH),ppc64)
++	$(MAKE) ARCH=$@ CC="$(CC) -m32" all
++else
++	$(MAKE) ARCH=$@ CROSS=$@-linux- all
++endif
++
+ # Cross compile for little endian MIPS
+ mipsel:
+ 	$(MAKE) ARCH=$@ CROSS=mips-linux- all
+@@ -405,7 +426,7 @@
  
  
  # these depend on dietfeatures.h for large file backward compatibility
@@ -196,7 +221,7 @@ diff -urNxCVS -xdebian ../../dietlibc/Makefile ./Makefile
  
  # these depend on dietfeatures.h for thread support
  $(OBJDIR)/alloc.o $(OBJDIR)/perror.o $(OBJDIR)/logging.o $(OBJDIR)/unified.o $(OBJDIR)/clone.o $(OBJDIR)/set_errno.o: dietfeatures.h
-@@ -426,7 +440,7 @@
+@@ -426,7 +447,7 @@
  $(OBJDIR)/ttyname.o $(OBJDIR)/sysconf_cpus.o: dietfeatures.h
  
  # these depend on dietfeatures.h for WANT_TZFILE_PARSER
@@ -205,7 +230,7 @@ diff -urNxCVS -xdebian ../../dietlibc/Makefile ./Makefile
  
  # these depend on dietfeatures.h for WANT_SMALL_STDIO_BUFS
  $(LIBSTDIOOBJ): dietfeatures.h include/stdio.h dietstdio.h
-@@ -465,7 +479,7 @@
+@@ -465,7 +486,7 @@
  
  # these depend on dietfeatures.h for WANT_LINKER_WARNINGS
  $(OBJDIR)/setlinebuf.o $(OBJDIR)/bzero.o $(OBJDIR)/setegid.o \
@@ -214,7 +239,7 @@ diff -urNxCVS -xdebian ../../dietlibc/Makefile ./Makefile
  
  # these depend on dietfeatures.h for WANT_FULL_POSIX_COMPAT
  $(OBJDIR)/strncpy.o: dietfeatures.h
-@@ -485,3 +499,9 @@
+@@ -485,3 +506,9 @@
  $(LIBPTHREAD_OBJS): include/pthread.h
  
  # CFLAGS+=-W -Wshadow -Wid-clash-31 -Wpointer-arith -Wcast-align -Wstrict-prototypes -Wwrite-strings
@@ -225,8 +250,8 @@ diff -urNxCVS -xdebian ../../dietlibc/Makefile ./Makefile
 +# WANT_SSP
 +$(OBJDIR)/stackgap.o: dietfeatures.h
 diff -urNxCVS -xdebian ../../dietlibc/alpha/start.S ./alpha/start.S
---- ../../dietlibc/alpha/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./alpha/start.S	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/alpha/start.S	2005-05-25 08:39:59.000000000 +0000
++++ ./alpha/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -29,11 +29,7 @@
  	mov	 $0, $19	/* mov v0(dynload) to a3 */
  	jsr	$26, _dyn_start
@@ -241,8 +266,8 @@ diff -urNxCVS -xdebian ../../dietlibc/alpha/start.S ./alpha/start.S
  	mov	 $0, $16
  	jsr	$26, exit	/* YES, CALL! for threads and atexit ! (+4 byte) */
 diff -urNxCVS -xdebian ../../dietlibc/alpha/syscalls.h ./alpha/syscalls.h
---- ../../dietlibc/alpha/syscalls.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./alpha/syscalls.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/alpha/syscalls.h	2005-05-25 08:39:59.000000000 +0000
++++ ./alpha/syscalls.h	2005-09-21 07:33:08.000000000 +0000
 @@ -372,6 +372,15 @@
  #define __NR_mq_notify			436
  #define __NR_mq_getsetattr		437
@@ -260,8 +285,8 @@ diff -urNxCVS -xdebian ../../dietlibc/alpha/syscalls.h ./alpha/syscalls.h
  #define syscall_weak(name,wsym,sym) \
  .text ; \
 diff -urNxCVS -xdebian ../../dietlibc/arm/dyn_syscalls.S ./arm/dyn_syscalls.S
---- ../../dietlibc/arm/dyn_syscalls.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./arm/dyn_syscalls.S	2005-10-12 08:53:33.000000000 +0000
+--- ../../dietlibc/arm/dyn_syscalls.S	2005-01-31 22:05:03.000000000 +0000
++++ ./arm/dyn_syscalls.S	2005-10-08 21:22:09.000000000 +0000
 @@ -29,6 +29,7 @@
  
  /* ok now include all syscalls.s (*.S) and sysdep *.S */
@@ -359,8 +384,8 @@ diff -urNxCVS -xdebian ../../dietlibc/arm/dyn_syscalls.S ./arm/dyn_syscalls.S
  /* other asm-files w.o. changes ... */
  __exit:
 diff -urNxCVS -xdebian ../../dietlibc/arm/start.S ./arm/start.S
---- ../../dietlibc/arm/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./arm/start.S	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/arm/start.S	2005-01-31 22:05:03.000000000 +0000
++++ ./arm/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -39,11 +39,7 @@
  #ifdef WANT_DYNAMIC
  	bl	_dyn_start
@@ -375,8 +400,8 @@ diff -urNxCVS -xdebian ../../dietlibc/arm/start.S ./arm/start.S
  
  @
 diff -urNxCVS -xdebian ../../dietlibc/arm/strcpy.S ./arm/strcpy.S
---- ../../dietlibc/arm/strcpy.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./arm/strcpy.S	2005-07-25 14:53:14.000000000 +0000
+--- ../../dietlibc/arm/strcpy.S	2002-05-05 17:18:46.000000000 +0000
++++ ./arm/strcpy.S	2005-07-25 09:28:11.000000000 +0000
 @@ -1,39 +1,66 @@
 +#include "dietfeatures.h"
 +
@@ -454,8 +479,8 @@ diff -urNxCVS -xdebian ../../dietlibc/arm/strcpy.S ./arm/strcpy.S
  .Lfe1:
  	.size	 strcpy,.Lfe1-strcpy
 diff -urNxCVS -xdebian ../../dietlibc/arm/strlen.S ./arm/strlen.S
---- ../../dietlibc/arm/strlen.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./arm/strlen.S	2005-07-25 14:53:14.000000000 +0000
+--- ../../dietlibc/arm/strlen.S	2002-10-09 08:56:43.000000000 +0000
++++ ./arm/strlen.S	2005-07-25 09:28:11.000000000 +0000
 @@ -1,3 +1,4 @@
 +#include "dietfeatures.h"
  
@@ -528,8 +553,8 @@ diff -urNxCVS -xdebian ../../dietlibc/arm/strlen.S ./arm/strlen.S
  .Lstrlen:
  	.size	strlen,.Lstrlen-strlen
 diff -urNxCVS -xdebian ../../dietlibc/arm/syscalls.h ./arm/syscalls.h
---- ../../dietlibc/arm/syscalls.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./arm/syscalls.h	2005-10-12 08:53:33.000000000 +0000
+--- ../../dietlibc/arm/syscalls.h	2005-05-25 08:39:59.000000000 +0000
++++ ./arm/syscalls.h	2005-10-08 21:22:09.000000000 +0000
 @@ -281,6 +281,16 @@
  #define __NR_mq_getsetattr		(__NR_SYSCALL_BASE+279)
  #define __NR_waitid			(__NR_SYSCALL_BASE+280)
@@ -574,8 +599,8 @@ diff -urNxCVS -xdebian ../../dietlibc/arm/syscalls.h ./arm/syscalls.h
  #define syscall_weak(name,wsym,sym) __syscall_weak $__NR_##name, wsym, sym, __ARGS_##name
  .macro __syscall_weak name wsym sym typ
 diff -urNxCVS -xdebian ../../dietlibc/diet.c ./diet.c
---- ../../dietlibc/diet.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./diet.c	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/diet.c	2005-05-25 08:39:59.000000000 +0000
++++ ./diet.c	2006-04-04 03:47:21.000000000 +0000
 @@ -285,15 +285,17 @@
  
        dest=newargv;
@@ -615,8 +640,8 @@ diff -urNxCVS -xdebian ../../dietlibc/diet.c ./diet.c
  	}
        }
 diff -urNxCVS -xdebian ../../dietlibc/dietfeatures.h ./dietfeatures.h
---- ../../dietlibc/dietfeatures.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./dietfeatures.h	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/dietfeatures.h	2005-05-25 08:39:59.000000000 +0000
++++ ./dietfeatures.h	2006-04-04 05:35:14.000000000 +0000
 @@ -101,7 +101,33 @@
   * `main' can not be found. */
  /* #define WANT_STACKGAP */
@@ -653,15 +678,15 @@ diff -urNxCVS -xdebian ../../dietlibc/dietfeatures.h ./dietfeatures.h
  #endif
 diff -urNxCVS -xdebian ../../dietlibc/dietlocale.h ./dietlocale.h
 --- ../../dietlibc/dietlocale.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./dietlocale.h	2006-04-16 17:55:21.000000000 +0000
++++ ./dietlocale.h	2006-04-04 03:10:40.000000000 +0000
 @@ -0,0 +1,4 @@
 +extern enum __encoding {
 +  CT_8BIT,
 +  CT_UTF8,
 +} lc_ctype;
 diff -urNxCVS -xdebian ../../dietlibc/dietstdio.h ./dietstdio.h
---- ../../dietlibc/dietstdio.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./dietstdio.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/dietstdio.h	2005-05-25 08:39:59.000000000 +0000
++++ ./dietstdio.h	2006-06-01 06:11:34.000000000 +0000
 @@ -17,9 +17,9 @@
  struct __stdio_file {
    int fd;
@@ -675,7 +700,7 @@ diff -urNxCVS -xdebian ../../dietlibc/dietstdio.h ./dietstdio.h
    char *buf;
    struct __stdio_file *next;	/* for fflush */
    pid_t popen_kludge;
-@@ -81,8 +81,8 @@
+@@ -81,11 +81,13 @@
  #ifndef __THREAD_INTERNAL_H__
  int __libc_close(int fd);
  int __libc_open(const char*fn,int flags,...);
@@ -686,9 +711,14 @@ diff -urNxCVS -xdebian ../../dietlibc/dietstdio.h ./dietstdio.h
  #endif
  
  FILE *fopen_unlocked(const char *path, const char *mode) __THROW;
+ FILE *fdopen_unlocked(int fildes, const char *mode) __THROW;
+ FILE *freopen_unlocked(const char *path, const char *mode, FILE *stream) __THROW;
+ 
++int __stdout_is_tty(void);
++int __stdin_is_tty(void);
 diff -urNxCVS -xdebian ../../dietlibc/dyn_start.c ./dyn_start.c
---- ../../dietlibc/dyn_start.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./dyn_start.c	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/dyn_start.c	2005-05-25 08:39:59.000000000 +0000
++++ ./dyn_start.c	2005-09-21 07:33:08.000000000 +0000
 @@ -15,16 +15,29 @@
  typedef void(*structor)(void);
  
@@ -721,8 +751,8 @@ diff -urNxCVS -xdebian ../../dietlibc/dyn_start.c ./dyn_start.c
  
  static void __do_global_dtors_aux(void)
 diff -urNxCVS -xdebian ../../dietlibc/dyn_stop.c ./dyn_stop.c
---- ../../dietlibc/dyn_stop.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./dyn_stop.c	2005-06-08 07:50:27.000000000 +0000
+--- ../../dietlibc/dyn_stop.c	2005-05-25 08:39:59.000000000 +0000
++++ ./dyn_stop.c	2005-06-08 04:04:47.000000000 +0000
 @@ -14,12 +14,22 @@
  __attribute_used
  static structor __DTOR_END__[1]={((structor)0)};
@@ -749,8 +779,8 @@ diff -urNxCVS -xdebian ../../dietlibc/dyn_stop.c ./dyn_stop.c
  
  static void __do_global_ctors_aux(void)
 diff -urNxCVS -xdebian ../../dietlibc/i386/__restore_rt.S ./i386/__restore_rt.S
---- ../../dietlibc/i386/__restore_rt.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./i386/__restore_rt.S	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/i386/__restore_rt.S	2005-01-31 22:05:03.000000000 +0000
++++ ./i386/__restore_rt.S	2005-09-21 07:33:08.000000000 +0000
 @@ -1,12 +1,22 @@
  #include "syscalls.h"
 +
@@ -780,8 +810,8 @@ diff -urNxCVS -xdebian ../../dietlibc/i386/__restore_rt.S ./i386/__restore_rt.S
 +	hlt	/* die if syscall returns */
 +.size    __restore,.-__restore
 diff -urNxCVS -xdebian ../../dietlibc/i386/dyn_syscalls.S ./i386/dyn_syscalls.S
---- ../../dietlibc/i386/dyn_syscalls.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./i386/dyn_syscalls.S	2005-10-12 08:54:23.000000000 +0000
+--- ../../dietlibc/i386/dyn_syscalls.S	2005-01-31 22:05:03.000000000 +0000
++++ ./i386/dyn_syscalls.S	2005-10-08 21:11:32.000000000 +0000
 @@ -69,6 +69,7 @@
  #include "../syscalls.s/wait4.S"
  #include "../syscalls.s/writev.S"
@@ -864,8 +894,8 @@ diff -urNxCVS -xdebian ../../dietlibc/i386/dyn_syscalls.S ./i386/dyn_syscalls.S
  #undef __PIC__
  #undef __socketcall
 diff -urNxCVS -xdebian ../../dietlibc/i386/getenv.S ./i386/getenv.S
---- ../../dietlibc/i386/getenv.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./i386/getenv.S	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/i386/getenv.S	2002-10-09 08:56:43.000000000 +0000
++++ ./i386/getenv.S	2005-09-21 07:33:08.000000000 +0000
 @@ -15,13 +15,13 @@
  	not %ecx
  	dec %ecx
@@ -883,8 +913,8 @@ diff -urNxCVS -xdebian ../../dietlibc/i386/getenv.S ./i386/getenv.S
  .Lloop:
  	lodsl
 diff -urNxCVS -xdebian ../../dietlibc/i386/setjmp.S ./i386/setjmp.S
---- ../../dietlibc/i386/setjmp.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./i386/setjmp.S	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/i386/setjmp.S	2002-11-27 09:51:55.000000000 +0000
++++ ./i386/setjmp.S	2005-09-21 07:33:08.000000000 +0000
 @@ -7,24 +7,30 @@
  .globl __setjmp
  .type __setjmp,@function
@@ -925,8 +955,8 @@ diff -urNxCVS -xdebian ../../dietlibc/i386/setjmp.S ./i386/setjmp.S
  	movl %ecx, (JB_PC*4)(%eax)
  
 diff -urNxCVS -xdebian ../../dietlibc/i386/sigaction.c ./i386/sigaction.c
---- ../../dietlibc/i386/sigaction.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./i386/sigaction.c	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/i386/sigaction.c	2005-01-31 22:05:03.000000000 +0000
++++ ./i386/sigaction.c	2005-09-21 07:33:08.000000000 +0000
 @@ -5,23 +5,7 @@
  int __rt_sigaction(int signum, const struct sigaction *act, struct sigaction *oldact, long nr);
  
@@ -962,8 +992,8 @@ diff -urNxCVS -xdebian ../../dietlibc/i386/sigaction.c ./i386/sigaction.c
    }
    return __rt_sigaction(signum, newact, oldact, _NSIG/8);
 diff -urNxCVS -xdebian ../../dietlibc/i386/start.S ./i386/start.S
---- ../../dietlibc/i386/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./i386/start.S	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/i386/start.S	2005-01-31 22:05:03.000000000 +0000
++++ ./i386/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -54,11 +54,7 @@
  #ifdef WANT_DYNAMIC
  	call	_dyn_start
@@ -978,8 +1008,8 @@ diff -urNxCVS -xdebian ../../dietlibc/i386/start.S ./i386/start.S
  
  #ifdef PROFILING
 diff -urNxCVS -xdebian ../../dietlibc/i386/syscalls.h ./i386/syscalls.h
---- ../../dietlibc/i386/syscalls.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./i386/syscalls.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/i386/syscalls.h	2005-05-25 08:39:59.000000000 +0000
++++ ./i386/syscalls.h	2005-09-21 07:33:08.000000000 +0000
 @@ -287,6 +287,12 @@
  #define __NR_add_key		286
  #define __NR_request_key	287
@@ -994,8 +1024,8 @@ diff -urNxCVS -xdebian ../../dietlibc/i386/syscalls.h ./i386/syscalls.h
  #define syscall_weak(name,wsym,sym) \
  .text; \
 diff -urNxCVS -xdebian ../../dietlibc/ia64/start.S ./ia64/start.S
---- ../../dietlibc/ia64/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./ia64/start.S	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/ia64/start.S	2005-05-25 08:39:59.000000000 +0000
++++ ./ia64/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -44,11 +44,7 @@
  /* FIXME: dl_init parameter ??? */
  	br.call.sptk.few rp = _dyn_start
@@ -1010,8 +1040,8 @@ diff -urNxCVS -xdebian ../../dietlibc/ia64/start.S ./ia64/start.S
  	;;
  	mov r32 = r8                /* store return code */
 diff -urNxCVS -xdebian ../../dietlibc/ia64/syscalls.h ./ia64/syscalls.h
---- ../../dietlibc/ia64/syscalls.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./ia64/syscalls.h	2005-10-05 12:31:50.000000000 +0000
+--- ../../dietlibc/ia64/syscalls.h	2005-05-25 08:39:59.000000000 +0000
++++ ./ia64/syscalls.h	2005-09-21 07:33:08.000000000 +0000
 @@ -251,6 +251,13 @@
  #define __NR_add_key			1271
  #define __NR_request_key		1272
@@ -1027,8 +1057,8 @@ diff -urNxCVS -xdebian ../../dietlibc/ia64/syscalls.h ./ia64/syscalls.h
  #define syscall(name, sym) \
  .text; \
 diff -urNxCVS -xdebian ../../dietlibc/include/asm/i386-sigcontext.h ./include/asm/i386-sigcontext.h
---- ../../dietlibc/include/asm/i386-sigcontext.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/asm/i386-sigcontext.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/asm/i386-sigcontext.h	2002-05-05 17:18:58.000000000 +0000
++++ ./include/asm/i386-sigcontext.h	2005-09-21 07:33:08.000000000 +0000
 @@ -1,13 +1,14 @@
 +#include <asm/types.h>
  
@@ -1089,8 +1119,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/asm/i386-sigcontext.h ./include/as
  	unsigned long oldmask;
  	unsigned long cr2;
 diff -urNxCVS -xdebian ../../dietlibc/include/asm/ppc-sigcontext.h ./include/asm/ppc-sigcontext.h
---- ../../dietlibc/include/asm/ppc-sigcontext.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/asm/ppc-sigcontext.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/asm/ppc-sigcontext.h	2004-07-31 19:45:26.000000000 +0000
++++ ./include/asm/ppc-sigcontext.h	2005-09-21 07:33:08.000000000 +0000
 @@ -1,3 +1,5 @@
 +#include <asm/types.h>
 +
@@ -1107,8 +1137,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/asm/ppc-sigcontext.h ./include/asm
  	unsigned long	oldmask;
  	struct pt_regs 	*regs;
 diff -urNxCVS -xdebian ../../dietlibc/include/asm/types.h ./include/asm/types.h
---- ../../dietlibc/include/asm/types.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/asm/types.h	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/include/asm/types.h	2005-01-31 22:05:03.000000000 +0000
++++ ./include/asm/types.h	2006-04-04 03:42:48.000000000 +0000
 @@ -2,13 +2,14 @@
  #define _ASM_TYPES_H
  
@@ -1140,8 +1170,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/asm/types.h ./include/asm/types.h
  
  #define __force
 diff -urNxCVS -xdebian ../../dietlibc/include/asm/x86_64-sigcontext.h ./include/asm/x86_64-sigcontext.h
---- ../../dietlibc/include/asm/x86_64-sigcontext.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/asm/x86_64-sigcontext.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/asm/x86_64-sigcontext.h	2003-09-13 08:47:05.000000000 +0000
++++ ./include/asm/x86_64-sigcontext.h	2005-09-21 07:33:08.000000000 +0000
 @@ -36,10 +36,10 @@
  	unsigned long rsp;
  	unsigned long rip;
@@ -1159,7 +1189,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/asm/x86_64-sigcontext.h ./include/
  	unsigned long oldmask;
 diff -urNxCVS -xdebian ../../dietlibc/include/attr/xattr.h ./include/attr/xattr.h
 --- ../../dietlibc/include/attr/xattr.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/attr/xattr.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/attr/xattr.h	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,29 @@
 +#ifndef _ATTR_XATTR_H
 +#define _ATTR_XATTR_H
@@ -1192,7 +1222,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/attr/xattr.h ./include/attr/xattr.
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/clocale ./include/clocale
 --- ../../dietlibc/include/clocale	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/clocale	2006-04-16 17:55:21.000000000 +0000
++++ ./include/clocale	2005-09-22 07:26:32.000000000 +0000
 @@ -0,0 +1,23 @@
 +#ifndef __DIETLIBC_CLOCALE_INCLUDED
 +#define __DIETLIBC_CLOCALE_INCLUDED
@@ -1218,8 +1248,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/clocale ./include/clocale
 +
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/ctype.h ./include/ctype.h
---- ../../dietlibc/include/ctype.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/ctype.h	2005-07-13 13:22:28.000000000 +0000
+--- ../../dietlibc/include/ctype.h	2003-09-13 08:47:04.000000000 +0000
++++ ./include/ctype.h	2005-07-13 07:31:41.000000000 +0000
 @@ -15,6 +15,7 @@
  extern int isupper (int c) __THROW __attribute__ ((__const__));
  extern int islower (int c) __THROW __attribute__ ((__const__));
@@ -1229,8 +1259,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/ctype.h ./include/ctype.h
  extern int toupper(int c) __THROW __attribute__ ((__const__));
  
 diff -urNxCVS -xdebian ../../dietlibc/include/cwctype ./include/cwctype
---- ../../dietlibc/include/cwctype	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/cwctype	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/cwctype	2005-05-25 08:39:59.000000000 +0000
++++ ./include/cwctype	2005-09-21 07:33:08.000000000 +0000
 @@ -2,10 +2,9 @@
  #define __DIETLIBC_CWCTYPE_INCLUDED
  
@@ -1273,8 +1303,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/cwctype ./include/cwctype
  
  #endif
 diff -urNxCVS -xdebian ../../dietlibc/include/dirent.h ./include/dirent.h
---- ../../dietlibc/include/dirent.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/dirent.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/dirent.h	2004-07-31 19:45:26.000000000 +0000
++++ ./include/dirent.h	2005-09-21 07:33:08.000000000 +0000
 @@ -10,7 +10,7 @@
  struct dirent {
    long		d_ino;
@@ -1307,8 +1337,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/dirent.h ./include/dirent.h
  int alphasort(const struct dirent **a, const struct dirent **b) __THROW __attribute__((const));
  int alphasort64(const struct dirent64 **a, const struct dirent64 **b) __THROW __attribute__((const));
 diff -urNxCVS -xdebian ../../dietlibc/include/endian.h ./include/endian.h
---- ../../dietlibc/include/endian.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/endian.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/endian.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/endian.h	2005-10-04 17:47:03.000000000 +0000
 @@ -4,6 +4,14 @@
  #define	__LITTLE_ENDIAN	1234
  #define	__BIG_ENDIAN	4321
@@ -1334,8 +1364,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/endian.h ./include/endian.h
  #endif
  
 diff -urNxCVS -xdebian ../../dietlibc/include/fcntl.h ./include/fcntl.h
---- ../../dietlibc/include/fcntl.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/fcntl.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/fcntl.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/fcntl.h	2005-10-04 17:47:03.000000000 +0000
 @@ -3,8 +3,10 @@
  
  #include <sys/cdefs.h>
@@ -1533,8 +1563,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/fcntl.h ./include/fcntl.h
  #endif
  
 diff -urNxCVS -xdebian ../../dietlibc/include/ftw.h ./include/ftw.h
---- ../../dietlibc/include/ftw.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/ftw.h	2005-07-10 18:32:53.000000000 +0000
+--- ../../dietlibc/include/ftw.h	2005-01-31 22:05:03.000000000 +0000
++++ ./include/ftw.h	2005-06-14 02:23:31.000000000 +0000
 @@ -11,11 +11,11 @@
    int level;
  };
@@ -1575,8 +1605,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/ftw.h ./include/ftw.h
  
  __END_DECLS
 diff -urNxCVS -xdebian ../../dietlibc/include/iconv.h ./include/iconv.h
---- ../../dietlibc/include/iconv.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/iconv.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/iconv.h	2004-03-28 08:13:42.000000000 +0000
++++ ./include/iconv.h	2005-09-21 07:33:08.000000000 +0000
 @@ -7,7 +7,7 @@
  __BEGIN_DECLS
  
@@ -1587,8 +1617,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/iconv.h ./include/iconv.h
  /* Allocate descriptor for code conversion from codeset FROMCODE to
     codeset TOCODE.  */
 diff -urNxCVS -xdebian ../../dietlibc/include/libintl.h ./include/libintl.h
---- ../../dietlibc/include/libintl.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/libintl.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/libintl.h	2003-11-25 19:53:57.000000000 +0000
++++ ./include/libintl.h	2005-09-26 10:52:22.000000000 +0000
 @@ -10,8 +10,11 @@
  char* gettext(const char* msgid) __THROW;
  char* dgettext(const char* domainname, const char* msgid) __THROW;
@@ -1604,8 +1634,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/libintl.h ./include/libintl.h
  
  char* textdomain(const char *domainname) __THROW;
 diff -urNxCVS -xdebian ../../dietlibc/include/limits.h ./include/limits.h
---- ../../dietlibc/include/limits.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/limits.h	2005-09-08 12:08:16.000000000 +0000
+--- ../../dietlibc/include/limits.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/limits.h	2005-09-05 07:40:28.000000000 +0000
 @@ -86,4 +86,8 @@
  #define _POSIX_PATH_MAX PATH_MAX
  #define MB_LEN_MAX 16
@@ -1617,7 +1647,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/limits.h ./include/limits.h
  #endif
 diff -urNxCVS -xdebian ../../dietlibc/include/linux/aio.h ./include/linux/aio.h
 --- ../../dietlibc/include/linux/aio.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/linux/aio.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/linux/aio.h	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,67 @@
 +#ifndef _LINUX_AIO_H
 +#define _LINUX_AIO_H
@@ -1688,7 +1718,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/linux/aio.h ./include/linux/aio.h
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/linux/fadvise.h ./include/linux/fadvise.h
 --- ../../dietlibc/include/linux/fadvise.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/linux/fadvise.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/linux/fadvise.h	2005-10-04 17:49:09.000000000 +0000
 @@ -0,0 +1,21 @@
 +#ifndef _LINUX_FADVISE_H
 +#define _LINUX_FADVISE_H
@@ -1713,7 +1743,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/linux/fadvise.h ./include/linux/fa
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/linux/if.h ./include/linux/if.h
 --- ../../dietlibc/include/linux/if.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/linux/if.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/linux/if.h	2006-02-14 07:09:09.000000000 +0000
 @@ -0,0 +1,33 @@
 +#ifndef _LINUX_IF_H
 +#define _LINUX_IF_H
@@ -1750,7 +1780,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/linux/if.h ./include/linux/if.h
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/linux/if_tun.h ./include/linux/if_tun.h
 --- ../../dietlibc/include/linux/if_tun.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/linux/if_tun.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/linux/if_tun.h	2006-02-14 07:09:09.000000000 +0000
 @@ -0,0 +1,38 @@
 +#ifndef _LINUX_IF_TUN_H
 +#define _LINUX_IF_TUN_H
@@ -1792,7 +1822,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/linux/if_tun.h ./include/linux/if_
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/mqueue.h ./include/mqueue.h
 --- ../../dietlibc/include/mqueue.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/mqueue.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/mqueue.h	2005-10-04 17:49:09.000000000 +0000
 @@ -0,0 +1,42 @@
 +#ifndef _MQUEUE_H
 +#define _MQUEUE_H
@@ -1837,8 +1867,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/mqueue.h ./include/mqueue.h
 +
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/netinet/in.h ./include/netinet/in.h
---- ../../dietlibc/include/netinet/in.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/netinet/in.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/netinet/in.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/netinet/in.h	2005-09-21 07:33:08.000000000 +0000
 @@ -100,11 +100,11 @@
  struct ip_mreqn {
    struct in_addr	imr_multiaddr;		/* IP multicast address of group */
@@ -1893,8 +1923,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/netinet/in.h ./include/netinet/in.
  			flow_lbl:20;
  #endif
 diff -urNxCVS -xdebian ../../dietlibc/include/regex.h ./include/regex.h
---- ../../dietlibc/include/regex.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/regex.h	2005-10-14 12:43:29.000000000 +0000
+--- ../../dietlibc/include/regex.h	2003-09-13 08:47:04.000000000 +0000
++++ ./include/regex.h	2005-10-14 00:13:38.000000000 +0000
 @@ -23,7 +23,7 @@
  
  #define REG_NOMATCH -1
@@ -1905,8 +1935,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/regex.h ./include/regex.h
  struct __regex_t;
  
 diff -urNxCVS -xdebian ../../dietlibc/include/resolv.h ./include/resolv.h
---- ../../dietlibc/include/resolv.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/resolv.h	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/include/resolv.h	2004-06-08 18:35:30.000000000 +0000
++++ ./include/resolv.h	2006-02-14 07:00:05.000000000 +0000
 @@ -24,7 +24,7 @@
  #define	MAXRESOLVSORT		10	/* number of net to sort on */
  #define	RES_MAXNDOTS		15	/* should reflect bit field size */
@@ -1935,8 +1965,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/resolv.h ./include/resolv.h
  extern const struct res_sym __p_type_syms[];
  
 diff -urNxCVS -xdebian ../../dietlibc/include/semaphore.h ./include/semaphore.h
---- ../../dietlibc/include/semaphore.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/semaphore.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/semaphore.h	2003-11-25 19:53:57.000000000 +0000
++++ ./include/semaphore.h	2005-09-21 07:33:08.000000000 +0000
 @@ -10,7 +10,7 @@
    pthread_mutex_t lock;
    pthread_cond_t cond;
@@ -1947,8 +1977,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/semaphore.h ./include/semaphore.h
  
  #define SEM_FAILED	((sem_t*)0)
 diff -urNxCVS -xdebian ../../dietlibc/include/setjmp.h ./include/setjmp.h
---- ../../dietlibc/include/setjmp.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/setjmp.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/setjmp.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/setjmp.h	2005-09-21 07:33:08.000000000 +0000
 @@ -7,7 +7,7 @@
  
  #ifdef __i386__
@@ -1991,8 +2021,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/setjmp.h ./include/setjmp.h
  #endif
  
 diff -urNxCVS -xdebian ../../dietlibc/include/signal.h ./include/signal.h
---- ../../dietlibc/include/signal.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/signal.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/signal.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/signal.h	2005-09-21 07:33:08.000000000 +0000
 @@ -232,9 +232,9 @@
  typedef sighandler_t __sighandler_t;	/* shoot the glibc people! */
  #endif
@@ -2114,8 +2144,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/signal.h ./include/signal.h
  
  int killpg(pid_t pgrp, int sig) __THROW;
 diff -urNxCVS -xdebian ../../dietlibc/include/stdarg-cruft.h ./include/stdarg-cruft.h
---- ../../dietlibc/include/stdarg-cruft.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/stdarg-cruft.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/stdarg-cruft.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/stdarg-cruft.h	2005-10-04 17:47:03.000000000 +0000
 @@ -1,3 +1,5 @@
 +#include <endian.h>
 +
@@ -2149,8 +2179,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/stdarg-cruft.h ./include/stdarg-cr
  #define va_arg(__AP, __type)                                    \
    ((__type *) (void *) (__AP = (char *)                         \
 diff -urNxCVS -xdebian ../../dietlibc/include/stdlib.h ./include/stdlib.h
---- ../../dietlibc/include/stdlib.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/stdlib.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/stdlib.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/stdlib.h	2005-09-21 07:33:08.000000000 +0000
 @@ -64,16 +64,11 @@
  long nrand48(randbuf buf) __THROW;
  double erand48(randbuf buf) __THROW;
@@ -2199,8 +2229,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/stdlib.h ./include/stdlib.h
  
  #endif
 diff -urNxCVS -xdebian ../../dietlibc/include/string.h ./include/string.h
---- ../../dietlibc/include/string.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/string.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/string.h	2003-09-13 08:47:04.000000000 +0000
++++ ./include/string.h	2005-09-26 12:22:20.000000000 +0000
 @@ -24,6 +24,9 @@
  int strcmp(const char *s1, const char *s2) __THROW __pure;
  
@@ -2222,8 +2252,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/string.h ./include/string.h
  
  char *strtok(char *s, const char *delim) __THROW;
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/cdefs.h ./include/sys/cdefs.h
---- ../../dietlibc/include/sys/cdefs.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/cdefs.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/cdefs.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/sys/cdefs.h	2005-10-04 17:47:03.000000000 +0000
 @@ -27,6 +27,7 @@
  #endif
  
@@ -2234,7 +2264,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/cdefs.h ./include/sys/cdefs.h
  #define __expect(foo,bar) (foo)
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/futex.h ./include/sys/futex.h
 --- ../../dietlibc/include/sys/futex.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/sys/futex.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/sys/futex.h	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,16 @@
 +#ifndef _SYS_FUTEX_H
 +#define _SYS_FUTEX_H
@@ -2254,7 +2284,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/futex.h ./include/sys/futex.h
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/inotify.h ./include/sys/inotify.h
 --- ../../dietlibc/include/sys/inotify.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/sys/inotify.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/sys/inotify.h	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,60 @@
 +#ifndef _SYS_INOTIFY_H
 +#define _SYS_INOTIFY_H
@@ -2317,8 +2347,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/inotify.h ./include/sys/inotif
 +
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/ipc.h ./include/sys/ipc.h
---- ../../dietlibc/include/sys/ipc.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/ipc.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/ipc.h	2003-09-13 08:47:06.000000000 +0000
++++ ./include/sys/ipc.h	2005-09-21 07:33:08.000000000 +0000
 @@ -45,7 +45,7 @@
    uid_t	cuid;
    gid_t	cgid;
@@ -2330,7 +2360,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/ipc.h ./include/sys/ipc.h
  /* this is so bad, we moved it to -lcompat */
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/key.h ./include/sys/key.h
 --- ../../dietlibc/include/sys/key.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/sys/key.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/sys/key.h	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,54 @@
 +#ifndef _SYS_KEY_H
 +#define _SYS_KEY_H
@@ -2388,7 +2418,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/key.h ./include/sys/key.h
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/personality.h ./include/sys/personality.h
 --- ../../dietlibc/include/sys/personality.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/sys/personality.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/sys/personality.h	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,114 @@
 +#ifndef _PERSONALITY_H
 +#define _PERSONALITY_H
@@ -2505,8 +2535,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/personality.h ./include/sys/pe
 +
 +#endif /* _PERSONALITY_H */
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/ptrace.h ./include/sys/ptrace.h
---- ../../dietlibc/include/sys/ptrace.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/ptrace.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/ptrace.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/sys/ptrace.h	2005-09-21 07:33:08.000000000 +0000
 @@ -2,6 +2,7 @@
  #define _SYS_PTRACE_H
  
@@ -2625,7 +2655,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/ptrace.h ./include/sys/ptrace.
  	 * stepping is switched off
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/quota.h ./include/sys/quota.h
 --- ../../dietlibc/include/sys/quota.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/sys/quota.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/sys/quota.h	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,121 @@
 +#ifndef _SYS_QUOTA_H
 +#define _SYS_QUOTA_H 1
@@ -2749,8 +2779,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/quota.h ./include/sys/quota.h
 +
 +#endif /* sys/quota.h */
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/sem.h ./include/sys/sem.h
---- ../../dietlibc/include/sys/sem.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/sem.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/sem.h	2003-09-13 08:47:06.000000000 +0000
++++ ./include/sys/sem.h	2005-09-21 07:33:08.000000000 +0000
 @@ -29,14 +29,14 @@
    struct sem_queue	*sem_pending;		/* pending operations to be processed */
    struct sem_queue	**sem_pending_last;	/* last pending operation */
@@ -2798,8 +2828,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/sem.h ./include/sys/sem.h
  
  #define SEMMNI  128		/* <= IPCMNI  max # of semaphore identifiers */
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/shm.h ./include/sys/shm.h
---- ../../dietlibc/include/sys/shm.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/shm.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/shm.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/sys/shm.h	2005-09-21 07:33:08.000000000 +0000
 @@ -13,14 +13,14 @@
  
  struct shmid_ds {
@@ -2841,8 +2871,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/shm.h ./include/sys/shm.h
    unsigned long shm_rss;	/* total resident shm */
    unsigned long shm_swp;	/* total swapped shm */
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/stat.h ./include/sys/stat.h
---- ../../dietlibc/include/sys/stat.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/stat.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/stat.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/sys/stat.h	2005-09-21 07:33:08.000000000 +0000
 @@ -9,15 +9,15 @@
  
  #if defined(__i386__)
@@ -3445,7 +3475,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/stat.h ./include/sys/stat.h
  extern int fchmod (int __fd, mode_t __mode) __THROW;
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/statfs.h ./include/sys/statfs.h
 --- ../../dietlibc/include/sys/statfs.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/sys/statfs.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/sys/statfs.h	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,196 @@
 +#ifndef _SYS_STATFS_H
 +#define _SYS_STATFS_H
@@ -3644,8 +3674,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/statfs.h ./include/sys/statfs.
 +
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/time.h ./include/sys/time.h
---- ../../dietlibc/include/sys/time.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/time.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/time.h	2004-06-08 18:35:31.000000000 +0000
++++ ./include/sys/time.h	2005-09-21 07:33:08.000000000 +0000
 @@ -75,7 +75,7 @@
  #define timersub(a,b,x) do { (x)->tv_sec=(a)->tv_sec-(b)->tv_sec; if (((x)->tv_usec=(a)->tv_usec-(b)->tv_usec)<0) { --(x)->tv_sec; (x)->tv_usec+=1000000; } } while (0)
  #define timerisset(x) ((x)->tv_sec || (x)->tv_usec)
@@ -3656,8 +3686,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/time.h ./include/sys/time.h
  
  __END_DECLS
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/timex.h ./include/sys/timex.h
---- ../../dietlibc/include/sys/timex.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/timex.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/timex.h	2003-09-13 08:47:06.000000000 +0000
++++ ./include/sys/timex.h	2005-09-21 07:33:08.000000000 +0000
 @@ -2,16 +2,17 @@
  #define _SYS_TIMEX_H
  
@@ -3701,8 +3731,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/timex.h ./include/sys/timex.h
  
  #define ADJ_OFFSET            0x0001 /* time offset */
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/types.h ./include/sys/types.h
---- ../../dietlibc/include/sys/types.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/types.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/types.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/sys/types.h	2005-09-21 07:33:08.000000000 +0000
 @@ -50,29 +50,29 @@
      typedef uint32_t nlink_t;		/* Used for link counts. */
      typedef uint32_t uid_t;		/* Used for user IDs. */
@@ -3754,8 +3784,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/types.h ./include/sys/types.h
      typedef unsigned long dev_t;
      typedef uint32_t gid_t;
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/vfs.h ./include/sys/vfs.h
---- ../../dietlibc/include/sys/vfs.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/vfs.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/vfs.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/sys/vfs.h	2005-10-04 17:47:03.000000000 +0000
 @@ -1,39 +1,6 @@
  #ifndef _SYS_VFS_H
  #define _SYS_VFS_H
@@ -3799,7 +3829,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/vfs.h ./include/sys/vfs.h
  #endif
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/vm86.h ./include/sys/vm86.h
 --- ../../dietlibc/include/sys/vm86.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/sys/vm86.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/sys/vm86.h	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,147 @@
 +#ifndef _SYS_VM86_H
 +#define _SYS_VM86_H
@@ -3949,8 +3979,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/vm86.h ./include/sys/vm86.h
 +
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/sys/wait.h ./include/sys/wait.h
---- ../../dietlibc/include/sys/wait.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/sys/wait.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/sys/wait.h	2005-01-31 22:05:03.000000000 +0000
++++ ./include/sys/wait.h	2005-10-04 17:47:03.000000000 +0000
 @@ -48,6 +48,14 @@
  
  pid_t wait4(pid_t pid, int *status, int options, struct rusage *rusage) __THROW;
@@ -3967,8 +3997,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/sys/wait.h ./include/sys/wait.h
  
  #endif
 diff -urNxCVS -xdebian ../../dietlibc/include/termios.h ./include/termios.h
---- ../../dietlibc/include/termios.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/termios.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/termios.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/termios.h	2005-10-04 17:47:03.000000000 +0000
 @@ -90,7 +90,7 @@
    cc_t c_line;			/* line discipline */
    cc_t c_cc[NCCS];		/* control characters */
@@ -3979,8 +4009,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/termios.h ./include/termios.h
  struct termios {
  	tcflag_t c_iflag;		/* input mode flags */
 diff -urNxCVS -xdebian ../../dietlibc/include/time.h ./include/time.h
---- ../../dietlibc/include/time.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/time.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/time.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/time.h	2005-10-04 17:47:03.000000000 +0000
 @@ -19,7 +19,8 @@
  
  int clock_settime(clockid_t clock_id,const struct timespec*tp);
@@ -3992,8 +4022,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/time.h ./include/time.h
  #define TIMER_ABSTIME            1
  
 diff -urNxCVS -xdebian ../../dietlibc/include/unistd.h ./include/unistd.h
---- ../../dietlibc/include/unistd.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/unistd.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/unistd.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/unistd.h	2005-10-04 17:47:03.000000000 +0000
 @@ -50,8 +50,8 @@
  int open64(const char* pathname,int flags, ...) __THROW;
  int creat(const char* pathname,mode_t mode) __THROW;
@@ -4030,7 +4060,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/unistd.h ./include/unistd.h
  __END_DECLS
 diff -urNxCVS -xdebian ../../dietlibc/include/ustat.h ./include/ustat.h
 --- ../../dietlibc/include/ustat.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/ustat.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/ustat.h	2005-07-13 07:31:41.000000000 +0000
 @@ -0,0 +1,25 @@
 +#ifndef _USTAT_H
 +#define _USTAT_H
@@ -4059,7 +4089,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/ustat.h ./include/ustat.h
 +
 diff -urNxCVS -xdebian ../../dietlibc/include/wchar.h ./include/wchar.h
 --- ../../dietlibc/include/wchar.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/wchar.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/wchar.h	2005-09-21 07:33:08.000000000 +0000
 @@ -0,0 +1,99 @@
 +#ifndef _WCHAR_H
 +#define _WCHAR_H
@@ -4162,7 +4192,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/wchar.h ./include/wchar.h
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/wctype.h ./include/wctype.h
 --- ../../dietlibc/include/wctype.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./include/wctype.h	2006-04-16 17:55:21.000000000 +0000
++++ ./include/wctype.h	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,28 @@
 +#ifndef _WCTYPE_H
 +#define _WCTYPE_H
@@ -4193,8 +4223,8 @@ diff -urNxCVS -xdebian ../../dietlibc/include/wctype.h ./include/wctype.h
 +
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/include/write12.h ./include/write12.h
---- ../../dietlibc/include/write12.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./include/write12.h	2005-10-05 12:30:49.000000000 +0000
+--- ../../dietlibc/include/write12.h	2005-05-25 08:40:00.000000000 +0000
++++ ./include/write12.h	2005-09-21 07:33:08.000000000 +0000
 @@ -1,8 +1,9 @@
  #include <sys/cdefs.h>
 +#include <sys/types.h>
@@ -4209,7 +4239,7 @@ diff -urNxCVS -xdebian ../../dietlibc/include/write12.h ./include/write12.h
  __END_DECLS
 diff -urNxCVS -xdebian ../../dietlibc/lib/__fcntl64.c ./lib/__fcntl64.c
 --- ../../dietlibc/lib/__fcntl64.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/__fcntl64.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/__fcntl64.c	2005-08-17 07:32:17.000000000 +0000
 @@ -0,0 +1,58 @@
 +#include <errno.h>
 +#include "dietfeatures.h"
@@ -4271,7 +4301,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/__fcntl64.c ./lib/__fcntl64.c
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/lib/__fstatfs64.c ./lib/__fstatfs64.c
 --- ../../dietlibc/lib/__fstatfs64.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/__fstatfs64.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/__fstatfs64.c	2005-10-04 17:48:30.000000000 +0000
 @@ -0,0 +1,23 @@
 +#include <errno.h>
 +#include "dietfeatures.h"
@@ -4298,7 +4328,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/__fstatfs64.c ./lib/__fstatfs64.c
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/lib/__statfs64.c ./lib/__statfs64.c
 --- ../../dietlibc/lib/__statfs64.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/__statfs64.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/__statfs64.c	2005-10-04 17:48:30.000000000 +0000
 @@ -0,0 +1,23 @@
 +#include <errno.h>
 +#include "dietfeatures.h"
@@ -4325,7 +4355,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/__statfs64.c ./lib/__statfs64.c
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/lib/div.c ./lib/div.c
 --- ../../dietlibc/lib/div.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/div.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/div.c	2005-10-07 17:43:02.000000000 +0000
 @@ -0,0 +1,11 @@
 +#include "dietwarning.h"
 +#include <stdlib.h>
@@ -4339,8 +4369,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/div.c ./lib/div.c
 +
 +link_warning("div","warning: your code uses div(), which is completely superfluous!");
 diff -urNxCVS -xdebian ../../dietlibc/lib/exec_lib.c ./lib/exec_lib.c
---- ../../dietlibc/lib/exec_lib.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/exec_lib.c	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/lib/exec_lib.c	2002-05-05 17:19:15.000000000 +0000
++++ ./lib/exec_lib.c	2006-04-04 03:42:48.000000000 +0000
 @@ -1,21 +1,21 @@
  #include <unistd.h>
  #include <paths.h>
@@ -4373,8 +4403,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/exec_lib.c ./lib/exec_lib.c
  }
  
 diff -urNxCVS -xdebian ../../dietlibc/lib/ftw.c ./lib/ftw.c
---- ../../dietlibc/lib/ftw.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/ftw.c	2005-11-04 14:11:26.000000000 +0000
+--- ../../dietlibc/lib/ftw.c	2005-05-25 08:40:01.000000000 +0000
++++ ./lib/ftw.c	2005-10-28 14:17:12.000000000 +0000
 @@ -5,6 +5,7 @@
  #include <dirent.h>
  #include <string.h>
@@ -4399,8 +4429,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/ftw.c ./lib/ftw.c
    return closedir(d);
  }
 diff -urNxCVS -xdebian ../../dietlibc/lib/getopt.c ./lib/getopt.c
---- ../../dietlibc/lib/getopt.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/getopt.c	2005-07-10 18:32:53.000000000 +0000
+--- ../../dietlibc/lib/getopt.c	2003-09-13 08:47:06.000000000 +0000
++++ ./lib/getopt.c	2005-07-01 12:00:29.000000000 +0000
 @@ -18,7 +18,7 @@
  int getopt(int argc, char * const argv[], const char *optstring) {
    static int lastidx,lastofs;
@@ -4411,8 +4441,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/getopt.c ./lib/getopt.c
    if (optind>argc || !argv[optind] || *argv[optind]!='-' || argv[optind][1]==0)
      return -1;
 diff -urNxCVS -xdebian ../../dietlibc/lib/isalnum.c ./lib/isalnum.c
---- ../../dietlibc/lib/isalnum.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/isalnum.c	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/lib/isalnum.c	2002-05-05 17:19:15.000000000 +0000
++++ ./lib/isalnum.c	2006-04-04 03:10:40.000000000 +0000
 @@ -1,9 +1,6 @@
  #include <ctype.h>
  
@@ -4427,8 +4457,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/isalnum.c ./lib/isalnum.c
 -
 -int isalnum ( int ch ) __attribute__((weak,alias("__isalnum_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/isalpha.c ./lib/isalpha.c
---- ../../dietlibc/lib/isalpha.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/isalpha.c	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/lib/isalpha.c	2002-05-05 17:19:15.000000000 +0000
++++ ./lib/isalpha.c	2006-04-04 03:10:40.000000000 +0000
 @@ -1,8 +1,5 @@
  #include <ctype.h>
  
@@ -4441,8 +4471,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/isalpha.c ./lib/isalpha.c
 -
 -int isalpha ( int ch ) __attribute__((weak,alias("__isalpha_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/isprint.c ./lib/isprint.c
---- ../../dietlibc/lib/isprint.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/isprint.c	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/lib/isprint.c	2002-05-05 17:19:15.000000000 +0000
++++ ./lib/isprint.c	2006-04-04 03:10:40.000000000 +0000
 @@ -1,7 +1,7 @@
 +#include <ctype.h>
 +#include "dietlocale.h"
@@ -4458,7 +4488,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/isprint.c ./lib/isprint.c
 -int isprint ( int ch ) __attribute__((weak,alias("__isprint_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswalnum.c ./lib/iswalnum.c
 --- ../../dietlibc/lib/iswalnum.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswalnum.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswalnum.c	2005-07-22 22:43:09.000000000 +0000
 @@ -0,0 +1,9 @@
 +#include <ctype.h>
 +#include <wctype.h>
@@ -4471,7 +4501,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswalnum.c ./lib/iswalnum.c
 +int iswalnum(wint_t c) __attribute__((weak,alias("__iswalnum_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswalpha.c ./lib/iswalpha.c
 --- ../../dietlibc/lib/iswalpha.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswalpha.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswalpha.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,9 @@
 +#include <ctype.h>
 +#include <wctype.h>
@@ -4484,7 +4514,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswalpha.c ./lib/iswalpha.c
 +int iswalpha(wint_t c) __attribute__((weak,alias("__iswalpha_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswblank.c ./lib/iswblank.c
 --- ../../dietlibc/lib/iswblank.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswblank.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswblank.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <wctype.h>
 +
@@ -4496,7 +4526,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswblank.c ./lib/iswblank.c
 +int iswblank(wint_t c) __attribute__((weak,alias("__iswblank_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswcntrl.c ./lib/iswcntrl.c
 --- ../../dietlibc/lib/iswcntrl.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswcntrl.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswcntrl.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <wctype.h>
 +
@@ -4508,7 +4538,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswcntrl.c ./lib/iswcntrl.c
 +int iswcntrl(wint_t c) __attribute__((weak,alias("__iswcntrl_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswdigit.c ./lib/iswdigit.c
 --- ../../dietlibc/lib/iswdigit.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswdigit.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswdigit.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include <wctype.h>
 +
@@ -4517,7 +4547,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswdigit.c ./lib/iswdigit.c
 +}
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswgraph.c ./lib/iswgraph.c
 --- ../../dietlibc/lib/iswgraph.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswgraph.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswgraph.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <wctype.h>
 +
@@ -4529,7 +4559,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswgraph.c ./lib/iswgraph.c
 +int iswgraph(wint_t c) __attribute__((weak,alias("__iswgraph_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswlower.c ./lib/iswlower.c
 --- ../../dietlibc/lib/iswlower.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswlower.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswlower.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <wctype.h>
 +
@@ -4541,7 +4571,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswlower.c ./lib/iswlower.c
 +int iswlower ( wint_t ch ) __attribute__((weak,alias("__iswlower_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswprint.c ./lib/iswprint.c
 --- ../../dietlibc/lib/iswprint.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswprint.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswprint.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <wctype.h>
 +
@@ -4553,7 +4583,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswprint.c ./lib/iswprint.c
 +int iswprint(wint_t c) __attribute__((weak,alias("__iswprint_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswpunct.c ./lib/iswpunct.c
 --- ../../dietlibc/lib/iswpunct.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswpunct.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswpunct.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,9 @@
 +#include <wctype.h>
 +
@@ -4566,7 +4596,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswpunct.c ./lib/iswpunct.c
 +int iswpunct(wint_t c) __attribute__((weak,alias("__iswpunct_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswspace.c ./lib/iswspace.c
 --- ../../dietlibc/lib/iswspace.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswspace.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswspace.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <wctype.h>
 +
@@ -4578,7 +4608,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswspace.c ./lib/iswspace.c
 +int iswspace(wint_t c) __attribute__((weak,alias("__iswspace_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswupper.c ./lib/iswupper.c
 --- ../../dietlibc/lib/iswupper.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswupper.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswupper.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,9 @@
 +#include <wctype.h>
 +
@@ -4591,7 +4621,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswupper.c ./lib/iswupper.c
 +int iswupper ( wint_t c ) __attribute__((weak,alias("__iswupper_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/iswxdigit.c ./lib/iswxdigit.c
 --- ../../dietlibc/lib/iswxdigit.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/iswxdigit.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/iswxdigit.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,10 @@
 +#include <wctype.h>
 +
@@ -4605,14 +4635,14 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/iswxdigit.c ./lib/iswxdigit.c
 +int iswxdigit(wint_t c) __attribute__((weak,alias("__iswxdigit_ascii")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/lc_ctype.c ./lib/lc_ctype.c
 --- ../../dietlibc/lib/lc_ctype.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/lc_ctype.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/lc_ctype.c	2006-04-04 03:10:40.000000000 +0000
 @@ -0,0 +1,3 @@
 +#include "dietlocale.h"
 +
 +enum __encoding lc_ctype=CT_8BIT;
 diff -urNxCVS -xdebian ../../dietlibc/lib/ldiv.c ./lib/ldiv.c
 --- ../../dietlibc/lib/ldiv.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/ldiv.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/ldiv.c	2005-07-19 09:43:09.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <stdlib.h>
 +
@@ -4624,7 +4654,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/ldiv.c ./lib/ldiv.c
 +}
 diff -urNxCVS -xdebian ../../dietlibc/lib/lldiv.c ./lib/lldiv.c
 --- ../../dietlibc/lib/lldiv.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/lldiv.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/lldiv.c	2005-07-22 22:43:09.000000000 +0000
 @@ -0,0 +1,9 @@
 +#define _GNU_SOURCE
 +#include <stdlib.h>
@@ -4637,7 +4667,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/lldiv.c ./lib/lldiv.c
 +}
 diff -urNxCVS -xdebian ../../dietlibc/lib/mq_getattr.c ./lib/mq_getattr.c
 --- ../../dietlibc/lib/mq_getattr.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/mq_getattr.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/mq_getattr.c	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,6 @@
 +#include <mqueue.h>
 +
@@ -4647,7 +4677,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/mq_getattr.c ./lib/mq_getattr.c
 +
 diff -urNxCVS -xdebian ../../dietlibc/lib/mq_receive.c ./lib/mq_receive.c
 --- ../../dietlibc/lib/mq_receive.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/mq_receive.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/mq_receive.c	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,6 @@
 +#include <mqueue.h>
 +
@@ -4657,7 +4687,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/mq_receive.c ./lib/mq_receive.c
 +
 diff -urNxCVS -xdebian ../../dietlibc/lib/mq_send.c ./lib/mq_send.c
 --- ../../dietlibc/lib/mq_send.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/mq_send.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/mq_send.c	2005-10-04 17:47:03.000000000 +0000
 @@ -0,0 +1,6 @@
 +#include <mqueue.h>
 +
@@ -4666,8 +4696,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/mq_send.c ./lib/mq_send.c
 +}
 +
 diff -urNxCVS -xdebian ../../dietlibc/lib/putenv.c ./lib/putenv.c
---- ../../dietlibc/lib/putenv.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/putenv.c	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/lib/putenv.c	2002-07-20 13:29:26.000000000 +0000
++++ ./lib/putenv.c	2006-02-19 15:38:28.000000000 +0000
 @@ -16,7 +16,7 @@
      remove=1;
    } else
@@ -4696,8 +4726,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/putenv.c ./lib/putenv.c
    }
    return 0;
 diff -urNxCVS -xdebian ../../dietlibc/lib/seekdir.c ./lib/seekdir.c
---- ../../dietlibc/lib/seekdir.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/seekdir.c	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/lib/seekdir.c	2002-05-05 17:19:16.000000000 +0000
++++ ./lib/seekdir.c	2006-04-04 03:47:21.000000000 +0000
 @@ -3,6 +3,8 @@
  #include <dirent.h>
  
@@ -4709,8 +4739,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/seekdir.c ./lib/seekdir.c
 +  }
  }
 diff -urNxCVS -xdebian ../../dietlibc/lib/sigisemptyset.c ./lib/sigisemptyset.c
---- ../../dietlibc/lib/sigisemptyset.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/sigisemptyset.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/lib/sigisemptyset.c	2005-01-31 22:05:03.000000000 +0000
++++ ./lib/sigisemptyset.c	2005-09-21 07:33:08.000000000 +0000
 @@ -10,5 +10,5 @@
      ret|=set->sig[2];
      ret|=set->sig[3];
@@ -4719,8 +4749,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/sigisemptyset.c ./lib/sigisemptyset.c
 +  return ret != 0;
  }
 diff -urNxCVS -xdebian ../../dietlibc/lib/sigjmp.c ./lib/sigjmp.c
---- ../../dietlibc/lib/sigjmp.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/sigjmp.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/lib/sigjmp.c	2002-05-05 17:19:17.000000000 +0000
++++ ./lib/sigjmp.c	2005-09-21 07:33:08.000000000 +0000
 @@ -3,8 +3,9 @@
  
  int __sigjmp_save(sigjmp_buf env,int savemask);
@@ -4733,8 +4763,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/sigjmp.c ./lib/sigjmp.c
    return 0;
  }
 diff -urNxCVS -xdebian ../../dietlibc/lib/signal.c ./lib/signal.c
---- ../../dietlibc/lib/signal.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/signal.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/lib/signal.c	2003-02-20 09:23:20.000000000 +0000
++++ ./lib/signal.c	2005-09-21 07:33:08.000000000 +0000
 @@ -4,9 +4,10 @@
    struct sigaction sa,oa;
    sa.sa_handler=action;
@@ -4750,8 +4780,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/signal.c ./lib/signal.c
    return oa.sa_handler;
  }
 diff -urNxCVS -xdebian ../../dietlibc/lib/sigqueueinfo.c ./lib/sigqueueinfo.c
---- ../../dietlibc/lib/sigqueueinfo.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/sigqueueinfo.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/lib/sigqueueinfo.c	2002-05-05 17:19:17.000000000 +0000
++++ ./lib/sigqueueinfo.c	2005-09-21 07:33:08.000000000 +0000
 @@ -1,7 +1,7 @@
  #include <signal.h>
  
@@ -4763,8 +4793,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/sigqueueinfo.c ./lib/sigqueueinfo.c
    return __rt_sigqueueinfo(pid, sig, info);
  }
 diff -urNxCVS -xdebian ../../dietlibc/lib/stack_smash_handler.c ./lib/stack_smash_handler.c
---- ../../dietlibc/lib/stack_smash_handler.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/stack_smash_handler.c	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/lib/stack_smash_handler.c	2005-05-25 08:40:01.000000000 +0000
++++ ./lib/stack_smash_handler.c	2006-04-04 05:35:14.000000000 +0000
 @@ -1,6 +1,8 @@
  #include <write12.h>
  #include <unistd.h>
@@ -4785,7 +4815,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/stack_smash_handler.c ./lib/stack_smas
 +
 diff -urNxCVS -xdebian ../../dietlibc/lib/stack_smash_handler2.c ./lib/stack_smash_handler2.c
 --- ../../dietlibc/lib/stack_smash_handler2.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/stack_smash_handler2.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/stack_smash_handler2.c	2006-04-04 05:35:14.000000000 +0000
 @@ -0,0 +1,12 @@
 +#include <unistd.h>
 +#include <write12.h>
@@ -4800,8 +4830,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/stack_smash_handler2.c ./lib/stack_sma
 +  _exit(127);
 +}
 diff -urNxCVS -xdebian ../../dietlibc/lib/stackgap.c ./lib/stackgap.c
---- ../../dietlibc/lib/stackgap.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/stackgap.c	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/lib/stackgap.c	2005-05-25 08:40:01.000000000 +0000
++++ ./lib/stackgap.c	2006-04-04 05:35:14.000000000 +0000
 @@ -1,21 +1,39 @@
  #include <unistd.h>
  #include <fcntl.h>
@@ -4845,7 +4875,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/stackgap.c ./lib/stackgap.c
  
 diff -urNxCVS -xdebian ../../dietlibc/lib/statfs64_cvt.c ./lib/statfs64_cvt.c
 --- ../../dietlibc/lib/statfs64_cvt.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/statfs64_cvt.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/statfs64_cvt.c	2005-10-04 17:49:09.000000000 +0000
 @@ -0,0 +1,19 @@
 +#include <sys/statfs.h>
 +
@@ -4867,8 +4897,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/statfs64_cvt.c ./lib/statfs64_cvt.c
 +
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/lib/strncpy.c ./lib/strncpy.c
---- ../../dietlibc/lib/strncpy.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/strncpy.c	2006-04-16 17:23:47.000000000 +0000
+--- ../../dietlibc/lib/strncpy.c	2005-01-31 22:05:04.000000000 +0000
++++ ./lib/strncpy.c	2006-04-12 16:39:11.000000000 +0000
 @@ -12,7 +12,7 @@
  #endif
    memccpy(dest,src,0,n);
@@ -4879,8 +4909,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/strncpy.c ./lib/strncpy.c
    return dest;
  }
 diff -urNxCVS -xdebian ../../dietlibc/lib/telldir.c ./lib/telldir.c
---- ../../dietlibc/lib/telldir.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/telldir.c	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/lib/telldir.c	2002-05-05 17:19:18.000000000 +0000
++++ ./lib/telldir.c	2006-04-04 03:47:21.000000000 +0000
 @@ -3,5 +3,8 @@
  #include <dirent.h>
  
@@ -4893,7 +4923,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/telldir.c ./lib/telldir.c
  }
 diff -urNxCVS -xdebian ../../dietlibc/lib/towlower.c ./lib/towlower.c
 --- ../../dietlibc/lib/towlower.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/towlower.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/towlower.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <wctype.h>
 +
@@ -4905,7 +4935,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/towlower.c ./lib/towlower.c
 +
 diff -urNxCVS -xdebian ../../dietlibc/lib/towupper.c ./lib/towupper.c
 --- ../../dietlibc/lib/towupper.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/towupper.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/towupper.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <wctype.h>
 +
@@ -4917,7 +4947,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/towupper.c ./lib/towupper.c
 +
 diff -urNxCVS -xdebian ../../dietlibc/lib/wcscat.c ./lib/wcscat.c
 --- ../../dietlibc/lib/wcscat.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/wcscat.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/wcscat.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <wchar.h>
 +
@@ -4929,7 +4959,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/wcscat.c ./lib/wcscat.c
 +}
 diff -urNxCVS -xdebian ../../dietlibc/lib/wcschr.c ./lib/wcschr.c
 --- ../../dietlibc/lib/wcschr.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/wcschr.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/wcschr.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <wchar.h>
 +
@@ -4941,7 +4971,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/wcschr.c ./lib/wcschr.c
 +}
 diff -urNxCVS -xdebian ../../dietlibc/lib/wcscmp.c ./lib/wcscmp.c
 --- ../../dietlibc/lib/wcscmp.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/wcscmp.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/wcscmp.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,9 @@
 +#include <wchar.h>
 +
@@ -4954,7 +4984,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/wcscmp.c ./lib/wcscmp.c
 +int wcscoll(const wchar_t *s,const wchar_t* t)       __attribute__((weak,alias("wcscmp")));
 diff -urNxCVS -xdebian ../../dietlibc/lib/wcscpy.c ./lib/wcscpy.c
 --- ../../dietlibc/lib/wcscpy.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/wcscpy.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/wcscpy.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,7 @@
 +#include <wchar.h>
 +
@@ -4965,7 +4995,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/wcscpy.c ./lib/wcscpy.c
 +}
 diff -urNxCVS -xdebian ../../dietlibc/lib/wcslen.c ./lib/wcslen.c
 --- ../../dietlibc/lib/wcslen.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/wcslen.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/wcslen.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,7 @@
 +#include <wchar.h>
 +
@@ -4976,7 +5006,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/wcslen.c ./lib/wcslen.c
 +}
 diff -urNxCVS -xdebian ../../dietlibc/lib/wcsrchr.c ./lib/wcsrchr.c
 --- ../../dietlibc/lib/wcsrchr.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./lib/wcsrchr.c	2006-04-16 17:55:21.000000000 +0000
++++ ./lib/wcsrchr.c	2005-07-15 18:34:03.000000000 +0000
 @@ -0,0 +1,9 @@
 +#include <wchar.h>
 +
@@ -4988,8 +5018,8 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/wcsrchr.c ./lib/wcsrchr.c
 +  return last;
 +}
 diff -urNxCVS -xdebian ../../dietlibc/lib/write12.c ./lib/write12.c
---- ../../dietlibc/lib/write12.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./lib/write12.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/lib/write12.c	2004-07-31 19:45:27.000000000 +0000
++++ ./lib/write12.c	2005-09-21 07:33:08.000000000 +0000
 @@ -8,10 +8,10 @@
  #define REGPARM(x)
  #endif
@@ -5005,7 +5035,7 @@ diff -urNxCVS -xdebian ../../dietlibc/lib/write12.c ./lib/write12.c
  }
 diff -urNxCVS -xdebian ../../dietlibc/libcompat/clearenv.c ./libcompat/clearenv.c
 --- ../../dietlibc/libcompat/clearenv.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./libcompat/clearenv.c	2006-04-16 17:55:21.000000000 +0000
++++ ./libcompat/clearenv.c	2005-08-29 13:12:10.000000000 +0000
 @@ -0,0 +1,7 @@
 +#define _GNU_SOURCE
 +#include <stdlib.h>
@@ -5016,7 +5046,7 @@ diff -urNxCVS -xdebian ../../dietlibc/libcompat/clearenv.c ./libcompat/clearenv.
 +}
 diff -urNxCVS -xdebian ../../dietlibc/libcompat/strnlen.c ./libcompat/strnlen.c
 --- ../../dietlibc/libcompat/strnlen.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./libcompat/strnlen.c	2006-04-16 17:55:21.000000000 +0000
++++ ./libcompat/strnlen.c	2005-08-29 13:07:15.000000000 +0000
 @@ -0,0 +1,9 @@
 +#define _GNU_SOURCE
 +#include <string.h>
@@ -5028,8 +5058,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libcompat/strnlen.c ./libcompat/strnlen.c
 +  return s-orig;
 +}
 diff -urNxCVS -xdebian ../../dietlibc/libcompat/syscall.S ./libcompat/syscall.S
---- ../../dietlibc/libcompat/syscall.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./libcompat/syscall.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/libcompat/syscall.S	2005-05-25 08:40:01.000000000 +0000
++++ ./libcompat/syscall.S	2006-04-04 03:42:48.000000000 +0000
 @@ -119,6 +119,16 @@
  	retl
  	nop
@@ -5049,7 +5079,7 @@ diff -urNxCVS -xdebian ../../dietlibc/libcompat/syscall.S ./libcompat/syscall.S
  #endif
 diff -urNxCVS -xdebian ../../dietlibc/libcompat/toascii.c ./libcompat/toascii.c
 --- ../../dietlibc/libcompat/toascii.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./libcompat/toascii.c	2006-04-16 17:55:21.000000000 +0000
++++ ./libcompat/toascii.c	2005-07-13 07:31:41.000000000 +0000
 @@ -0,0 +1,8 @@
 +#include <ctype.h>
 +#include "dietwarning.h"
@@ -5060,8 +5090,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libcompat/toascii.c ./libcompat/toascii.c
 +
 +link_warning("toascii","using this function converts accented characters to random unrelated characters and will make people very unhappy!")
 diff -urNxCVS -xdebian ../../dietlibc/libcompat/utimes.c ./libcompat/utimes.c
---- ../../dietlibc/libcompat/utimes.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libcompat/utimes.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libcompat/utimes.c	2003-09-13 08:47:06.000000000 +0000
++++ ./libcompat/utimes.c	2005-09-21 07:33:08.000000000 +0000
 @@ -7,7 +7,7 @@
  #include <utime.h>
  #include <sys/types.h>
@@ -5072,7 +5102,7 @@ diff -urNxCVS -xdebian ../../dietlibc/libcompat/utimes.c ./libcompat/utimes.c
    if (!tvp) {
      return utime(filename,NULL);
 diff -urNxCVS -xdebian ../../dietlibc/libcruft/___div.c ./libcruft/___div.c
---- ../../dietlibc/libcruft/___div.c	2006-04-16 17:46:49.000000000 +0000
+--- ../../dietlibc/libcruft/___div.c	2002-05-05 17:19:18.000000000 +0000
 +++ ./libcruft/___div.c	1970-01-01 00:00:00.000000000 +0000
 @@ -1,11 +0,0 @@
 -#include "dietwarning.h"
@@ -5088,7 +5118,7 @@ diff -urNxCVS -xdebian ../../dietlibc/libcruft/___div.c ./libcruft/___div.c
 -link_warning("div","warning: your code uses div(), which is completely superfluous!");
 diff -urNxCVS -xdebian ../../dietlibc/libcruft/dngettext.c ./libcruft/dngettext.c
 --- ../../dietlibc/libcruft/dngettext.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./libcruft/dngettext.c	2006-04-16 17:55:21.000000000 +0000
++++ ./libcruft/dngettext.c	2005-09-26 10:52:22.000000000 +0000
 @@ -0,0 +1,7 @@
 +#include <libintl.h>
 +
@@ -5098,8 +5128,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libcruft/dngettext.c ./libcruft/dngettext.
 +  return (char*)(n==1?msgid:msgid_plural);
 +}
 diff -urNxCVS -xdebian ../../dietlibc/libcruft/dnscruft.c ./libcruft/dnscruft.c
---- ../../dietlibc/libcruft/dnscruft.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libcruft/dnscruft.c	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/libcruft/dnscruft.c	2003-11-25 19:53:57.000000000 +0000
++++ ./libcruft/dnscruft.c	2006-02-18 22:08:57.000000000 +0000
 @@ -124,7 +124,8 @@
  	}
        }
@@ -5111,16 +5141,16 @@ diff -urNxCVS -xdebian ../../dietlibc/libcruft/dnscruft.c ./libcruft/dnscruft.c
  	while (buf<last && *buf!='\n') {
  	  char save;
 diff -urNxCVS -xdebian ../../dietlibc/libcruft/dnscruft3.c ./libcruft/dnscruft3.c
---- ../../dietlibc/libcruft/dnscruft3.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libcruft/dnscruft3.c	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/libcruft/dnscruft3.c	2002-05-05 17:19:19.000000000 +0000
++++ ./libcruft/dnscruft3.c	2006-02-14 07:00:05.000000000 +0000
 @@ -1,3 +1,3 @@
  #include <resolv.h>
  
 -struct res_state _res; /* don't ask. */
 +struct __res_state _res; /* don't ask. */
 diff -urNxCVS -xdebian ../../dietlibc/libcruft/gethostbyname2_r.c ./libcruft/gethostbyname2_r.c
---- ../../dietlibc/libcruft/gethostbyname2_r.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libcruft/gethostbyname2_r.c	2005-07-10 18:32:53.000000000 +0000
+--- ../../dietlibc/libcruft/gethostbyname2_r.c	2003-09-13 08:47:06.000000000 +0000
++++ ./libcruft/gethostbyname2_r.c	2005-07-09 12:15:10.000000000 +0000
 @@ -29,11 +29,13 @@
    if (buflen<L) { *h_errnop=ERANGE; return 1; }
  #ifdef WANT_ETC_HOSTS
@@ -5167,8 +5197,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libcruft/gethostbyname2_r.c ./libcruft/get
  #endif
    strcpy(buf,name);
 diff -urNxCVS -xdebian ../../dietlibc/libcruft/getopt_long.c ./libcruft/getopt_long.c
---- ../../dietlibc/libcruft/getopt_long.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libcruft/getopt_long.c	2005-10-24 10:55:29.000000000 +0000
+--- ../../dietlibc/libcruft/getopt_long.c	2003-09-13 08:47:06.000000000 +0000
++++ ./libcruft/getopt_long.c	2005-10-21 19:02:19.000000000 +0000
 @@ -19,9 +19,14 @@
  		const struct option *longopts, int *longindex) {
    static int lastidx,lastofs;
@@ -5187,8 +5217,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libcruft/getopt_long.c ./libcruft/getopt_l
    if (argv[optind][1]=='-' && argv[optind][2]==0) {
      ++optind;
 diff -urNxCVS -xdebian ../../dietlibc/libcruft/getopt_long_only.c ./libcruft/getopt_long_only.c
---- ../../dietlibc/libcruft/getopt_long_only.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libcruft/getopt_long_only.c	2005-07-10 18:32:53.000000000 +0000
+--- ../../dietlibc/libcruft/getopt_long_only.c	2003-09-13 08:47:06.000000000 +0000
++++ ./libcruft/getopt_long_only.c	2005-07-01 12:00:30.000000000 +0000
 @@ -19,7 +19,7 @@
  		const struct option *longopts, int *longindex) {
    static int lastidx,lastofs;
@@ -5200,7 +5230,7 @@ diff -urNxCVS -xdebian ../../dietlibc/libcruft/getopt_long_only.c ./libcruft/get
      return -1;
 diff -urNxCVS -xdebian ../../dietlibc/libcruft/ngettext.c ./libcruft/ngettext.c
 --- ../../dietlibc/libcruft/ngettext.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./libcruft/ngettext.c	2006-04-16 17:55:21.000000000 +0000
++++ ./libcruft/ngettext.c	2005-09-26 10:52:22.000000000 +0000
 @@ -0,0 +1,6 @@
 +#include <libintl.h>
 +
@@ -5209,8 +5239,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libcruft/ngettext.c ./libcruft/ngettext.c
 +  return (char*)(n==1?msgid:msgid_plural);
 +}
 diff -urNxCVS -xdebian ../../dietlibc/libcruft/res_query.c ./libcruft/res_query.c
---- ../../dietlibc/libcruft/res_query.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libcruft/res_query.c	2005-10-18 13:38:05.000000000 +0000
+--- ../../dietlibc/libcruft/res_query.c	2005-05-25 08:40:01.000000000 +0000
++++ ./libcruft/res_query.c	2005-10-14 15:37:59.000000000 +0000
 @@ -29,10 +29,10 @@
  int res_query(const char *dname, int class, int type, unsigned char *answer, int anslen) {
    unsigned char packet[512];
@@ -5254,8 +5284,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libcruft/res_query.c ./libcruft/res_query.
  	duh[0].revents=0;
  	if (poll(duh[0].fd==-1?duh+1:duh,duh[0].fd==-1?1:2,1000) > 0) {
 diff -urNxCVS -xdebian ../../dietlibc/libcruft/setlocale.c ./libcruft/setlocale.c
---- ../../dietlibc/libcruft/setlocale.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libcruft/setlocale.c	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/libcruft/setlocale.c	2005-01-31 22:05:04.000000000 +0000
++++ ./libcruft/setlocale.c	2006-04-04 03:10:40.000000000 +0000
 @@ -1,7 +1,19 @@
  #include <locale.h>
 +#include <stdlib.h>
@@ -5278,8 +5308,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libcruft/setlocale.c ./libcruft/setlocale.
    return "C";
  }
 diff -urNxCVS -xdebian ../../dietlibc/libcrypt/crypt.c ./libcrypt/crypt.c
---- ../../dietlibc/libcrypt/crypt.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libcrypt/crypt.c	2005-07-13 13:22:29.000000000 +0000
+--- ../../dietlibc/libcrypt/crypt.c	2002-05-05 17:19:21.000000000 +0000
++++ ./libcrypt/crypt.c	2005-07-10 21:04:12.000000000 +0000
 @@ -185,7 +185,8 @@
  };
  
@@ -5291,8 +5321,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libcrypt/crypt.c ./libcrypt/crypt.c
  static char f[32];
  
 diff -urNxCVS -xdebian ../../dietlibc/libdl/_dl_alloc.c ./libdl/_dl_alloc.c
---- ../../dietlibc/libdl/_dl_alloc.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libdl/_dl_alloc.c	2005-10-12 08:53:33.000000000 +0000
+--- ../../dietlibc/libdl/_dl_alloc.c	2005-05-25 08:40:01.000000000 +0000
++++ ./libdl/_dl_alloc.c	2005-10-07 19:33:34.000000000 +0000
 @@ -74,7 +74,7 @@
        struct _dl_handle*tmp;
        for (tmp=_dl_root_handle;tmp;tmp=tmp->next) {
@@ -5303,8 +5333,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libdl/_dl_alloc.c ./libdl/_dl_alloc.c
      }
    }
 diff -urNxCVS -xdebian ../../dietlibc/libdl/_dl_main.c ./libdl/_dl_main.c
---- ../../dietlibc/libdl/_dl_main.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libdl/_dl_main.c	2005-10-12 08:53:33.000000000 +0000
+--- ../../dietlibc/libdl/_dl_main.c	2005-05-25 08:40:01.000000000 +0000
++++ ./libdl/_dl_main.c	2005-10-07 19:33:34.000000000 +0000
 @@ -40,9 +40,9 @@
  __attribute__((noreturn,visibility("hidden")))
  void _dl_sys_exit(int val);
@@ -5364,8 +5394,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libdl/_dl_main.c ./libdl/_dl_main.c
  
    if (_dl_sys_fstat(fd,&st)<0) {
 diff -urNxCVS -xdebian ../../dietlibc/libdl/_dl_queue.c ./libdl/_dl_queue.c
---- ../../dietlibc/libdl/_dl_queue.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libdl/_dl_queue.c	2005-10-12 08:53:33.000000000 +0000
+--- ../../dietlibc/libdl/_dl_queue.c	2003-09-13 08:47:07.000000000 +0000
++++ ./libdl/_dl_queue.c	2005-10-07 19:33:34.000000000 +0000
 @@ -33,8 +33,8 @@
  #endif
  int _dl_open_dep() {
@@ -5378,8 +5408,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libdl/_dl_queue.c ./libdl/_dl_queue.c
    }
    return 0;
 diff -urNxCVS -xdebian ../../dietlibc/libdl/_dl_search.c ./libdl/_dl_search.c
---- ../../dietlibc/libdl/_dl_search.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libdl/_dl_search.c	2005-10-12 08:53:33.000000000 +0000
+--- ../../dietlibc/libdl/_dl_search.c	2005-05-25 08:40:01.000000000 +0000
++++ ./libdl/_dl_search.c	2005-10-07 19:33:34.000000000 +0000
 @@ -106,7 +106,7 @@
  
    /* default path search */
@@ -5390,8 +5420,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libdl/_dl_search.c ./libdl/_dl_search.c
    }
  }
 diff -urNxCVS -xdebian ../../dietlibc/libdl/dlsym.c ./libdl/dlsym.c
---- ../../dietlibc/libdl/dlsym.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libdl/dlsym.c	2005-10-12 08:53:33.000000000 +0000
+--- ../../dietlibc/libdl/dlsym.c	2005-05-25 08:40:01.000000000 +0000
++++ ./libdl/dlsym.c	2005-10-07 19:33:34.000000000 +0000
 @@ -5,7 +5,7 @@
  #ifdef __DIET_LD_SO__
  static
@@ -5458,8 +5488,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libdl/dlsym.c ./libdl/dlsym.c
      _dl_error_location="dlsym";
      _dl_error_data=symbol;
 diff -urNxCVS -xdebian ../../dietlibc/libpthread/pthread_sys_read.c ./libpthread/pthread_sys_read.c
---- ../../dietlibc/libpthread/pthread_sys_read.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libpthread/pthread_sys_read.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libpthread/pthread_sys_read.c	2003-09-13 08:47:07.000000000 +0000
++++ ./libpthread/pthread_sys_read.c	2005-09-21 07:33:08.000000000 +0000
 @@ -3,7 +3,7 @@
  #include <pthread.h>
  #include "thread_internal.h"
@@ -5470,8 +5500,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libpthread/pthread_sys_read.c ./libpthread
    return __libc_read(fd,buf,count);
  }
 diff -urNxCVS -xdebian ../../dietlibc/libpthread/pthread_sys_write.c ./libpthread/pthread_sys_write.c
---- ../../dietlibc/libpthread/pthread_sys_write.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libpthread/pthread_sys_write.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libpthread/pthread_sys_write.c	2003-09-13 08:47:07.000000000 +0000
++++ ./libpthread/pthread_sys_write.c	2005-09-21 07:33:08.000000000 +0000
 @@ -3,7 +3,7 @@
  #include <pthread.h>
  #include "thread_internal.h"
@@ -5482,8 +5512,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libpthread/pthread_sys_write.c ./libpthrea
    return __libc_write(fd,buf,count);
  }
 diff -urNxCVS -xdebian ../../dietlibc/libpthread/thread_internal.h ./libpthread/thread_internal.h
---- ../../dietlibc/libpthread/thread_internal.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./libpthread/thread_internal.h	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libpthread/thread_internal.h	2005-05-25 08:40:01.000000000 +0000
++++ ./libpthread/thread_internal.h	2005-09-21 07:33:08.000000000 +0000
 @@ -30,7 +30,7 @@
    struct _pthread_descr_struct**prev;
  
@@ -5508,8 +5538,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libpthread/thread_internal.h ./libpthread/
  int __libc_execve(const char*filename,char*const argv[],char*const envp[]);
  int __libc_sigaction(int signum,const struct sigaction*act,struct sigaction*oldact);
 diff -urNxCVS -xdebian ../../dietlibc/libregex/rx.c ./libregex/rx.c
---- ../../dietlibc/libregex/rx.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libregex/rx.c	2005-11-09 15:35:56.000000000 +0000
+--- ../../dietlibc/libregex/rx.c	2005-05-25 08:40:01.000000000 +0000
++++ ./libregex/rx.c	2005-11-04 23:10:45.000000000 +0000
 @@ -56,7 +56,7 @@
    matcher m;
    void* next;
@@ -5652,8 +5682,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libregex/rx.c ./libregex/rx.c
    printf("alloca(%d)\n",sizeof(regmatch_t)*(preg->brackets+3));
  #endif
 diff -urNxCVS -xdebian ../../dietlibc/librpc/svc_auth_unix.c ./librpc/svc_auth_unix.c
---- ../../dietlibc/librpc/svc_auth_unix.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./librpc/svc_auth_unix.c	2005-08-12 17:39:07.000000000 +0000
+--- ../../dietlibc/librpc/svc_auth_unix.c	2003-09-13 08:47:08.000000000 +0000
++++ ./librpc/svc_auth_unix.c	2005-08-05 17:59:45.000000000 +0000
 @@ -51,7 +51,9 @@
  /*
   * Unix longhand authenticator
@@ -5677,8 +5707,8 @@ diff -urNxCVS -xdebian ../../dietlibc/librpc/svc_auth_unix.c ./librpc/svc_auth_u
  struct rpc_msg *msg;
  {
 diff -urNxCVS -xdebian ../../dietlibc/libstdio/fflush.c ./libstdio/fflush.c
---- ../../dietlibc/libstdio/fflush.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libstdio/fflush.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libstdio/fflush.c	2003-11-25 19:53:57.000000000 +0000
++++ ./libstdio/fflush.c	2006-06-01 06:11:34.000000000 +0000
 @@ -33,7 +33,7 @@
      }
      stream->bs=stream->bm=0;
@@ -5688,9 +5718,18 @@ diff -urNxCVS -xdebian ../../dietlibc/libstdio/fflush.c ./libstdio/fflush.c
        stream->flags|=ERRORINDICATOR;
        return -1;
      }
+@@ -52,7 +52,7 @@
+     stream->flags=(stream->flags&~BUFINPUT)|next;
+     return res;
+   }
+-  if (stream->fd==0) __fflush_stdout();
++  if (stream->fd==0 && __stdin_is_tty()) __fflush_stdout();
+   return 0;
+ }
+ 
 diff -urNxCVS -xdebian ../../dietlibc/libstdio/fgetc_unlocked.c ./libstdio/fgetc_unlocked.c
---- ../../dietlibc/libstdio/fgetc_unlocked.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libstdio/fgetc_unlocked.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libstdio/fgetc_unlocked.c	2003-11-25 19:53:57.000000000 +0000
++++ ./libstdio/fgetc_unlocked.c	2005-09-21 07:33:08.000000000 +0000
 @@ -12,7 +12,7 @@
      return EOF;
    if (__fflush4(stream,BUFINPUT)) return EOF;
@@ -5701,8 +5740,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libstdio/fgetc_unlocked.c ./libstdio/fgetc
        stream->flags|=EOFINDICATOR;
        return EOF;
 diff -urNxCVS -xdebian ../../dietlibc/libstdio/fread.c ./libstdio/fread.c
---- ../../dietlibc/libstdio/fread.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libstdio/fread.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libstdio/fread.c	2004-07-31 19:45:27.000000000 +0000
++++ ./libstdio/fread.c	2005-09-21 07:33:08.000000000 +0000
 @@ -23,14 +23,14 @@
  #ifdef WANT_FREAD_OPTIMIZATION
    if ( !(stream->flags&FDPIPE) && (j>stream->buflen)) {
@@ -5721,8 +5760,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libstdio/fread.c ./libstdio/fread.c
  	stream->flags|=ERRORINDICATOR;
  	goto exit;
 diff -urNxCVS -xdebian ../../dietlibc/libstdio/fwrite.c ./libstdio/fwrite.c
---- ../../dietlibc/libstdio/fwrite.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libstdio/fwrite.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libstdio/fwrite.c	2004-06-08 18:35:31.000000000 +0000
++++ ./libstdio/fwrite.c	2005-09-21 07:33:08.000000000 +0000
 @@ -4,7 +4,7 @@
  #include <errno.h>
  
@@ -5733,8 +5772,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libstdio/fwrite.c ./libstdio/fwrite.c
    long i;
    if (!(stream->flags&CANWRITE)) {
 diff -urNxCVS -xdebian ../../dietlibc/libstdio/puts.c ./libstdio/puts.c
---- ../../dietlibc/libstdio/puts.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libstdio/puts.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libstdio/puts.c	2003-11-25 19:53:57.000000000 +0000
++++ ./libstdio/puts.c	2005-09-21 07:33:08.000000000 +0000
 @@ -5,7 +5,7 @@
  
  int __stdio_outs(const char *s,size_t len) __attribute__((weak));
@@ -5744,9 +5783,36 @@ diff -urNxCVS -xdebian ../../dietlibc/libstdio/puts.c ./libstdio/puts.c
  }
  
  int puts(const char *s) {
+diff -urNxCVS -xdebian ../../dietlibc/libstdio/setvbuf.c ./libstdio/setvbuf.c
+--- ../../dietlibc/libstdio/setvbuf.c	2003-11-25 19:53:57.000000000 +0000
++++ ./libstdio/setvbuf.c	2006-06-01 06:11:34.000000000 +0000
+@@ -27,6 +27,7 @@
+     if (!(tmp=malloc(size))) return -1;
+     if (!(stream->flags&STATICBUF)) free(stream->buf);
+     stream->buf=tmp;
++    stream->flags &= ~STATICBUF;
+   }
+   stream->buflen=size;
+   stream->bm=stream->bs=0;
+diff -urNxCVS -xdebian ../../dietlibc/libstdio/stdin.c ./libstdio/stdin.c
+--- ../../dietlibc/libstdio/stdin.c	2003-11-25 19:53:57.000000000 +0000
++++ ./libstdio/stdin.c	2006-06-01 06:11:34.000000000 +0000
+@@ -16,6 +16,12 @@
+ #endif
+ };
+ 
++int __stdin_is_tty() {
++  static int iknow;
++  if (!iknow) iknow=isatty(0)+1;
++  return (iknow-1);
++}
++
+ FILE *stdin=&__stdin;
+ 
+ int __fflush_stdin(void) {
 diff -urNxCVS -xdebian ../../dietlibc/libstdio/vprintf.c ./libstdio/vprintf.c
---- ../../dietlibc/libstdio/vprintf.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libstdio/vprintf.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libstdio/vprintf.c	2002-05-05 17:19:39.000000000 +0000
++++ ./libstdio/vprintf.c	2005-09-21 07:33:08.000000000 +0000
 @@ -4,7 +4,7 @@
  
  int __stdio_outs(const char *s,size_t len) __attribute__((weak));
@@ -5757,8 +5823,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libstdio/vprintf.c ./libstdio/vprintf.c
  
  int vprintf(const char *format, va_list ap)
 diff -urNxCVS -xdebian ../../dietlibc/libugly/getaddrinfo.c ./libugly/getaddrinfo.c
---- ../../dietlibc/libugly/getaddrinfo.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/getaddrinfo.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libugly/getaddrinfo.c	2005-05-25 08:40:01.000000000 +0000
++++ ./libugly/getaddrinfo.c	2005-10-04 17:47:03.000000000 +0000
 @@ -33,6 +33,7 @@
        h.h_addr_list=(char**)buf+16;
        if (node) {
@@ -5792,7 +5858,7 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/getaddrinfo.c ./libugly/getaddrinf
  	      else
 diff -urNxCVS -xdebian ../../dietlibc/libugly/gethostent_nor.c ./libugly/gethostent_nor.c
 --- ../../dietlibc/libugly/gethostent_nor.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./libugly/gethostent_nor.c	2006-04-16 17:55:21.000000000 +0000
++++ ./libugly/gethostent_nor.c	2005-07-29 12:57:21.000000000 +0000
 @@ -0,0 +1,7 @@
 +#include <netdb.h>
 +
@@ -5802,8 +5868,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/gethostent_nor.c ./libugly/gethost
 +  return gethostent_r(hostentbuf,sizeof(hostentbuf));
 +}
 diff -urNxCVS -xdebian ../../dietlibc/libugly/getnameinfo.c ./libugly/getnameinfo.c
---- ../../dietlibc/libugly/getnameinfo.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/getnameinfo.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libugly/getnameinfo.c	2003-11-25 19:53:58.000000000 +0000
++++ ./libugly/getnameinfo.c	2005-09-21 07:33:08.000000000 +0000
 @@ -3,8 +3,7 @@
  #include <netdb.h>
  #include <arpa/inet.h>
@@ -5815,8 +5881,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/getnameinfo.c ./libugly/getnameinf
  int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
  		size_t hostlen, char *serv, size_t servlen, int flags) {
 diff -urNxCVS -xdebian ../../dietlibc/libugly/logging.c ./libugly/logging.c
---- ../../dietlibc/libugly/logging.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/logging.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libugly/logging.c	2003-11-25 19:53:58.000000000 +0000
++++ ./libugly/logging.c	2005-09-21 07:33:08.000000000 +0000
 @@ -20,7 +20,7 @@
  
  /* declare internal functions */
@@ -5843,8 +5909,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/logging.c ./libugly/logging.c
      buflen = 41;
    }
 diff -urNxCVS -xdebian ../../dietlibc/libugly/openpty.c ./libugly/openpty.c
---- ../../dietlibc/libugly/openpty.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/openpty.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libugly/openpty.c	2002-05-05 17:19:41.000000000 +0000
++++ ./libugly/openpty.c	2005-09-21 07:33:08.000000000 +0000
 @@ -5,8 +5,7 @@
  #include <sys/ioctl.h>
  #include <errno.h>
@@ -5856,8 +5922,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/openpty.c ./libugly/openpty.c
  int openpty(int *amaster, int *aslave, char *name, struct termios
  	    *termp, struct winsize *winp) {
 diff -urNxCVS -xdebian ../../dietlibc/libugly/pclose.c ./libugly/pclose.c
---- ../../dietlibc/libugly/pclose.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/pclose.c	2005-07-10 18:32:53.000000000 +0000
+--- ../../dietlibc/libugly/pclose.c	2002-05-05 17:19:41.000000000 +0000
++++ ./libugly/pclose.c	2005-06-16 15:16:11.000000000 +0000
 @@ -4,8 +4,9 @@
  
  int pclose(FILE *f) {
@@ -5870,8 +5936,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/pclose.c ./libugly/pclose.c
    return -1;
  }
 diff -urNxCVS -xdebian ../../dietlibc/libugly/setenv.c ./libugly/setenv.c
---- ../../dietlibc/libugly/setenv.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/setenv.c	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/libugly/setenv.c	2002-05-05 17:19:41.000000000 +0000
++++ ./libugly/setenv.c	2006-02-14 16:37:41.000000000 +0000
 @@ -10,7 +10,7 @@
      unsetenv(name);
    }
@@ -5882,8 +5948,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/setenv.c ./libugly/setenv.c
      strcat(c,"=");
      strcat(c,value);
 diff -urNxCVS -xdebian ../../dietlibc/libugly/strftime.c ./libugly/strftime.c
---- ../../dietlibc/libugly/strftime.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/strftime.c	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/libugly/strftime.c	2003-02-20 09:23:20.000000000 +0000
++++ ./libugly/strftime.c	2006-02-14 07:00:05.000000000 +0000
 @@ -12,7 +12,7 @@
      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -6059,8 +6125,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/strftime.c ./libugly/strftime.c
  }
  
 diff -urNxCVS -xdebian ../../dietlibc/libugly/strptime.c ./libugly/strptime.c
---- ../../dietlibc/libugly/strptime.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/strptime.c	2005-08-12 17:39:07.000000000 +0000
+--- ../../dietlibc/libugly/strptime.c	2003-11-25 19:53:58.000000000 +0000
++++ ./libugly/strptime.c	2005-08-10 11:15:02.000000000 +0000
 @@ -14,7 +14,7 @@
      if (!isdigit(**s)) {
        if (j==0) return -1; else break;
@@ -6099,8 +6165,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/strptime.c ./libugly/strptime.c
        }
        ++format;
 diff -urNxCVS -xdebian ../../dietlibc/libugly/time_table_spd.c ./libugly/time_table_spd.c
---- ../../dietlibc/libugly/time_table_spd.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/time_table_spd.c	2005-12-06 08:58:49.000000000 +0000
+--- ../../dietlibc/libugly/time_table_spd.c	2002-05-05 17:19:41.000000000 +0000
++++ ./libugly/time_table_spd.c	2005-12-02 20:00:54.000000000 +0000
 @@ -1,7 +1,7 @@
  #include <time.h>
  
@@ -6118,8 +6184,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/time_table_spd.c ./libugly/time_ta
    };
  
 diff -urNxCVS -xdebian ../../dietlibc/libugly/tzfile.c ./libugly/tzfile.c
---- ../../dietlibc/libugly/tzfile.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/tzfile.c	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/libugly/tzfile.c	2005-05-25 08:40:01.000000000 +0000
++++ ./libugly/tzfile.c	2006-01-14 02:58:58.000000000 +0000
 @@ -108,7 +108,7 @@
    } else {	/* reverse map, for mktime */
      time_t nexttz=0,lastval=0;
@@ -6137,8 +6203,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/tzfile.c ./libugly/tzfile.c
 +void tzset(void) { }
  #endif
 diff -urNxCVS -xdebian ../../dietlibc/libugly/unlockpt.c ./libugly/unlockpt.c
---- ../../dietlibc/libugly/unlockpt.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/unlockpt.c	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/libugly/unlockpt.c	2002-05-05 17:19:41.000000000 +0000
++++ ./libugly/unlockpt.c	2006-02-18 22:11:04.000000000 +0000
 @@ -4,7 +4,7 @@
  #include <stdlib.h>
  
@@ -6149,8 +6215,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/unlockpt.c ./libugly/unlockpt.c
    return (ioctl (fd, TIOCSPTLCK, &foo));
  }
 diff -urNxCVS -xdebian ../../dietlibc/libugly/utent.c ./libugly/utent.c
---- ../../dietlibc/libugly/utent.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./libugly/utent.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/libugly/utent.c	2002-05-05 17:19:41.000000000 +0000
++++ ./libugly/utent.c	2005-09-21 07:33:08.000000000 +0000
 @@ -47,7 +47,7 @@
  
  struct utmp *getutent(void) {
@@ -6170,8 +6236,8 @@ diff -urNxCVS -xdebian ../../dietlibc/libugly/utent.c ./libugly/utent.c
    unlock_record();
  }
 diff -urNxCVS -xdebian ../../dietlibc/mips/start.S ./mips/start.S
---- ../../dietlibc/mips/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./mips/start.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/mips/start.S	2005-05-25 08:40:01.000000000 +0000
++++ ./mips/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -43,11 +43,7 @@
  /* FIXME: dl_init parameter ??? */
  	la	$25, _dyn_start
@@ -6193,16 +6259,16 @@ diff -urNxCVS -xdebian ../../dietlibc/parisc/_llseek.S ./parisc/_llseek.S
 +
 +syscall5(llseek, llseek);
 diff -urNxCVS -xdebian ../../dietlibc/parisc/getsockopt.S ./parisc/getsockopt.S
---- ../../dietlibc/parisc/getsockopt.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./parisc/getsockopt.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/parisc/getsockopt.S	2002-07-20 13:29:27.000000000 +0000
++++ ./parisc/getsockopt.S	2006-04-04 03:10:40.000000000 +0000
 @@ -1,3 +1,3 @@
  #include "syscalls.h"
  
 -syscall(getsockopt, getsockopt);
 +syscall5(getsockopt, getsockopt);
 diff -urNxCVS -xdebian ../../dietlibc/parisc/mmap.S ./parisc/mmap.S
---- ../../dietlibc/parisc/mmap.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./parisc/mmap.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/parisc/mmap.S	2002-05-05 17:19:50.000000000 +0000
++++ ./parisc/mmap.S	2006-04-04 03:10:40.000000000 +0000
 @@ -1,25 +1,3 @@
 -/*
 -  Copyright (C) 2001, 2002 Thomas M. Ogrisegg
@@ -6238,8 +6304,8 @@ diff -urNxCVS -xdebian ../../dietlibc/parisc/mount.S ./parisc/mount.S
 +
 +syscall5(mount, mount);
 diff -urNxCVS -xdebian ../../dietlibc/parisc/recvfrom.S ./parisc/recvfrom.S
---- ../../dietlibc/parisc/recvfrom.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./parisc/recvfrom.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/parisc/recvfrom.S	2002-07-20 13:29:27.000000000 +0000
++++ ./parisc/recvfrom.S	2006-04-04 03:10:40.000000000 +0000
 @@ -1,3 +1,3 @@
  #include "syscalls.h"
  
@@ -6253,24 +6319,24 @@ diff -urNxCVS -xdebian ../../dietlibc/parisc/select.S ./parisc/select.S
 +
 +syscall5(select, select);
 diff -urNxCVS -xdebian ../../dietlibc/parisc/sendto.S ./parisc/sendto.S
---- ../../dietlibc/parisc/sendto.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./parisc/sendto.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/parisc/sendto.S	2002-07-20 13:29:27.000000000 +0000
++++ ./parisc/sendto.S	2006-04-04 03:10:40.000000000 +0000
 @@ -1,3 +1,3 @@
  #include "syscalls.h"
  
 -syscall(sendto, sendto);
 +syscall6(sendto, sendto);
 diff -urNxCVS -xdebian ../../dietlibc/parisc/setsockopt.S ./parisc/setsockopt.S
---- ../../dietlibc/parisc/setsockopt.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./parisc/setsockopt.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/parisc/setsockopt.S	2002-07-20 13:29:27.000000000 +0000
++++ ./parisc/setsockopt.S	2006-04-04 03:10:40.000000000 +0000
 @@ -1,3 +1,3 @@
  #include "syscalls.h"
  
 -syscall(setsockopt, setsockopt);
 +syscall5(setsockopt, setsockopt);
 diff -urNxCVS -xdebian ../../dietlibc/parisc/start.S ./parisc/start.S
---- ../../dietlibc/parisc/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./parisc/start.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/parisc/start.S	2005-05-25 08:40:01.000000000 +0000
++++ ./parisc/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -43,11 +43,7 @@
  /* FIXME: dl_init parameter ??? */
  	bl _dyn_start, %rp
@@ -6285,7 +6351,7 @@ diff -urNxCVS -xdebian ../../dietlibc/parisc/start.S ./parisc/start.S
  	ldo R%$global$(%dp), %dp
  	b _exit
 diff -urNxCVS -xdebian ../../dietlibc/parisc/strchr.S ./parisc/strchr.S
---- ../../dietlibc/parisc/strchr.S	2006-04-16 17:46:49.000000000 +0000
+--- ../../dietlibc/parisc/strchr.S	2003-11-25 19:53:58.000000000 +0000
 +++ ./parisc/strchr.S	1970-01-01 00:00:00.000000000 +0000
 @@ -1,40 +0,0 @@
 -.text
@@ -6329,8 +6395,8 @@ diff -urNxCVS -xdebian ../../dietlibc/parisc/strchr.S ./parisc/strchr.S
 -	.PROCEND
 -	.EXPORT strchr
 diff -urNxCVS -xdebian ../../dietlibc/parisc/syscalls.h ./parisc/syscalls.h
---- ../../dietlibc/parisc/syscalls.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./parisc/syscalls.h	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/parisc/syscalls.h	2005-05-25 08:40:02.000000000 +0000
++++ ./parisc/syscalls.h	2006-04-04 03:10:40.000000000 +0000
 @@ -153,7 +153,7 @@
  #define __NR_afs_syscall        (__NR_Linux + 137) /* Syscall for Andrew File System */
  #define __NR_setfsuid           (__NR_Linux + 138)
@@ -6360,8 +6426,8 @@ diff -urNxCVS -xdebian ../../dietlibc/parisc/syscalls.h ./parisc/syscalls.h
 +#define syscall6(name, sym)	__syscall(name, sym, __unified_syscall6)
 +
 diff -urNxCVS -xdebian ../../dietlibc/parisc/unified.S ./parisc/unified.S
---- ../../dietlibc/parisc/unified.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./parisc/unified.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/parisc/unified.S	2002-05-05 17:19:50.000000000 +0000
++++ ./parisc/unified.S	2006-04-04 03:10:40.000000000 +0000
 @@ -21,14 +21,30 @@
  .global __unified_syscall
  .type __unified_syscall,@function
@@ -6394,8 +6460,8 @@ diff -urNxCVS -xdebian ../../dietlibc/parisc/unified.S ./parisc/unified.S
  	be,l 0x100(%sr2, %r0), %sr0, %r31
  	nop
 diff -urNxCVS -xdebian ../../dietlibc/ppc/start.S ./ppc/start.S
---- ../../dietlibc/ppc/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./ppc/start.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/ppc/start.S	2005-05-25 08:40:02.000000000 +0000
++++ ./ppc/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -35,11 +35,7 @@
  	mr	6,7
  	bl	_dyn_start
@@ -6410,8 +6476,8 @@ diff -urNxCVS -xdebian ../../dietlibc/ppc/start.S ./ppc/start.S
  	b	exit
  .size _start,.-_start
 diff -urNxCVS -xdebian ../../dietlibc/ppc/syscalls.h ./ppc/syscalls.h
---- ../../dietlibc/ppc/syscalls.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./ppc/syscalls.h	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/ppc/syscalls.h	2005-05-25 08:40:02.000000000 +0000
++++ ./ppc/syscalls.h	2005-09-21 07:33:08.000000000 +0000
 @@ -270,6 +270,13 @@
  #define __NR_add_key		269
  #define __NR_request_key	270
@@ -6426,9 +6492,18 @@ diff -urNxCVS -xdebian ../../dietlibc/ppc/syscalls.h ./ppc/syscalls.h
  
  #define syscall_weak(name,wsym,sym) \
  .text; \
+diff -urNxCVS -xdebian ../../dietlibc/ppc64/Makefile.add ./ppc64/Makefile.add
+--- ../../dietlibc/ppc64/Makefile.add	2003-11-25 19:53:58.000000000 +0000
++++ ./ppc64/Makefile.add	2006-05-07 04:16:59.000000000 +0000
+@@ -1,3 +1,5 @@
+ 
+ CFLAGS+=-Os -mpowerpc64
+ VPATH:=ppc64:syscalls.s:$(VPATH)
++
++CC+=-m64
 diff -urNxCVS -xdebian ../../dietlibc/ppc64/__longjmp.S ./ppc64/__longjmp.S
---- ../../dietlibc/ppc64/__longjmp.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./ppc64/__longjmp.S	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/ppc64/__longjmp.S	2005-05-25 08:40:02.000000000 +0000
++++ ./ppc64/__longjmp.S	2005-09-21 07:33:08.000000000 +0000
 @@ -11,44 +11,44 @@
  	ld  2,(JB_GPR2*8)(3)
  	ld  0,(JB_LR*8)(3)
@@ -6493,8 +6568,8 @@ diff -urNxCVS -xdebian ../../dietlibc/ppc64/__longjmp.S ./ppc64/__longjmp.S
  	blr
  .size .__longjmp,.-.__longjmp
 diff -urNxCVS -xdebian ../../dietlibc/ppc64/setjmp.S ./ppc64/setjmp.S
---- ../../dietlibc/ppc64/setjmp.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./ppc64/setjmp.S	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/ppc64/setjmp.S	2005-05-25 08:40:02.000000000 +0000
++++ ./ppc64/setjmp.S	2005-09-21 07:33:08.000000000 +0000
 @@ -17,43 +17,43 @@
          mflr 0
          std  2,(JB_GPR2*8)(3)
@@ -6558,8 +6633,8 @@ diff -urNxCVS -xdebian ../../dietlibc/ppc64/setjmp.S ./ppc64/setjmp.S
          b JUMPTARGET (__sigjmp_save)
  .size .__sigsetjmp,.-.__sigsetjmp
 diff -urNxCVS -xdebian ../../dietlibc/ppc64/start.S ./ppc64/start.S
---- ../../dietlibc/ppc64/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./ppc64/start.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/ppc64/start.S	2005-05-25 08:40:02.000000000 +0000
++++ ./ppc64/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -64,11 +64,8 @@
  	bl	._dyn_start
  #else
@@ -6575,8 +6650,8 @@ diff -urNxCVS -xdebian ../../dietlibc/ppc64/start.S ./ppc64/start.S
  	b	.exit
  
 diff -urNxCVS -xdebian ../../dietlibc/ppc64/syscalls.h ./ppc64/syscalls.h
---- ../../dietlibc/ppc64/syscalls.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./ppc64/syscalls.h	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/ppc64/syscalls.h	2005-05-25 08:40:02.000000000 +0000
++++ ./ppc64/syscalls.h	2005-09-21 07:33:08.000000000 +0000
 @@ -270,39 +270,48 @@
  #define __NR_add_key		269
  #define __NR_request_key	270
@@ -6645,8 +6720,8 @@ diff -urNxCVS -xdebian ../../dietlibc/ppc64/syscalls.h ./ppc64/syscalls.h
 +	b	__unified_syscall
  
 diff -urNxCVS -xdebian ../../dietlibc/s390/mmap.S ./s390/mmap.S
---- ../../dietlibc/s390/mmap.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./s390/mmap.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/s390/mmap.S	2003-11-25 19:53:58.000000000 +0000
++++ ./s390/mmap.S	2006-04-04 03:42:48.000000000 +0000
 @@ -38,10 +38,10 @@
  	j	__unified_syscall
  
@@ -6719,8 +6794,8 @@ diff -urNxCVS -xdebian ../../dietlibc/s390/mmap64.S ./s390/mmap64.S
 +	j	__unified_syscall
 +
 diff -urNxCVS -xdebian ../../dietlibc/s390/start.S ./s390/start.S
---- ../../dietlibc/s390/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./s390/start.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/s390/start.S	2005-01-31 22:05:05.000000000 +0000
++++ ./s390/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -46,11 +46,7 @@
  #ifdef WANT_DYNAMIC
  	.long	_dyn_start
@@ -6735,8 +6810,8 @@ diff -urNxCVS -xdebian ../../dietlibc/s390/start.S ./s390/start.S
  	.long	exit
  	.long	environ
 diff -urNxCVS -xdebian ../../dietlibc/s390/syscalls.h ./s390/syscalls.h
---- ../../dietlibc/s390/syscalls.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./s390/syscalls.h	2005-10-12 08:53:33.000000000 +0000
+--- ../../dietlibc/s390/syscalls.h	2005-05-25 08:40:02.000000000 +0000
++++ ./s390/syscalls.h	2005-10-08 21:39:53.000000000 +0000
 @@ -251,7 +251,7 @@
  #define __NR_fadvise64_64	264
  #define __NR_statfs64		265
@@ -6766,8 +6841,8 @@ diff -urNxCVS -xdebian ../../dietlibc/s390/syscalls.h ./s390/syscalls.h
  #define syscall_weak(name,wsym,sym) \
  .text; \
 diff -urNxCVS -xdebian ../../dietlibc/s390x/start.S ./s390x/start.S
---- ../../dietlibc/s390x/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./s390x/start.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/s390x/start.S	2005-01-31 22:05:05.000000000 +0000
++++ ./s390x/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -30,11 +30,7 @@
  #ifdef WANT_DYNAMIC
  	brasl	%r14,_dyn_start
@@ -6782,8 +6857,8 @@ diff -urNxCVS -xdebian ../../dietlibc/s390x/start.S ./s390x/start.S
  
  /* call exit */
 diff -urNxCVS -xdebian ../../dietlibc/s390x/syscalls.h ./s390x/syscalls.h
---- ../../dietlibc/s390x/syscalls.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./s390x/syscalls.h	2005-10-12 08:53:33.000000000 +0000
+--- ../../dietlibc/s390x/syscalls.h	2005-05-25 08:40:02.000000000 +0000
++++ ./s390x/syscalls.h	2005-10-08 21:39:53.000000000 +0000
 @@ -251,7 +251,7 @@
  #define __NR_fadvise64_64	264
  #define __NR_statfs64		265
@@ -6812,8 +6887,8 @@ diff -urNxCVS -xdebian ../../dietlibc/s390x/syscalls.h ./s390x/syscalls.h
  
  /* 
 diff -urNxCVS -xdebian ../../dietlibc/sparc/start.S ./sparc/start.S
---- ../../dietlibc/sparc/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./sparc/start.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/sparc/start.S	2005-05-25 08:40:02.000000000 +0000
++++ ./sparc/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -34,11 +34,7 @@
  #ifdef WANT_DYNAMIC
  	call	_dyn_start
@@ -6828,8 +6903,8 @@ diff -urNxCVS -xdebian ../../dietlibc/sparc/start.S ./sparc/start.S
  	mov	%g1, %o3
  
 diff -urNxCVS -xdebian ../../dietlibc/sparc64/start.S ./sparc64/start.S
---- ../../dietlibc/sparc64/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./sparc64/start.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/sparc64/start.S	2005-05-25 08:40:02.000000000 +0000
++++ ./sparc64/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -34,11 +34,7 @@
  #ifdef WANT_DYNAMIC
  	call	_dyn_start
@@ -6864,8 +6939,8 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/add_key.S ./syscalls.s/add_key.
 +
 +syscall(add_key,add_key)
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/clock_getres.S ./syscalls.s/clock_getres.S
---- ../../dietlibc/syscalls.s/clock_getres.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./syscalls.s/clock_getres.S	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/syscalls.s/clock_getres.S	2004-06-08 18:35:32.000000000 +0000
++++ ./syscalls.s/clock_getres.S	2005-10-04 17:47:03.000000000 +0000
 @@ -1,5 +1,3 @@
  #include "syscalls.h"
  
@@ -6873,8 +6948,8 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/clock_getres.S ./syscalls.s/clo
  syscall(clock_getres,clock_getres)
 -#endif
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/clock_gettime.S ./syscalls.s/clock_gettime.S
---- ../../dietlibc/syscalls.s/clock_gettime.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./syscalls.s/clock_gettime.S	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/syscalls.s/clock_gettime.S	2004-06-08 18:35:32.000000000 +0000
++++ ./syscalls.s/clock_gettime.S	2005-10-04 17:47:03.000000000 +0000
 @@ -1,5 +1,3 @@
  #include "syscalls.h"
  
@@ -6889,8 +6964,8 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/clock_nanosleep.S ./syscalls.s/
 +
 +syscall(clock_nanosleep,clock_nanosleep)
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/clock_settime.S ./syscalls.s/clock_settime.S
---- ../../dietlibc/syscalls.s/clock_settime.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./syscalls.s/clock_settime.S	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/syscalls.s/clock_settime.S	2004-06-08 18:35:32.000000000 +0000
++++ ./syscalls.s/clock_settime.S	2005-10-04 17:47:03.000000000 +0000
 @@ -1,5 +1,3 @@
  #include "syscalls.h"
  
@@ -6906,7 +6981,7 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/fadvise64.S ./syscalls.s/fadvis
 +syscall(fadvise64,fadvise64)
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/fadvise64_64.S ./syscalls.s/fadvise64_64.S
 --- ../../dietlibc/syscalls.s/fadvise64_64.S	1970-01-01 00:00:00.000000000 +0000
-+++ ./syscalls.s/fadvise64_64.S	2005-10-12 08:53:33.000000000 +0000
++++ ./syscalls.s/fadvise64_64.S	2005-10-08 21:11:32.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include "syscalls.h"
 +
@@ -6970,7 +7045,7 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/futex.S ./syscalls.s/futex.S
 +syscall(futex,futex)
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/get_mempolicy.S ./syscalls.s/get_mempolicy.S
 --- ../../dietlibc/syscalls.s/get_mempolicy.S	1970-01-01 00:00:00.000000000 +0000
-+++ ./syscalls.s/get_mempolicy.S	2005-10-12 08:53:33.000000000 +0000
++++ ./syscalls.s/get_mempolicy.S	2005-10-08 21:22:09.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include "syscalls.h"
 +
@@ -6979,7 +7054,7 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/get_mempolicy.S ./syscalls.s/ge
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/get_thread_area.S ./syscalls.s/get_thread_area.S
 --- ../../dietlibc/syscalls.s/get_thread_area.S	1970-01-01 00:00:00.000000000 +0000
-+++ ./syscalls.s/get_thread_area.S	2005-10-12 08:53:33.000000000 +0000
++++ ./syscalls.s/get_thread_area.S	2005-10-08 21:22:09.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include "syscalls.h"
 +
@@ -7001,7 +7076,7 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/getxattr.S ./syscalls.s/getxatt
 +syscall(getxattr,getxattr)
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/inotify_add_watch.S ./syscalls.s/inotify_add_watch.S
 --- ../../dietlibc/syscalls.s/inotify_add_watch.S	1970-01-01 00:00:00.000000000 +0000
-+++ ./syscalls.s/inotify_add_watch.S	2005-10-12 08:53:34.000000000 +0000
++++ ./syscalls.s/inotify_add_watch.S	2005-10-08 21:39:53.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include "syscalls.h"
 +
@@ -7010,7 +7085,7 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/inotify_add_watch.S ./syscalls.
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/inotify_init.S ./syscalls.s/inotify_init.S
 --- ../../dietlibc/syscalls.s/inotify_init.S	1970-01-01 00:00:00.000000000 +0000
-+++ ./syscalls.s/inotify_init.S	2005-10-12 08:53:34.000000000 +0000
++++ ./syscalls.s/inotify_init.S	2005-10-08 21:39:53.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include "syscalls.h"
 +
@@ -7019,7 +7094,7 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/inotify_init.S ./syscalls.s/ino
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/inotify_rm_watch.S ./syscalls.s/inotify_rm_watch.S
 --- ../../dietlibc/syscalls.s/inotify_rm_watch.S	1970-01-01 00:00:00.000000000 +0000
-+++ ./syscalls.s/inotify_rm_watch.S	2005-10-12 08:53:34.000000000 +0000
++++ ./syscalls.s/inotify_rm_watch.S	2005-10-08 21:39:53.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include "syscalls.h"
 +
@@ -7101,7 +7176,7 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/lsetxattr.S ./syscalls.s/lsetxa
 +syscall(lsetxattr,lsetxattr)
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/mbind.S ./syscalls.s/mbind.S
 --- ../../dietlibc/syscalls.s/mbind.S	1970-01-01 00:00:00.000000000 +0000
-+++ ./syscalls.s/mbind.S	2005-10-12 08:53:34.000000000 +0000
++++ ./syscalls.s/mbind.S	2005-10-08 21:22:09.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include "syscalls.h"
 +
@@ -7200,7 +7275,7 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/rt_sigreturn.S ./syscalls.s/rt_
 +syscall(rt_sigreturn,rt_sigreturn)
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/set_mempolicy.S ./syscalls.s/set_mempolicy.S
 --- ../../dietlibc/syscalls.s/set_mempolicy.S	1970-01-01 00:00:00.000000000 +0000
-+++ ./syscalls.s/set_mempolicy.S	2005-10-12 08:53:34.000000000 +0000
++++ ./syscalls.s/set_mempolicy.S	2005-10-08 21:22:09.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include "syscalls.h"
 +
@@ -7209,7 +7284,7 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/set_mempolicy.S ./syscalls.s/se
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/set_thread_area.S ./syscalls.s/set_thread_area.S
 --- ../../dietlibc/syscalls.s/set_thread_area.S	1970-01-01 00:00:00.000000000 +0000
-+++ ./syscalls.s/set_thread_area.S	2005-10-12 08:53:34.000000000 +0000
++++ ./syscalls.s/set_thread_area.S	2005-10-08 21:22:09.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include "syscalls.h"
 +
@@ -7260,7 +7335,7 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/ustat.S ./syscalls.s/ustat.S
 +syscall(ustat,ustat)
 diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/vserver.S ./syscalls.s/vserver.S
 --- ../../dietlibc/syscalls.s/vserver.S	1970-01-01 00:00:00.000000000 +0000
-+++ ./syscalls.s/vserver.S	2005-10-12 08:53:34.000000000 +0000
++++ ./syscalls.s/vserver.S	2005-10-08 21:39:53.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include "syscalls.h"
 +
@@ -7268,8 +7343,8 @@ diff -urNxCVS -xdebian ../../dietlibc/syscalls.s/vserver.S ./syscalls.s/vserver.
 +syscall(vserver,vserver)
 +#endif
 diff -urNxCVS -xdebian ../../dietlibc/t.c ./t.c
---- ../../dietlibc/t.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./t.c	2005-10-12 08:53:33.000000000 +0000
+--- ../../dietlibc/t.c	2005-01-31 22:05:03.000000000 +0000
++++ ./t.c	2005-10-08 21:11:32.000000000 +0000
 @@ -45,6 +45,8 @@
  #include <features.h>
  #include <sys/ioctl.h>
@@ -7322,8 +7397,8 @@ diff -urNxCVS -xdebian ../../dietlibc/test/checkssp.c ./test/checkssp.c
 +  return 0;
 +}
 diff -urNxCVS -xdebian ../../dietlibc/test/crypt.c ./test/crypt.c
---- ../../dietlibc/test/crypt.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./test/crypt.c	2005-11-04 14:11:27.000000000 +0000
+--- ../../dietlibc/test/crypt.c	2005-05-25 08:40:02.000000000 +0000
++++ ./test/crypt.c	2005-10-31 17:51:29.000000000 +0000
 @@ -22,6 +22,8 @@
    salt[0]=charset[l%i];
    salt[1]=charset[(l/i)%i];
@@ -7356,8 +7431,8 @@ diff -urNxCVS -xdebian ../../dietlibc/test/gethostent.c ./test/gethostent.c
 +  return 0;
 +}
 diff -urNxCVS -xdebian ../../dietlibc/test/regex.c ./test/regex.c
---- ../../dietlibc/test/regex.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./test/regex.c	2005-07-25 14:53:15.000000000 +0000
+--- ../../dietlibc/test/regex.c	2005-05-25 08:40:02.000000000 +0000
++++ ./test/regex.c	2005-07-22 23:08:15.000000000 +0000
 @@ -23,6 +23,10 @@
    assert(regexec(&r,"abuse@fefe.de",0,0,0)==0);
    regfree(&r);
@@ -7382,8 +7457,8 @@ diff -urNxCVS -xdebian ../../dietlibc/test/strnlen.c ./test/strnlen.c
 +  assert(strnlen("fnord",17)==5);
 +}
 diff -urNxCVS -xdebian ../../dietlibc/test/strptime.c ./test/strptime.c
---- ../../dietlibc/test/strptime.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./test/strptime.c	2005-07-10 18:32:53.000000000 +0000
+--- ../../dietlibc/test/strptime.c	2004-03-28 08:13:45.000000000 +0000
++++ ./test/strptime.c	2005-06-11 21:34:34.000000000 +0000
 @@ -7,9 +7,12 @@
    struct tm* t;
    time_t T=time(0);
@@ -7399,8 +7474,8 @@ diff -urNxCVS -xdebian ../../dietlibc/test/strptime.c ./test/strptime.c
    return 0;
  }
 diff -urNxCVS -xdebian ../../dietlibc/x86_64/dyn_syscalls.S ./x86_64/dyn_syscalls.S
---- ../../dietlibc/x86_64/dyn_syscalls.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./x86_64/dyn_syscalls.S	2005-10-12 08:53:34.000000000 +0000
+--- ../../dietlibc/x86_64/dyn_syscalls.S	2005-01-31 22:05:06.000000000 +0000
++++ ./x86_64/dyn_syscalls.S	2005-10-08 21:11:32.000000000 +0000
 @@ -57,9 +57,6 @@
  #include "../syscalls.s/chown.S"
  #include "../syscalls.s/chown32.S"
@@ -7496,8 +7571,8 @@ diff -urNxCVS -xdebian ../../dietlibc/x86_64/dyn_syscalls.S ./x86_64/dyn_syscall
 +#define __errno_location __errno_location@PLT
 +#include "x86_64/gettimeofday.S"
 diff -urNxCVS -xdebian ../../dietlibc/x86_64/gettimeofday.S ./x86_64/gettimeofday.S
---- ../../dietlibc/x86_64/gettimeofday.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./x86_64/gettimeofday.S	2005-07-19 12:14:11.000000000 +0000
+--- ../../dietlibc/x86_64/gettimeofday.S	2005-05-25 08:40:02.000000000 +0000
++++ ./x86_64/gettimeofday.S	2005-07-14 19:21:47.000000000 +0000
 @@ -5,14 +5,14 @@
  	mov	$0xffffffffff600000,%rax
  	callq	*%rax
@@ -7516,8 +7591,8 @@ diff -urNxCVS -xdebian ../../dietlibc/x86_64/gettimeofday.S ./x86_64/gettimeofda
  .Lhere:
  	.size	 gettimeofday,.Lhere-gettimeofday
 diff -urNxCVS -xdebian ../../dietlibc/x86_64/sigaction.c ./x86_64/sigaction.c
---- ../../dietlibc/x86_64/sigaction.c	2006-04-16 17:46:49.000000000 +0000
-+++ ./x86_64/sigaction.c	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/x86_64/sigaction.c	2003-09-13 08:47:09.000000000 +0000
++++ ./x86_64/sigaction.c	2005-09-21 07:33:08.000000000 +0000
 @@ -5,9 +5,17 @@
  
  int __rt_sigaction(int signum, const struct sigaction *act, struct sigaction *oldact, long nr);
@@ -7547,8 +7622,8 @@ diff -urNxCVS -xdebian ../../dietlibc/x86_64/sigaction.c ./x86_64/sigaction.c
    }
    return __rt_sigaction(signum, newact, oldact, _NSIG/8);
 diff -urNxCVS -xdebian ../../dietlibc/x86_64/start.S ./x86_64/start.S
---- ../../dietlibc/x86_64/start.S	2006-04-16 17:46:49.000000000 +0000
-+++ ./x86_64/start.S	2006-04-16 17:23:48.000000000 +0000
+--- ../../dietlibc/x86_64/start.S	2005-01-31 22:05:06.000000000 +0000
++++ ./x86_64/start.S	2006-04-04 05:35:14.000000000 +0000
 @@ -38,11 +38,7 @@
  #ifdef WANT_DYNAMIC
  	call	_dyn_start
@@ -7563,8 +7638,8 @@ diff -urNxCVS -xdebian ../../dietlibc/x86_64/start.S ./x86_64/start.S
  
  #ifdef PROFILING
 diff -urNxCVS -xdebian ../../dietlibc/x86_64/syscalls.h ./x86_64/syscalls.h
---- ../../dietlibc/x86_64/syscalls.h	2006-04-16 17:46:49.000000000 +0000
-+++ ./x86_64/syscalls.h	2005-10-05 12:30:50.000000000 +0000
+--- ../../dietlibc/x86_64/syscalls.h	2005-05-25 08:40:02.000000000 +0000
++++ ./x86_64/syscalls.h	2005-09-21 07:33:08.000000000 +0000
 @@ -296,8 +296,11 @@
  #define __NR_add_key		248
  #define __NR_request_key	249

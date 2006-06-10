@@ -91,9 +91,9 @@ install-stamp: build-stamp
 	rmdir $(DIR)/usr/lib/diet/man
 	install -d -m0755 $(DIR)-doc
 	# .in
-	sed -e 's/|ARCH|/$(ARCH)/' <debian/dietlibc-dev.postinst.in \
+	sed -e 's/|ARCH|/$(ARCH)/g' <debian/dietlibc-dev.postinst.in \
 	  >debian/dietlibc-dev.postinst
-	sed -e 's/|ARCH|/$(ARCH)/' <debian/dietlibc-dev.prerm.in \
+	sed -e 's/|ARCH|/$(ARCH)/g' <debian/dietlibc-dev.prerm.in \
 	  >debian/dietlibc-dev.prerm
 	# lintian overrides
 	install -d -m0755 '$(DIR)'-dev/usr/share/lintian/overrides
