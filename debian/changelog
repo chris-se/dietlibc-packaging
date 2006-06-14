@@ -1,3 +1,12 @@
+dietlibc (0.29-14) unstable; urgency=low
+
+  * debian/diff/xarm-comment-char.diff: new: s/@/%/ for arm assembler (fixes
+    build failure on arm).
+  * debian/diff/xgcc-4.1-ssp.diff: new: ssp with gcc 4.1 needs __guard.o
+    in libc.so (fixes build failure on i386).
+
+ -- Gerrit Pape <pape@smarden.org>  Wed, 14 Jun 2006 16:17:05 +0000
+
 dietlibc (0.29-13) unstable; urgency=low
 
   * debian/diff/cvs-20060609.diff: new: cvs snapshot from 200606090800.
