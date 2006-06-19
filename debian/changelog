@@ -1,3 +1,11 @@
+dietlibc (0.29-15) unstable; urgency=low
+
+  * debian/diff/no-ssp.diff: don't WANT_SSP; it causes similar problems as
+    WANT_STACKGAP back in Dec 2004 (closes: #374349).
+  * debian/diff/xgcc-4.1-ssp.diff: remove, ssp is disabled.
+
+ -- Gerrit Pape <pape@smarden.org>  Mon, 19 Jun 2006 18:02:34 +0000
+
 dietlibc (0.29-14) unstable; urgency=low
 
   * debian/diff/xarm-comment-char.diff: new: s/@/%/ for arm assembler (fixes
