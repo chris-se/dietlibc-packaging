@@ -1,3 +1,12 @@
+Fix build failure on hppa:
+
+gcc -I. -isystem include -pipe -nostdinc -Os -fomit-frame-pointer -Wall -W -Wchar-subscripts -Wmissing-prototypes -Wmissing-declarations -Wno-switch -Wno-unused -Wredundant-decls -c parisc/clone.S -o bin-parisc/clone.o
+parisc/clone.S: Assembler messages:
+parisc/clone.S:40: Error: Invalid operands 
+make[1]: *** [bin-parisc/clone.o] Error 1
+make[1]: Leaving directory `/home/pape/dietlibc'
+make: *** [build-stamp] Error 2
+
 Index: parisc/clone.S
 ===================================================================
 RCS file: /cvs/dietlibc/parisc/clone.S,v

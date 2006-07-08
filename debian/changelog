@@ -1,3 +1,16 @@
+dietlibc (0.30-1) unstable; urgency=low
+
+  * new upstream version.
+  * debian/diff/cvs-20060609.diff: remove; obsolete.
+  * debian/diff/ia64-proc-endp.diff, debian/diff/xarm-comment-char.diff:
+    remove; fixed upstream.
+  * debian/diff/arm-waitpid.diff: remove; possibly out of date, and we
+    stopped building dynamic lib on arm anyway.
+  * debian/diff/mips-pic.diff: adapt.
+  * debian/diff/parisc-iitlbp.diff: minor.
+
+ -- Gerrit Pape <pape@smarden.org>  Sat,  8 Jul 2006 13:34:24 +0000
+
 dietlibc (0.29-15) unstable; urgency=low
 
   * debian/diff/no-ssp.diff: don't WANT_SSP; it causes similar problems as
