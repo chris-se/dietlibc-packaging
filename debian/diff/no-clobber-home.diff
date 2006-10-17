@@ -1,0 +1,58 @@
+From: Ted Percival <ted@midg3t.net>
+To: Debian Bug Tracking System <submit@bugs.debian.org>
+Date: Tue, 17 Oct 2006 21:57:23 +1000
+
+During the build of dietlibc the Makefile clobbers the HOME environment
+variable for the duration of the build. The HOME environment variable
+is used by ccontrol to find its configuration file, but when building
+dietlibc it can't find its configuration and fails to execute properly.
+
+Here is a snippet of the build output when using ccontrol:
+> /usr/bin/make prefix=/usr/lib/diet \
+>           MYARCH='i386' VERSION='0.30-1'
+> make[1]: Entering directory `/tmp/dietlibc-0.30'
+> mkdir bin-i386
+> gcc -I. -isystem include -pipe -nostdinc -Os -fomit-frame-pointer
+> -falign-functions=1 -falign-jumps=1 -falign-loops=1
+> -mpreferred-stack-boundary=2 -Wall -W -Wchar-subscripts
+> -Wmissing-prototypes -Wmissing-declarations -Wno-switch -Wno-unused
+> -Wredundant-decls -c i386/start.S -o bin-i386/start.o
+> ccontrol error: reading /tmp/dietlibc-0.30/.ccontrol/config: 2
+> make[1]: *** [bin-i386/start.o] Error 1
+
+I propose changing the variable name in the Makefile to "DIETHOME" in
+order to fix this. A patch to do so is attached.
+
+-Ted
+
+
+diff -ru dietlibc-0.30/Makefile dietlibc-0.30-new/Makefile
+--- Makefile	2006-07-06 19:20:10.000000000 +1000
++++ Makefile	2006-10-17 21:47:30.000000000 +1000
+@@ -86,7 +86,7 @@
+ OBJDIR=bin-$(ARCH)
+ ILIBDIR=$(LIBDIR)-$(ARCH)
+ 
+-HOME=$(shell pwd)
++DIETHOME=$(shell pwd)
+ 
+ WHAT=	$(OBJDIR) $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o $(OBJDIR)/dyn_stop.o \
+ 	$(OBJDIR)/dietlibc.a $(OBJDIR)/liblatin1.a \
+@@ -305,7 +305,7 @@
+ CURNAME=$(notdir $(shell pwd))
+ 
+ $(OBJDIR)/diet: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietlibc.a $(OBJDIR)/dyn_stop.o
+-	$(CROSS)$(CC) -isystem include $(CFLAGS) -nostdlib -o $@ $^ -DDIETHOME=\"$(HOME)\" -DVERSION=\"$(VERSION)\" -lgcc
++	$(CROSS)$(CC) -isystem include $(CFLAGS) -nostdlib -o $@ $^ -DDIETHOME=\"$(DIETHOME)\" -DVERSION=\"$(VERSION)\" -lgcc
+ 	$(CROSS)strip -R .comment -R .note $@
+ 
+ $(OBJDIR)/diet-i: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietlibc.a $(OBJDIR)/dyn_stop.o
+@@ -313,7 +313,7 @@
+ 	$(CROSS)strip -R .comment -R .note $@
+ 
+ $(PICODIR)/diet-dyn: $(PICODIR)/start.o $(PICODIR)/dyn_start.o diet.c
+-	$(LD_UNSET) $(CROSS)$(CC) -isystem include $(CFLAGS) -fPIC -nostdlib -o $@ $^ -DDIETHOME=\"$(HOME)\" -D__DYN_LIB -DVERSION=\"$(VERSION)\" -L$(PICODIR) -lc -lgcc $(PICODIR)/dyn_stop.o -Wl,-dynamic-linker=$(HOME)/$(PICODIR)/libdl.so
++	$(LD_UNSET) $(CROSS)$(CC) -isystem include $(CFLAGS) -fPIC -nostdlib -o $@ $^ -DDIETHOME=\"$(DIETHOME)\" -D__DYN_LIB -DVERSION=\"$(VERSION)\" -L$(PICODIR) -lc -lgcc $(PICODIR)/dyn_stop.o -Wl,-dynamic-linker=$(DIETHOME)/$(PICODIR)/libdl.so
+ 	$(CROSS)strip -R .command -R .note $@
+ 
+ $(PICODIR)/diet-dyn-i: $(PICODIR)/start.o $(PICODIR)/dyn_start.o diet.c

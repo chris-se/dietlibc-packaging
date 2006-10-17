@@ -1,0 +1,28 @@
+On hppa, the semctl, semget, and semop functions are unavailable. Trying
+to use them results in
+> undefined reference to `__ipc'
+when linking. This can be seen in the ccontrol build log:
+<http://buildd.debian.org/fetch.cgi?pkg=ccontrol;ver=0.9.1%2B20060806-2;arch=hppa;stamp=1160949237>
+
+
+diff -urN ../dietlibc/parisc/semctl.S ./parisc/semctl.S
+--- ../dietlibc/parisc/semctl.S	1970-01-01 00:00:00.000000000 +0000
++++ ./parisc/semctl.S	2006-10-17 14:46:38.098549640 +0000
+@@ -0,0 +1,3 @@
++#include "syscalls.h"
++
++syscall(semctl,semctl)
+diff -urN ../dietlibc/parisc/semget.S ./parisc/semget.S
+--- ../dietlibc/parisc/semget.S	1970-01-01 00:00:00.000000000 +0000
++++ ./parisc/semget.S	2006-10-17 14:46:38.098549640 +0000
+@@ -0,0 +1,3 @@
++#include "syscalls.h"
++
++syscall(semget,semget)
+diff -urN ../dietlibc/parisc/semop.S ./parisc/semop.S
+--- ../dietlibc/parisc/semop.S	1970-01-01 00:00:00.000000000 +0000
++++ ./parisc/semop.S	2006-10-17 14:46:38.098549640 +0000
+@@ -0,0 +1,3 @@
++#include "syscalls.h"
++
++syscall(semop,semop)
