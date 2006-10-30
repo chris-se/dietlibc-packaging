@@ -1,3 +1,11 @@
+dietlibc (0.30-3) unstable; urgency=high
+
+  * debian/diff/select.diff: new; use syscall _newselect on all archs (thx
+    Bastian Blank, closes: #394928).
+  * debian/rules: run select selftest after building.
+
+ -- Gerrit Pape <pape@smarden.org>  Mon, 30 Oct 2006 20:57:45 +0000
+
 dietlibc (0.30-2) unstable; urgency=low
 
   * debian/diff/parisc-sem.diff: new; parisc has the semctl, semop,

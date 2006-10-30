@@ -42,6 +42,9 @@ build: deb-checkdir build-stamp
 build-stamp: patch-stamp 
 	$(MAKE) prefix=/usr/lib/diet \
 	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
+	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -o ttt test/select.c
+	./ttt
+	rm -f ttt
 	test '$(DYN)' -eq 0 || \
 	  $(MAKE) dyn prefix=/usr/lib/diet \
 	    MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
