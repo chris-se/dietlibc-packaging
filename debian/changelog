@@ -1,3 +1,11 @@
+dietlibc (0.30-4) unstable; urgency=high
+
+  * debian/diff/select.diff: remove again; doesn't work for all archs.
+  * debian/diff/ppc-select.diff: new; use syscall _newselect instead of
+    select on ppc (closes: #394928).
+
+ -- Gerrit Pape <pape@smarden.org>  Tue, 31 Oct 2006 07:53:57 +0000
+
 dietlibc (0.30-3) unstable; urgency=high
 
   * debian/diff/select.diff: new; use syscall _newselect on all archs (thx
