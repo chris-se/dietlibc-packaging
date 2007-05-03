@@ -1,3 +1,8 @@
+From 38e76e1edb734a168ae2d21e72aef416a0939d7a Mon Sep 17 00:00:00 2001
+From: Gerrit Pape <pape@smarden.org>
+Date: Thu, 3 May 2007 09:19:07 +0000
+Subject: [PATCH] Do not clobber HOME environment variable.
+
 From: Ted Percival <ted@midg3t.net>
 To: Debian Bug Tracking System <submit@bugs.debian.org>
 Date: Tue, 17 Oct 2006 21:57:23 +1000
@@ -24,12 +29,15 @@ I propose changing the variable name in the Makefile to "DIETHOME" in
 order to fix this. A patch to do so is attached.
 
 -Ted
+---
+ Makefile |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-
-diff -ru dietlibc-0.30/Makefile dietlibc-0.30-new/Makefile
---- Makefile	2006-07-06 19:20:10.000000000 +1000
-+++ Makefile	2006-10-17 21:47:30.000000000 +1000
-@@ -86,7 +86,7 @@
+diff --git a/Makefile b/Makefile
+index fc5062f..5795e33 100644
+--- a/Makefile
++++ b/Makefile
+@@ -86,7 +86,7 @@ endif
  OBJDIR=bin-$(ARCH)
  ILIBDIR=$(LIBDIR)-$(ARCH)
  
@@ -38,7 +46,7 @@ diff -ru dietlibc-0.30/Makefile dietlibc-0.30-new/Makefile
  
  WHAT=	$(OBJDIR) $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o $(OBJDIR)/dyn_stop.o \
  	$(OBJDIR)/dietlibc.a $(OBJDIR)/liblatin1.a \
-@@ -305,7 +305,7 @@
+@@ -304,7 +304,7 @@ VERSION=dietlibc-$(shell head -n 1 CHANGES|sed 's/://')
  CURNAME=$(notdir $(shell pwd))
  
  $(OBJDIR)/diet: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietlibc.a $(OBJDIR)/dyn_stop.o
@@ -47,7 +55,7 @@ diff -ru dietlibc-0.30/Makefile dietlibc-0.30-new/Makefile
  	$(CROSS)strip -R .comment -R .note $@
  
  $(OBJDIR)/diet-i: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietlibc.a $(OBJDIR)/dyn_stop.o
-@@ -313,7 +313,7 @@
+@@ -312,7 +312,7 @@ $(OBJDIR)/diet-i: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietl
  	$(CROSS)strip -R .comment -R .note $@
  
  $(PICODIR)/diet-dyn: $(PICODIR)/start.o $(PICODIR)/dyn_start.o diet.c
@@ -56,3 +64,6 @@ diff -ru dietlibc-0.30/Makefile dietlibc-0.30-new/Makefile
  	$(CROSS)strip -R .command -R .note $@
  
  $(PICODIR)/diet-dyn-i: $(PICODIR)/start.o $(PICODIR)/dyn_start.o diet.c
+-- 
+1.5.1.3
+

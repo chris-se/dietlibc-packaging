@@ -1,22 +1,28 @@
-Fix build failure on hppa:
+From 67e1f662c808970e33394286a9100aba1127d82a Mon Sep 17 00:00:00 2001
+From: Gerrit Pape <pape@smarden.org>
+Date: Thu, 3 May 2007 09:22:24 +0000
+Subject: [PATCH] parisc/clone.S: fix build failure on hppa.
 
 gcc -I. -isystem include -pipe -nostdinc -Os -fomit-frame-pointer -Wall -W -Wchar-subscripts -Wmissing-prototypes -Wmissing-declarations -Wno-switch -Wno-unused -Wredundant-decls -c parisc/clone.S -o bin-parisc/clone.o
 parisc/clone.S: Assembler messages:
-parisc/clone.S:40: Error: Invalid operands 
+parisc/clone.S:40: Error: Invalid operands
 make[1]: *** [bin-parisc/clone.o] Error 1
 make[1]: Leaving directory `/home/pape/dietlibc'
 make: *** [build-stamp] Error 2
+---
+ parisc/clone.S |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Index: parisc/clone.S
-===================================================================
-RCS file: /cvs/dietlibc/parisc/clone.S,v
-retrieving revision 1.2
-diff -u -r1.2 clone.S
---- parisc/clone.S	20 Jul 2002 13:29:26 -0000	1.2
-+++ parisc/clone.S	16 Oct 2005 18:28:55 -0000
-@@ -37,4 +37,4 @@
+diff --git a/parisc/clone.S b/parisc/clone.S
+index 2846f3b..b504673 100644
+--- a/parisc/clone.S
++++ b/parisc/clone.S
+@@ -37,4 +37,4 @@ __clone:
  	bl	_exit,%r2		/* exit thread */
  	copy	%r28,%r26		/* return -> arg0 */
  
 -	iitlbp	%r0,(%r0)		/* DIE ! DIE ! */
 +	iitlbp	%r0,(%sr0,%r0)		/* DIE ! DIE ! */
+-- 
+1.5.1.3
+

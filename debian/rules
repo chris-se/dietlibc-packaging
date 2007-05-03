@@ -34,7 +34,7 @@ VERSION =$(shell head -n1 debian/changelog |sed -e 's/.*(\(.*\)).*/\1/')
 patch: deb-checkdir patch-stamp
 patch-stamp:
 	for i in `ls -1 debian/diff/*.diff || :`; do \
-	  patch -p0 <$$i || exit 1; \
+	  patch -p1 <$$i || exit 1; \
 	done
 	touch patch-stamp
 
@@ -53,7 +53,7 @@ build-stamp: patch-stamp
 clean: deb-checkdir deb-checkuid
 	-$(MAKE) clean
 	test ! -e patch-stamp || \
-	  for i in `ls -1r debian/diff/*.diff || :`; do patch -p0 -R <$$i; done
+	  for i in `ls -1r debian/diff/*.diff || :`; do patch -p1 -R <$$i; done
 	rm -f build-stamp install-stamp patch-stamp
 	rm -f dynlinker.README libdl.README libpthread.CHANGES \
 	  libpthread.README profiling.PORTING profiling.README \

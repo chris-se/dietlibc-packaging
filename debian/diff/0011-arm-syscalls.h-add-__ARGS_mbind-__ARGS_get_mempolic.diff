@@ -1,0 +1,29 @@
+From 37f8119ee497f232be7483a9a2521b68ec632397 Mon Sep 17 00:00:00 2001
+From: Gerrit Pape <pape@smarden.org>
+Date: Thu, 3 May 2007 09:43:36 +0000
+Subject: [PATCH] arm/syscalls.h: add __ARGS_mbind, __ARGS_get_mempolicy, __ARGS_set_mempolicy.
+
+Add #define __ARGS_mbind, __ARGS_get_mempolicy, __ARGS_set_mempolicy,
+fixes build failure on arm, see
+ http://buildd.debian.org/fetch.cgi?&pkg=dietlibc&ver=0.30-5&arch=arm&stamp=1176289304&file=log
+---
+ arm/syscalls.h |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arm/syscalls.h b/arm/syscalls.h
+index 22fd782..90921a1 100644
+--- a/arm/syscalls.h
++++ b/arm/syscalls.h
+@@ -606,6 +606,9 @@
+ #define __ARGS_inotify_init		0
+ #define __ARGS_inotify_add_watch	0
+ #define __ARGS_inotify_rm_watch		0
++#define __ARGS_mbind			1
++#define __ARGS_get_mempolicy		1
++#define __ARGS_set_mempolicy		0
+ 
+ 
+ #ifdef __ASSEMBLER__
+-- 
+1.5.1.3
+

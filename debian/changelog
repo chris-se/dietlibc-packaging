@@ -1,3 +1,17 @@
+dietlibc (0.30-6) unstable; urgency=low
+
+  * debian/diff/ia64-no-fno-omit-frame-pointer.diff: remove; obsolete
+    (see #286840).
+  * debian/diff/*: redo diffs with git.
+  * debian/diff/0010-arm-syscalls.h-fix-__ARGS_-according-to-comment.diff:
+    new; arm/syscalls.h: fix __ARGS_* according to comment.
+  * debian/diff/0011-arm-syscalls.h-add-__ARGS_mbind-__ARGS_get_mempolic.diff:
+    new; arm/syscalls.h: add __ARGS_mbind, __ARGS_get_mempolicy,
+    __ARGS_set_mempolicy (fixes build failure on arm).
+  * debian/rules: apply diffs with patch -p1, not -p0.
+
+ -- Gerrit Pape <pape@smarden.org>  Thu, 03 May 2007 10:12:39 +0000
+
 dietlibc (0.30-5) unstable; urgency=low
 
   * debian/diff/cvs-20070411.diff: new; cvs snapshot 20070411.
