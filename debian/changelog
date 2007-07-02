@@ -1,3 +1,11 @@
+dietlibc (0.30-7) unstable; urgency=low
+
+  * debian/diff/0012-workaround-Bug-428814-powerpc-error-initializer-e.diff:
+    new; workaround Bug#428814: [powerpc] error: initializer element is not
+    constant (fixes build failure on powerpc).
+
+ -- Gerrit Pape <pape@smarden.org>  Mon, 02 Jul 2007 09:59:03 +0000
+
 dietlibc (0.30-6) unstable; urgency=low
 
   * debian/diff/ia64-no-fno-omit-frame-pointer.diff: remove; obsolete
