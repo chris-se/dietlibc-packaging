@@ -1,4 +1,4 @@
-From 72d7585b809fba51726895aff8720d1356b1fbd2 Mon Sep 17 00:00:00 2001
+From 5d08c995cdfee2d80e485f43058a387c4e03e403 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:13:51 +0000
 Subject: [PATCH] Avoid -fno-pic on mips/mipsel, libgcc.a is compiled with -fPIC on Debian.
@@ -35,5 +35,5 @@ index 35d9aa3..0b59d04 100644
  VPATH:=mips:syscalls.s:$(VPATH)
  LIBOBJ+=$(OBJDIR)/pread64.o $(OBJDIR)/pwrite64.o $(OBJDIR)/divdi3.o
 -- 
-1.5.1.3
+1.5.3.GIT
 

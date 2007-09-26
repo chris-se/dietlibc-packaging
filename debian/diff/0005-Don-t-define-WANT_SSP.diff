@@ -1,4 +1,4 @@
-From 0415fe4df4e6a5a88bfa109e6e67d7fbe0af48f6 Mon Sep 17 00:00:00 2001
+From 2069f6dc00d97bc69eb217ab2628a0fb9acc76be Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:21:13 +0000
 Subject: [PATCH] Don't define WANT_SSP.
@@ -10,10 +10,10 @@ http://bug.debian.org/374349
  1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/dietfeatures.h b/dietfeatures.h
-index 1f83699..017c68a 100644
+index 70e2175..c6b6e80 100644
 --- a/dietfeatures.h
 +++ b/dietfeatures.h
-@@ -108,7 +108,7 @@
+@@ -115,7 +115,7 @@
   * WANT_SSP_URANDOM and then not using -fstack-protector enlarges a
   * binary by 152 bytes. */
  #if (__GNUC__>4) || ((__GNUC__==4) && (__GNUC_MINOR__>=1))
@@ -23,5 +23,5 @@ index 1f83699..017c68a 100644
  /* Choose which canary seeder you want you can choose
   * both but it will check urandom first and use xor as
 -- 
-1.5.1.3
+1.5.3.GIT
 
