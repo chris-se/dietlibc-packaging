@@ -1,0 +1,36 @@
+From b5ffca4c796763829c55df3da9e83fe4052db042 Mon Sep 17 00:00:00 2001
+From: Simon McVittie <smcv@debian.org>
+Date: Sat, 3 Jan 2009 12:11:42 +0000
+Subject: [PATCH] Add an implementation of umount(3) for ia64
+
+Like x86_64 and parisc, ia64 lacks a single-argument umount syscall, so we
+need to provide a stub implementation that just calls umount2(path, 0).
+I don't know ia64 assembler, so this one is in C.
+---
+ ia64/Makefile.add     |    2 +-
+ ia64/umount-wrapper.c |    5 +++++
+ 2 files changed, 6 insertions(+), 1 deletions(-)
+ create mode 100644 ia64/umount-wrapper.c
+
+diff --git a/ia64/Makefile.add b/ia64/Makefile.add
+index f660930..ca00e4d 100644
+--- a/ia64/Makefile.add
++++ b/ia64/Makefile.add
+@@ -1,2 +1,2 @@
+ VPATH:=ia64:syscalls.s:$(VPATH)
+-LIBOBJ+=$(OBJDIR)/__time.o $(OBJDIR)/__waitpid.o $(OBJDIR)/__nice.o $(OBJDIR)/__alarm.o
++LIBOBJ+=$(OBJDIR)/__time.o $(OBJDIR)/__waitpid.o $(OBJDIR)/__nice.o $(OBJDIR)/__alarm.o $(OBJDIR)/umount-wrapper.o
+diff --git a/ia64/umount-wrapper.c b/ia64/umount-wrapper.c
+new file mode 100644
+index 0000000..2ebffd6
+--- /dev/null
++++ b/ia64/umount-wrapper.c
+@@ -0,0 +1,5 @@
++#include <sys/mount.h>
++
++int umount(const char *target) {
++  return umount2(target, 0);
++}
+-- 
+1.5.6.5
+

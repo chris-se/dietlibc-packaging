@@ -1,3 +1,23 @@
+dietlibc (0.31-1.2~bpo40+1) etch-backports; urgency=low
+
+  * Backport testing version for backports.org (no changes)
+
+ -- Micah Anderson <micah@debian.org>  Tue, 13 Jan 2009 12:14:36 -0700
+
+dietlibc (0.31-1.2) unstable; urgency=medium
+
+  * Non-maintainer upload from the Cambridge BSP.
+  * debian/diff/0011-undefined-symbol-umount2-alpha-ia64.diff: treat
+    __NR_umount as the 2-argument version on ia64 (really closes: #508397)
+  * debian/diff/0012-Add-an-implementation-of-umount-3-for-ia64.diff:
+    supply a 1-argument version of umount on ia64
+  * Verified to pass MNT_DETACH to the kernel in the expected way on ia64
+  * Verified with strace to do the same thing as glibc on architectures 
+    representing the other three families mentioned in 0011-*.diff
+    (i386, x86_64 and alpha)
+
+ -- Simon McVittie <smcv@debian.org>  Sat, 03 Jan 2009 17:11:00 +0000
+
 dietlibc (0.31-1.1) unstable; urgency=high
 
   * Non-maintainer upload.
