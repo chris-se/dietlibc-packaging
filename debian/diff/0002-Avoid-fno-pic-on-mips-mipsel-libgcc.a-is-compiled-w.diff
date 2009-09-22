@@ -1,4 +1,4 @@
-From 5d08c995cdfee2d80e485f43058a387c4e03e403 Mon Sep 17 00:00:00 2001
+From 9b794ac1d48c68a0f48592ef6c73471c67f18fd4 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:13:51 +0000
 Subject: [PATCH] Avoid -fno-pic on mips/mipsel, libgcc.a is compiled with -fPIC on Debian.
@@ -10,13 +10,13 @@ Subject: [PATCH] Avoid -fno-pic on mips/mipsel, libgcc.a is compiled with -fPIC 
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/diet.c b/diet.c
-index 9864a2c..f5fc672 100644
+index 3677b4c..c233279 100644
 --- a/diet.c
 +++ b/diet.c
-@@ -33,7 +33,7 @@ static const char* Os[] = {
-   "sparc64","-Os","-m64","-mhard-quad-float",0,
-   "alpha","-Os","-fomit-frame-pointer",0,
+@@ -37,7 +37,7 @@ static const char* Os[] = {
+ #else
    "arm","-Os","-fomit-frame-pointer",0,
+ #endif 
 -  "mips","-Os","-fomit-frame-pointer","-mno-abicalls","-fno-pic","-G","0",0,
 +  "mips","-Os","-fomit-frame-pointer",0,
    "mipsel","-Os","-fomit-frame-pointer","-mno-abicalls","-fno-pic","-G","0",0,
@@ -35,5 +35,5 @@ index 35d9aa3..0b59d04 100644
  VPATH:=mips:syscalls.s:$(VPATH)
  LIBOBJ+=$(OBJDIR)/pread64.o $(OBJDIR)/pwrite64.o $(OBJDIR)/divdi3.o
 -- 
-1.5.3.GIT
+1.6.0.3
 

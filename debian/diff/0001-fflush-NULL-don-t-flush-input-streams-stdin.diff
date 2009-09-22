@@ -1,4 +1,4 @@
-From e198261270884913834dc11b1a356384acc93ec4 Mon Sep 17 00:00:00 2001
+From ee64e939c44cbd8d3e69fe76441f8f17451c9d12 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:08:02 +0000
 Subject: [PATCH] fflush(NULL): don't flush input streams (stdin).
@@ -9,7 +9,7 @@ See http://bugs.debian.org/346437
  1 files changed, 0 insertions(+), 1 deletions(-)
 
 diff --git a/libstdio/fflush.c b/libstdio/fflush.c
-index d65125c..cf68ad7 100644
+index 9d4f8e7..86739eb 100644
 --- a/libstdio/fflush.c
 +++ b/libstdio/fflush.c
 @@ -17,7 +17,6 @@ int fflush_unlocked(FILE *stream) {
@@ -21,5 +21,5 @@ index d65125c..cf68ad7 100644
      __fflush_stderr();
      for (res=0, f=__stdio_root; f; f=f->next)
 -- 
-1.5.3.GIT
+1.6.0.3
 

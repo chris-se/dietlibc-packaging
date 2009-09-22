@@ -1,4 +1,4 @@
-From 195934b76a4bf8b8b22ee6dc9d95cb98f55d8d9d Mon Sep 17 00:00:00 2001
+From afec690bdaaa8b28e9caa8cf6bedff57a5acfa93 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Sun, 26 Aug 2007 09:37:32 +0000
 Subject: [PATCH] util-vserver: vsched fails to read config directory
@@ -46,5 +46,5 @@ index dbd7206..487d5a9 100644
    unsigned int cur;
  };				/* stream data from opendir() */
 -- 
-1.5.3.GIT
+1.6.0.3
 

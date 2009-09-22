@@ -1,4 +1,4 @@
-From b1d5312b3d67114dab42b498d5d7e942eecd2f24 Mon Sep 17 00:00:00 2001
+From 8570da2d3ce5ffa370c00244700ca61e20911b22 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:26:55 +0000
 Subject: [PATCH] Use syscall _newselect instead of select on ppc.
@@ -19,5 +19,5 @@ index 0000000..6f86351
 +
 +syscall(_newselect,select)
 -- 
-1.5.3.GIT
+1.6.0.3
 

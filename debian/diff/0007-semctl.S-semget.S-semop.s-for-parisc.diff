@@ -1,4 +1,4 @@
-From de13dc79a63d2f34f31bcb8c25bfe99ff9fc10d1 Mon Sep 17 00:00:00 2001
+From 7741344380ba6f93e3fe7d36f9ced44d53267733 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:25:24 +0000
 Subject: [PATCH] semctl.S, semget.S, semop.s for parisc.
@@ -45,5 +45,5 @@ index 0000000..81b6fc6
 +
 +syscall(semop,semop)
 -- 
-1.5.3.GIT
+1.6.0.3
 

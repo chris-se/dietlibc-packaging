@@ -1,3 +1,14 @@
+dietlibc (0.32-1) unstable; urgency=low
+
+  * Thanks Micah Anderson, Simon McVittie for NUMs.
+  * debian/diff/0011-undefined-symbol-umount2-alpha-ia64.diff: rename
+    to debian/diff/0011-Add-new-defines-to-indicate-which-...diff.
+  * new upstream version (closes: #532897).
+    * add %Z to strptime, make stdarg work with gcc 4.4 (closes:
+      #530861).
+
+ -- Gerrit Pape <pape@smarden.org>  Tue, 22 Sep 2009 11:47:27 +0000
+
 dietlibc (0.31-1.2) unstable; urgency=medium
 
   * Non-maintainer upload from the Cambridge BSP.

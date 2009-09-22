@@ -1,4 +1,4 @@
-From a558a292e8efc06103a09977110708d847e1e1a1 Mon Sep 17 00:00:00 2001
+From e46d3f82498b0f93975fc7beffd1e846ad6956bb Mon Sep 17 00:00:00 2001
 From: Ted Percival <ted@midg3t.net>
 Date: Thu, 3 May 2007 09:19:07 +0000
 Subject: [PATCH] Do not clobber HOME environment variable.
@@ -33,7 +33,7 @@ order to fix this. A patch to do so is attached.
  1 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index fc5062f..5795e33 100644
+index adc2779..05bc1cd 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -86,7 +86,7 @@ endif
@@ -64,5 +64,5 @@ index fc5062f..5795e33 100644
  
  $(PICODIR)/diet-dyn-i: $(PICODIR)/start.o $(PICODIR)/dyn_start.o diet.c
 -- 
-1.5.3.GIT
+1.6.0.3
 

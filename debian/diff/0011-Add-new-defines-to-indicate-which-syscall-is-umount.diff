@@ -1,4 +1,4 @@
-From 0f4be8919707fd8bbb0005667f0705f4169696d3 Mon Sep 17 00:00:00 2001
+From 19c7350004569494c985e380b2d9298f6ce62e38 Mon Sep 17 00:00:00 2001
 From: Simon McVittie <smcv@debian.org>
 Date: Sat, 3 Jan 2009 12:04:48 +0000
 Subject: [PATCH] Add new #defines to indicate which syscall is umount(3) and which is umount2(3).
@@ -19,18 +19,18 @@ In the currently-supported architectures there are four families:
 * on ia64, __NR_umount takes two arguments and there is no 1-argument umount
 ---
  alpha/syscalls.h     |    2 ++
- ia64/syscalls.h      |    1 +
+ ia64/syscalls.h      |    2 ++
  syscalls.s/umount.S  |    4 ++++
  syscalls.s/umount2.S |    4 +++-
- 4 files changed, 10 insertions(+), 1 deletions(-)
+ 4 files changed, 11 insertions(+), 1 deletions(-)
 
 diff --git a/alpha/syscalls.h b/alpha/syscalls.h
-index c40a81c..7a78209 100644
+index 1ab37e8..7636b0c 100644
 --- a/alpha/syscalls.h
 +++ b/alpha/syscalls.h
-@@ -381,6 +381,8 @@
- #define __NR_inotify_add_watch		445
- #define __NR_inotify_rm_watch		446
+@@ -413,6 +413,8 @@
+ #define __NR_timerfd			477
+ #define __NR_eventfd			478
  
 +#define __NR_umount_without_flags __NR_oldumount
 +#define __NR_umount_with_flags __NR_umount
@@ -38,17 +38,18 @@ index c40a81c..7a78209 100644
  #define syscall_weak(name,wsym,sym) \
  .text ; \
 diff --git a/ia64/syscalls.h b/ia64/syscalls.h
-index 515242c..e41433a 100644
+index 907cb5c..7e86174 100644
 --- a/ia64/syscalls.h
 +++ b/ia64/syscalls.h
-@@ -280,6 +280,7 @@
- #define __NR_tee			1301
- #define __NR_vmsplice			1302
+@@ -290,6 +290,8 @@
+ #define __NR_timerfd_settime		1311
+ #define __NR_timerfd_gettime		1312
  
 +#define __NR_umount_with_flags __NR_umount
- 
++
  #define syscall(name, sym) \
  .text; \
+ .globl sym; \
 diff --git a/syscalls.s/umount.S b/syscalls.s/umount.S
 index 4a423d9..89793e2 100644
 --- a/syscalls.s/umount.S
@@ -75,5 +76,5 @@ index b27b353..5742416 100644
  syscall(umount2,umount2)
  #endif
 -- 
-1.5.6.5
+1.6.0.3
 

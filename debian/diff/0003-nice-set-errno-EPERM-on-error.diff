@@ -1,4 +1,4 @@
-From 6c0293ca01b80a2392272ab28ac487c90c678dc7 Mon Sep 17 00:00:00 2001
+From 7a32c89be302f2932de67c31306c8586471d6b90 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:17:24 +0000
 Subject: [PATCH] nice(): set errno=EPERM on error.
@@ -29,5 +29,5 @@ index d751104..28581d9 100644
  }
  #endif
 -- 
-1.5.3.GIT
+1.6.0.3
 

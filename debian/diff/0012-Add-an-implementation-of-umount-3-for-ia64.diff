@@ -1,4 +1,4 @@
-From b5ffca4c796763829c55df3da9e83fe4052db042 Mon Sep 17 00:00:00 2001
+From 49dd204ebb3ecadb039d41739b611eed000133aa Mon Sep 17 00:00:00 2001
 From: Simon McVittie <smcv@debian.org>
 Date: Sat, 3 Jan 2009 12:11:42 +0000
 Subject: [PATCH] Add an implementation of umount(3) for ia64
@@ -32,5 +32,5 @@ index 0000000..2ebffd6
 +  return umount2(target, 0);
 +}
 -- 
-1.5.6.5
+1.6.0.3
 

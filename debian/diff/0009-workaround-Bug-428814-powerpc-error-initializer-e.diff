@@ -1,4 +1,4 @@
-From eb45f517c01f2817dd87b6ba9b3a7986e0334d2a Mon Sep 17 00:00:00 2001
+From 0baf3bc9c91f0ac75da5044029ff36350a8a8ed4 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Mon, 2 Jul 2007 09:58:14 +0000
 Subject: [PATCH] workaround Bug#428814: [powerpc] error: initializer element is not constant
@@ -66,5 +66,5 @@ index 9682f35..c0017b3 100644
  static const double  coeff[] = { B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10 };
  int                  signgam;
 -- 
-1.5.3.GIT
+1.6.0.3
 
