@@ -1,7 +1,7 @@
-From 7a32c89be302f2932de67c31306c8586471d6b90 Mon Sep 17 00:00:00 2001
+From 385575ddc35bd7c2dfca3f01ed0adf3eab6e4bf3 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:17:24 +0000
-Subject: [PATCH] nice(): set errno=EPERM on error.
+Subject: [PATCH 04/12] nice(): set errno=EPERM on error.
 
 See http://bugs.debian.org/286825
 ---
@@ -29,5 +29,5 @@ index d751104..28581d9 100644
  }
  #endif
 -- 
-1.6.0.3
+1.6.6
 

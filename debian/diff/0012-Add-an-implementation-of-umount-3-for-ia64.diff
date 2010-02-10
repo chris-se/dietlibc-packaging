@@ -1,7 +1,7 @@
-From 49dd204ebb3ecadb039d41739b611eed000133aa Mon Sep 17 00:00:00 2001
+From c457213d441160a5469ec627ac2f2bcceb71f0fe Mon Sep 17 00:00:00 2001
 From: Simon McVittie <smcv@debian.org>
 Date: Sat, 3 Jan 2009 12:11:42 +0000
-Subject: [PATCH] Add an implementation of umount(3) for ia64
+Subject: [PATCH 12/12] Add an implementation of umount(3) for ia64
 
 Like x86_64 and parisc, ia64 lacks a single-argument umount syscall, so we
 need to provide a stub implementation that just calls umount2(path, 0).
@@ -32,5 +32,5 @@ index 0000000..2ebffd6
 +  return umount2(target, 0);
 +}
 -- 
-1.6.0.3
+1.6.6
 

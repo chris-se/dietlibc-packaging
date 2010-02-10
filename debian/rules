@@ -51,7 +51,7 @@ build-stamp: patch-stamp
 	touch build-stamp
 
 clean: deb-checkdir deb-checkuid
-	-$(MAKE) clean
+	$(MAKE) clean
 	test ! -e patch-stamp || \
 	  for i in `ls -1r debian/diff/*.diff || :`; do patch -p1 -R <$$i; done
 	rm -f build-stamp install-stamp patch-stamp

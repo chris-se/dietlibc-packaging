@@ -1,7 +1,7 @@
-From 8570da2d3ce5ffa370c00244700ca61e20911b22 Mon Sep 17 00:00:00 2001
+From a462ab8a79f936377e0e218c44b26e8fc15b24b5 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:26:55 +0000
-Subject: [PATCH] Use syscall _newselect instead of select on ppc.
+Subject: [PATCH 08/12] Use syscall _newselect instead of select on ppc.
 
 See http://bugs.debian.org/394928
 ---
@@ -19,5 +19,5 @@ index 0000000..6f86351
 +
 +syscall(_newselect,select)
 -- 
-1.6.0.3
+1.6.6
 
