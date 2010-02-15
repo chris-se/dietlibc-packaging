@@ -1,7 +1,7 @@
 From 94eb0006daebb1fe99035cd1f22d32fe4d7f426c Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Sun, 26 Aug 2007 09:37:32 +0000
-Subject: [PATCH 10/12] util-vserver: vsched fails to read config directory
+Subject: [PATCH 10/13] util-vserver: vsched fails to read config directory
 
 Jan H Eringa wrote:
 > Use of /etc/vservers/<vserver name>/sched/.... causes vsched to blow up
@@ -46,5 +46,5 @@ index dbd7206..487d5a9 100644
    unsigned int cur;
  };				/* stream data from opendir() */
 -- 
-1.6.6
+1.7.0
 

@@ -1,3 +1,15 @@
+dietlibc (0.32-3) unstable; urgency=low
+
+  * debian/rules: add MYARCH var to make clean to not rely on the output
+    of uname -m (fixes build failure on mips).
+  * debian/diff/0013-mips-divdi3.c-fix-include-path-to-longlong.h.diff:
+    new; mips/divdi3.c: fix include path to "longlong.h" (fixed build
+    failure on mipsel).
+  * debian/rules, debian/control: no longer build the i386 dietlibc
+    package (shared libraries) (see also #544060, closes: #569816).
+
+ -- Gerrit Pape <pape@smarden.org>  Mon, 15 Feb 2010 22:25:03 +0000
+
 dietlibc (0.32-2) unstable; urgency=low
 
   * debian/diff/0001-cvs-snapshot-20100209.diff: new; cvs snapshot

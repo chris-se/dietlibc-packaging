@@ -1,7 +1,7 @@
 From 8fe571ebf85898a9ae292f81b8018b7bfe5275de Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Mon, 2 Jul 2007 09:58:14 +0000
-Subject: [PATCH 09/12] workaround Bug#428814: [powerpc] error: initializer element is not constant
+Subject: [PATCH 09/13] workaround Bug#428814: [powerpc] error: initializer element is not constant
 
 On Sat, Jun 30, 2007 at 11:24:15AM +0200, Matthias Klose wrote:
 > Gerrit Pape writes:
@@ -66,5 +66,5 @@ index 9682f35..c0017b3 100644
  static const double  coeff[] = { B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10 };
  int                  signgam;
 -- 
-1.6.6
+1.7.0
 

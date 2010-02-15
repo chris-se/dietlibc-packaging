@@ -1,7 +1,7 @@
 From 7ca31938c5a2e532610b423403c9db78556640cd Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Wed, 10 Feb 2010 09:58:52 +0000
-Subject: [PATCH 01/12] cvs snapshot 20100209
+Subject: [PATCH 01/13] cvs snapshot 20100209
 
 ---
  CHANGES                       |   10 ++
@@ -1590,5 +1590,5 @@ index 23966cb..23e34ec 100644
  #ifdef __PIC__
  #define syscall_weak(name,wsym,sym) \
 -- 
-1.6.6
+1.7.0
 

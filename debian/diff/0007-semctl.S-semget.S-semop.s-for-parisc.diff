@@ -1,7 +1,7 @@
 From bcf64c5a575d33f3dc6c883aad9a5530a4e36f50 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:25:24 +0000
-Subject: [PATCH 07/12] semctl.S, semget.S, semop.s for parisc.
+Subject: [PATCH 07/13] semctl.S, semget.S, semop.s for parisc.
 
 On hppa, the semctl, semget, and semop functions were unavailable. Trying
 to use them results in
@@ -45,5 +45,5 @@ index 0000000..81b6fc6
 +
 +syscall(semop,semop)
 -- 
-1.6.6
+1.7.0
 

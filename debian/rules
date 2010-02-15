@@ -23,7 +23,7 @@ endif
 endif
 endif
 
-DYN =1
+DYN =0
 ifneq ($(ARCH),i386)
   DYN =0
 endif
@@ -51,7 +51,7 @@ build-stamp: patch-stamp
 	touch build-stamp
 
 clean: deb-checkdir deb-checkuid
-	$(MAKE) clean
+	$(MAKE) clean MYARCH='$(ARCH)'
 	test ! -e patch-stamp || \
 	  for i in `ls -1r debian/diff/*.diff || :`; do patch -p1 -R <$$i; done
 	rm -f build-stamp install-stamp patch-stamp

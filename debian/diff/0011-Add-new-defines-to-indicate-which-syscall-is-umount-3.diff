@@ -1,7 +1,7 @@
 From 58f1ee18eaaae4919a670bddb78d172981e13744 Mon Sep 17 00:00:00 2001
 From: Simon McVittie <smcv@debian.org>
 Date: Sat, 3 Jan 2009 12:04:48 +0000
-Subject: [PATCH 11/12] Add new #defines to indicate which syscall is umount(3) and which is umount2(3).
+Subject: [PATCH 11/13] Add new #defines to indicate which syscall is umount(3) and which is umount2(3).
 
 * on architectures where __NR_umount is umount(3) and __NR_umount2 is
   umount2(3), don't do anything special
@@ -76,5 +76,5 @@ index b27b353..5742416 100644
  syscall(umount2,umount2)
  #endif
 -- 
-1.6.6
+1.7.0
 

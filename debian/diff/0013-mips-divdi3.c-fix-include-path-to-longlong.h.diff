@@ -1,0 +1,25 @@
+From 42eb2fef435faaa442d7a3e2c7e01878b59d4add Mon Sep 17 00:00:00 2001
+From: Gerrit Pape <pape@smarden.org>
+Date: Mon, 15 Feb 2010 22:20:17 +0000
+Subject: [PATCH 13/13] mips/divdi3.c: fix include path to "longlong.h"
+
+---
+ mips/divdi3.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/mips/divdi3.c b/mips/divdi3.c
+index 18d8a2b..b7f1057 100644
+--- a/mips/divdi3.c
++++ b/mips/divdi3.c
+@@ -36,7 +36,7 @@ unsigned char __clz_tab[] =
+   8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+ };
+ 
+-#include "mips/longlong.h"
++#include "longlong.h"
+ 
+ typedef unsigned int UQItype	__attribute__ ((mode (QI)));
+ typedef          int SItype	__attribute__ ((mode (SI)));
+-- 
+1.7.0
+
