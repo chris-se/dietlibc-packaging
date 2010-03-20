@@ -1,3 +1,11 @@
+dietlibc (0.32-4) unstable; urgency=low
+
+  * debian/diff/0001-cvs-snapshot-20100209.diff: replace with
+    debian/diff/0001-cvs-snapshot-20100320.diff: cvs snapshot 20100320
+    (should fix build failure on mips[el]).
+
+ -- Gerrit Pape <pape@smarden.org>  Sat, 20 Mar 2010 13:36:20 +0000
+
 dietlibc (0.32-3) unstable; urgency=low
 
   * debian/rules: add MYARCH var to make clean to not rely on the output

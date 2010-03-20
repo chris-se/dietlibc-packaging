@@ -1,4 +1,4 @@
-From bcf64c5a575d33f3dc6c883aad9a5530a4e36f50 Mon Sep 17 00:00:00 2001
+From 590497d611c407170bdade315230fd0bc89de554 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:25:24 +0000
 Subject: [PATCH 07/13] semctl.S, semget.S, semop.s for parisc.

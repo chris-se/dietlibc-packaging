@@ -1,4 +1,4 @@
-From 200f68860eba1c2c40622274c4010787967f6e6e Mon Sep 17 00:00:00 2001
+From 007a0f853f05947a8bb9e3a4bd2a76ffb4295871 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:13:51 +0000
 Subject: [PATCH 03/13] Avoid -fno-pic on mips/mipsel, libgcc.a is compiled with -fPIC on Debian.

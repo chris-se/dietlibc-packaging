@@ -1,4 +1,4 @@
-From 42eb2fef435faaa442d7a3e2c7e01878b59d4add Mon Sep 17 00:00:00 2001
+From a89811e9040dcb4655aad92c45b5246494e1154c Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Mon, 15 Feb 2010 22:20:17 +0000
 Subject: [PATCH 13/13] mips/divdi3.c: fix include path to "longlong.h"

@@ -1,4 +1,4 @@
-From 385575ddc35bd7c2dfca3f01ed0adf3eab6e4bf3 Mon Sep 17 00:00:00 2001
+From 70c0929e68f0380f1003598eb9de25f229f465bf Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:17:24 +0000
 Subject: [PATCH 04/13] nice(): set errno=EPERM on error.

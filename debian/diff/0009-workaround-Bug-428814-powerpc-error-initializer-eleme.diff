@@ -1,4 +1,4 @@
-From 8fe571ebf85898a9ae292f81b8018b7bfe5275de Mon Sep 17 00:00:00 2001
+From 0daab8c97868bffc6cebf974ccba9cc465522fe7 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Mon, 2 Jul 2007 09:58:14 +0000
 Subject: [PATCH 09/13] workaround Bug#428814: [powerpc] error: initializer element is not constant

@@ -1,4 +1,4 @@
-From 0474fbb557a2d0faf9c3a10ff50ce0ea35ce58a4 Mon Sep 17 00:00:00 2001
+From d96303b3334db08d3107f498c52379515cb73107 Mon Sep 17 00:00:00 2001
 From: Ted Percival <ted@midg3t.net>
 Date: Thu, 3 May 2007 09:19:07 +0000
 Subject: [PATCH 05/13] Do not clobber HOME environment variable.

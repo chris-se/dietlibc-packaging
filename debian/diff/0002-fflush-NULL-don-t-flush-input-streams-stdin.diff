@@ -1,4 +1,4 @@
-From e9fea75e2ba53883a31d6feb61def09abaf5cd61 Mon Sep 17 00:00:00 2001
+From 9a84aa890b2f00aae28cf8adaf62e6acddf8773a Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:08:02 +0000
 Subject: [PATCH 02/13] fflush(NULL): don't flush input streams (stdin).

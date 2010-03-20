@@ -1,4 +1,4 @@
-From d49db4eceed6464bcc84586fcfab88ce8d23b03e Mon Sep 17 00:00:00 2001
+From 2485ded64158b4949815f81753aa53594538bb75 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Thu, 3 May 2007 09:21:13 +0000
 Subject: [PATCH 06/13] Don't define WANT_SSP.

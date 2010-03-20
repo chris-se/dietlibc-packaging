@@ -1,4 +1,4 @@
-From 94eb0006daebb1fe99035cd1f22d32fe4d7f426c Mon Sep 17 00:00:00 2001
+From 929100972c1137d09743cfa56ac82c8b8a615140 Mon Sep 17 00:00:00 2001
 From: Gerrit Pape <pape@smarden.org>
 Date: Sun, 26 Aug 2007 09:37:32 +0000
 Subject: [PATCH 10/13] util-vserver: vsched fails to read config directory
