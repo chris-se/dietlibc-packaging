@@ -64,5 +64,5 @@ index ddfd34b..e057168 100644
  
  $(PICODIR)/diet-dyn-i: $(PICODIR)/start.o $(PICODIR)/dyn_start.o diet.c
 -- 
-1.7.0
+1.7.0.3
 

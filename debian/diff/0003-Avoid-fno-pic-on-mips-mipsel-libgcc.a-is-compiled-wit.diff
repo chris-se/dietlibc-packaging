@@ -35,5 +35,5 @@ index 35d9aa3..0b59d04 100644
  VPATH:=mips:syscalls.s:$(VPATH)
  LIBOBJ+=$(OBJDIR)/pread64.o $(OBJDIR)/pwrite64.o $(OBJDIR)/divdi3.o
 -- 
-1.7.0
+1.7.0.3
 

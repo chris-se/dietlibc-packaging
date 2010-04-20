@@ -46,5 +46,5 @@ index dbd7206..487d5a9 100644
    unsigned int cur;
  };				/* stream data from opendir() */
 -- 
-1.7.0
+1.7.0.3
 

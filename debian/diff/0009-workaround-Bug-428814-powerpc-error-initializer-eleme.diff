@@ -66,5 +66,5 @@ index 9682f35..c0017b3 100644
  static const double  coeff[] = { B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10 };
  int                  signgam;
 -- 
-1.7.0
+1.7.0.3
 
