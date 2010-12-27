@@ -1,0 +1,12 @@
+diff -ru dietlibc-0.32.orig//include/endian.h dietlibc-0.32/include/endian.h
+--- dietlibc-0.32.orig//include/endian.h        2005-10-04 13:47:03.000000000 -0400
++++ dietlibc-0.32/include/endian.h      2010-12-14 15:12:24.000000000 -0500
+@@ -39,7 +39,7 @@
+ # define __LONG_LONG_PAIR(HI, LO) HI, LO
+ #endif
+ 
+-#if defined(__alpha__) || defined(__mips64__) || defined(__sparc_v9__) || defined(__x86_64__) || defined(__ia64__) || defined(__powerpc64__) || defined(__s390x__)
++#if defined(__alpha__) || defined(__mips64__) || defined(__sparcv9) || defined(__x86_64__) || defined(__ia64__) || defined(__powerpc64__) || defined(__s390x__) || defined(__arch64__)
+ #define __WORDSIZE 64
+ #endif
+ 

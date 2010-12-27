@@ -1,3 +1,12 @@
+dietlibc (0.32-5.1) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Fix sparc64 detection, based on a patch by Ivan Jager (closes: #604717).
+    Don't use defined(__sparc_v9__) to detect 64bit sparc, use
+    defined(__sparcv9) || defined(__arch64__) instead.
+
+ -- Julien Cristau <jcristau@debian.org>  Mon, 27 Dec 2010 13:09:27 +0100
+
 dietlibc (0.32-5) unstable; urgency=medium
 
   * debian/diff/0013-mips-divdi3.c-fix-include-path-to-longlong.h.diff:
