@@ -3,18 +3,19 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "dietstdio.h"
 #include "dietwarning.h"
 
 static inline unsigned int skip_to(const unsigned char *format) {
-  int unsigned nr;
+  unsigned int nr;
   for (nr=0; format[nr] && (format[nr]!='%'); ++nr);
   return nr;
 }
 
 #define A_WRITE(fn,buf,sz)	((fn)->put((void*)(buf),(sz),(fn)->data))
 
-static char* pad_line[16]= { "                ", "0000000000000000", };
+static const char pad_line[2][16]= { "                ", "0000000000000000", };
 static inline int write_pad(struct arg_printf* fn, int len, int padwith) {
   int nr=0;
   for (;len>15;len-=16,nr+=16) {
@@ -29,6 +30,9 @@ static inline int write_pad(struct arg_printf* fn, int len, int padwith) {
 int __v_printf(struct arg_printf* fn, const unsigned char *format, va_list arg_ptr)
 {
   int len=0;
+#ifdef WANT_ERROR_PRINTF
+  int _errno = errno;
+#endif
 
   while (*format) {
     unsigned int sz = skip_to(format);
@@ -38,8 +42,11 @@ int __v_printf(struct arg_printf* fn, const unsigned char *format, va_list arg_p
     }
     if (*format=='%') {
       char buf[128];
+      union { char*s; } u_str;
+#define s u_str.s
 
-      unsigned char ch, *s, padwith=' ';
+      int retval;
+      unsigned char ch, padwith=' ';
 
       char flag_in_sign=0;
       char flag_upcase=0;
@@ -53,7 +60,7 @@ int __v_printf(struct arg_printf* fn, const unsigned char *format, va_list arg_p
       unsigned int base;
       unsigned int width=0, preci=0;
 
-      int number=0;
+      long number=0;
 #ifdef WANT_LONGLONG_PRINTF
       long long llnumber=0;
 #endif
@@ -67,18 +74,18 @@ inn_printf:
 
       /* FLAGS */
       case '#':
-	flag_hash=1;
+	flag_hash=-1;
+      case 'z':
 	goto inn_printf;
 
       case 'h':
 	--flag_long;
 	goto inn_printf;
+      case 'q':		/* BSD ... */
+      case 'L':
+	++flag_long; /* fall through */
       case 'l':
 	++flag_long;
-	goto inn_printf;
-
-      case '0':
-	padwith='0';
 	goto inn_printf;
 
       case '-':
@@ -93,6 +100,7 @@ inn_printf:
 	flag_sign=1;
 	goto inn_printf;
 
+      case '0':
       case '1':
       case '2':
       case '3':
@@ -104,6 +112,7 @@ inn_printf:
       case '9':
 	if(flag_dot) return -1;
 	width=strtoul(format-1,(char**)&s,10);
+	if (ch=='0' && !flag_left) padwith='0';
 	format=s;
 	goto inn_printf;
 
@@ -114,7 +123,8 @@ inn_printf:
       case '.':
 	flag_dot=1;
 	if (*format=='*') {
-	  preci=va_arg(arg_ptr,int);
+	  int tmp=va_arg(arg_ptr,int);
+	  preci=tmp<0?0:tmp;
 	  ++format;
 	} else {
 	  long int tmp=strtol(format,(char**)&s,10);
@@ -130,6 +140,14 @@ inn_printf:
 	A_WRITE(fn,&ch,1); ++len;
 	break;
 
+#ifdef WANT_ERROR_PRINTF
+      /* print an error message */
+      case 'm':
+	s=strerror(_errno);
+	sz=strlen(s);
+	A_WRITE(fn,s,sz); len+=sz;
+	break;
+#endif
       /* print a string */
       case 's':
 	s=va_arg(arg_ptr,char *);
@@ -138,16 +156,64 @@ inn_printf:
 #endif
 	sz = strlen(s);
 	if (flag_dot && sz>preci) sz=preci;
+	preci=0;
+	flag_dot^=flag_dot;
+	padwith=' ';
 
 print_out:
-	if (width && (!flag_left)) {
-	  len+=write_pad(fn,(signed int)width-(signed int)sz,padwith);
+      {
+	char *sign=s;
+	int todo=0;
+	int vs;
+	
+	if (! (width||preci) ) {
+	  A_WRITE(fn,s,sz); len+=sz;
+	  break;
 	}
-	A_WRITE(fn,s,sz); len+=sz;
-	if (width && (flag_left)) {
-	  len+=write_pad(fn,(signed int)width-(signed int)sz,' ');
+	
+	if (flag_in_sign) todo=1;
+	if (flag_hash>0)  todo=flag_hash;
+	if (todo) {
+	  s+=todo;
+	  sz-=todo;
+	  width-=todo;
+	}
+	
+	if (!flag_left) {
+	  if (flag_dot) {
+	    vs=preci>sz?preci:sz;
+	    len+=write_pad(fn,(signed int)width-(signed int)vs,' ');
+	    if (todo) {
+	      A_WRITE(fn,sign,todo);
+	      len+=todo;
+	    }
+	    len+=write_pad(fn,(signed int)preci-(signed int)sz,'0');
+	  } else {
+	    if (todo && padwith=='0') {
+	      A_WRITE(fn,sign,todo);
+	      len+=todo; todo=0;
+	    }
+	    len+=write_pad(fn,(signed int)width-(signed int)sz, padwith);
+	    if (todo) {
+	      A_WRITE(fn,sign,todo);
+	      len+=todo;
+	    }
+	  }
+	  A_WRITE(fn,s,sz); len+=sz;
+	} else if (flag_left) {
+	  if (todo) {
+	    A_WRITE(fn,sign,todo);
+	    len+=todo;
+	  }
+	  len+=write_pad(fn,(signed int)preci-(signed int)sz, '0');
+	  A_WRITE(fn,s,sz); len+=sz;
+	  vs=preci>sz?preci:sz;
+	  len+=write_pad(fn,(signed int)width-(signed int)vs, ' ');
+	} else {
+	  A_WRITE(fn,s,sz); len+=sz;
 	}
 	break;
+      }
 
       /* print an integer value */
       case 'b':
@@ -155,7 +221,8 @@ print_out:
 	sz=0;
 	goto num_printf;
       case 'p':
-	flag_hash=1;
+	flag_hash=2;
+	flag_long=1;
 	ch='x';
       case 'X':
 	flag_upcase=(ch=='X');
@@ -165,8 +232,10 @@ print_out:
 	if (flag_hash) {
 	  buf[1]='0';
 	  buf[2]=ch;
+	  flag_hash=2;
 	  sz=2;
 	}
+	if (preci>width) width=preci;
 	goto num_printf;
       case 'd':
       case 'i':
@@ -180,10 +249,13 @@ print_out:
 	sz=0;
 	if (flag_hash) {
 	  buf[1]='0';
+	  flag_hash=1;
 	  ++sz;
 	}
 
 num_printf:
+	s=buf+1;
+
 	if (flag_long>0) {
 #ifdef WANT_LONGLONG_PRINTF
 	  if (flag_long>1)
@@ -211,12 +283,18 @@ num_printf:
 	if (flag_long<-1) number&=0xff;
 #ifdef WANT_LONGLONG_PRINTF
 	if (flag_long>1)
-	  sz += __lltostr(buf+1+sz,sizeof(buf)-5,(unsigned long long) llnumber,base,flag_upcase);
+	  retval = __lltostr(s+sz,sizeof(buf)-5,(unsigned long long) llnumber,base,flag_upcase);
 	else
 #endif
-	  sz += __ltostr(buf+1+sz,sizeof(buf)-5,(unsigned long) number,base,flag_upcase);
+	  retval = __ltostr(s+sz,sizeof(buf)-5,(unsigned long) number,base,flag_upcase);
 
-	s=buf+1;
+	/* When 0 is printed with an explicit precision 0, the output is empty. */
+	if (flag_dot && retval == 1 && s[sz] == '0') {
+	  if (preci == 0||flag_hash > 0) {
+	    sz = 0;
+	  }
+	  flag_hash = 0;
+	} else sz += retval;
 
 	if (flag_in_sign==2) {
 	  *(--s)='-';
@@ -224,7 +302,7 @@ num_printf:
 	} else if ((flag_in_sign)&&(flag_sign || flag_space)) {
 	  *(--s)=(flag_sign)?'+':' ';
 	  ++sz;
-	}
+	} else flag_in_sign=0;
 
 	goto print_out;
 
@@ -235,18 +313,28 @@ num_printf:
 	{
 	  int g=(ch=='g');
 	  double d=va_arg(arg_ptr,double);
-	  sz=__dtostr(d,buf,sizeof(buf),width?width+(flag_dot?preci+1:1):6);
+	  s=buf+1;
+	  if (width==0) width=1;
+	  if (!flag_dot) preci=6;
+	  if (flag_sign || d < +0.0) flag_in_sign=1;
+	  
+	  sz=__dtostr(d,s,sizeof(buf)-1,width,preci);
+	  
 	  if (flag_dot) {
 	    char *tmp;
-	    if ((tmp=strchr(buf,'.'))) {
-	      ++tmp;
+	    if ((tmp=strchr(s,'.'))) {
+	      if (preci || flag_hash) ++tmp;
 	      while (preci>0 && *++tmp) --preci;
 	      *tmp=0;
+	    } else if (flag_hash) {
+	      s[sz]='.';
+	      s[++sz]='\0';
 	    }
 	  }
+
 	  if (g) {
 	    char *tmp,*tmp1;	/* boy, is _this_ ugly! */
-	    if ((tmp=strchr(buf,'.'))) {
+	    if ((tmp=strchr(s,'.'))) {
 	      tmp1=strchr(tmp,'e');
 	      while (*tmp) ++tmp;
 	      if (tmp1) tmp=tmp1;
@@ -256,9 +344,15 @@ num_printf:
 	      if (tmp1) strcpy(tmp,tmp1);
 	    }
 	  }
-	  sz=strlen(buf);
-	  s=buf;
-
+	  
+	  if ((flag_sign || flag_space) && d>=0) {
+	    *(--s)=(flag_sign)?'+':' ';
+	    ++sz;
+	  }
+	  
+	  sz=strlen(s);
+	  flag_dot=0;
+	  flag_hash=0;
 	  goto print_out;
 	}
 #endif

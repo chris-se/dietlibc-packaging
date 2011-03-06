@@ -3,6 +3,8 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <sys/ioctl.h>
+#include <errno.h>
+#include <string.h>
 
 extern int __ltostr(char *s, int size, unsigned long i, int base, char UpCase);
 
@@ -30,11 +32,11 @@ int openpty(int *amaster, int *aslave, char *name, struct termios
 #endif
   {
     int unlock=0;
-    if (ioctl(fd,TIOCSPTLCK, &unlock)<0) goto kaputt;
+    while (ioctl(fd,TIOCSPTLCK, &unlock)<0) if (errno!=EINTR) goto kaputt;
   }
   {
     int ptyno;
-    if (ioctl(fd,TIOCGPTN,&ptyno)<0) goto kaputt;
+    while (ioctl(fd,TIOCGPTN,&ptyno)<0) if (errno!=EINTR) goto kaputt;
     strcpy(buf,"/dev/pts/");
     __ltostr(buf+9,10,ptyno,10,0);
   }
@@ -42,8 +44,9 @@ int openpty(int *amaster, int *aslave, char *name, struct termios
   if (*aslave<0) goto kaputt;
   *amaster=fd;
   if (name) strcpy(name,buf);
-  if (termp) tcsetattr(*aslave,TCSAFLUSH,termp);
-  if (winp) ioctl(*aslave, TIOCSWINSZ, winp);
+  if (termp)
+    while (tcsetattr(*aslave,TCSAFLUSH,termp) && errno==EINTR);
+  if (winp) while (ioctl(*aslave, TIOCSWINSZ, winp) && errno==EINTR);
   return 0;
 kaputt:
   close(fd);

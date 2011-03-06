@@ -1,5 +1,3 @@
-#ifdef __powerpc__
-
 .text
 .global _start
 .type _start,@function
@@ -32,7 +30,11 @@ _start:
 	mr	6,7
 	bl	_dyn_start
 #else
+#ifdef WANT_STACKGAP
+	bl	stackgap
+#else
 	bl	main
+#endif
 #endif
 	b	exit
 .size _start,.-_start
@@ -41,7 +43,4 @@ _start:
 /* Define a symbol for the first piece of initialized data.  */
 	.section ".data"
 __data_start:
-
-
-#endif
 

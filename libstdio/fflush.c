@@ -7,16 +7,13 @@ FILE *__stdio_root;
 
 int __stdio_atexit=0;
 
-void __stdio_flushall(void);
+int fflush(FILE *stream) __attribute__((weak,alias("fflush_unlocked")));
+
 void __stdio_flushall(void) {
   fflush(0);
 }
 
-extern int __fflush_stdin(void);
-extern int __fflush_stdout(void);
-extern int __fflush_stderr(void);
-
-int fflush(FILE *stream) {
+int fflush_unlocked(FILE *stream) {
   if (stream==0) {
     int res;
     FILE *f;
@@ -33,14 +30,15 @@ int fflush(FILE *stream) {
     register int tmp;
     if ((tmp=stream->bm-stream->bs)) {
       lseek(stream->fd,tmp,SEEK_CUR);
-      stream->bs=0;
     }
-  } else
+    stream->bs=stream->bm=0;
+  } else {
     if (stream->bm && write(stream->fd,stream->buf,stream->bm)!=(int)stream->bm) {
       stream->flags|=ERRORINDICATOR;
       return -1;
     }
-  stream->bm=0;
+    stream->bm=0;
+  }
   return 0;
 }
 
@@ -50,15 +48,19 @@ int __fflush4(FILE *stream,int next) {
     atexit(__stdio_flushall);
   }
   if ((stream->flags&BUFINPUT)!=next) {
-    int res=fflush(stream);
+    int res=fflush_unlocked(stream);
     stream->flags=(stream->flags&~BUFINPUT)|next;
     return res;
   }
+  if (stream->fd==0) __fflush_stdout();
   return 0;
 }
 
-int __buffered_outs(const char *s,size_t len) {
-  return fwrite(s,1,(size_t)len,stdout);
+/* Internal function, has no prototype.
+ * This is defined here because of the weak symbol ELF semantics */
+int __stdio_outs(const char *s,size_t len);
+int __stdio_outs(const char *s,size_t len) {
+  return fwrite(s,1,(size_t)len,stdout)==len?1:0;
 }
 
 link_warning("fflush","warning: your code uses stdio (7+k bloat).")

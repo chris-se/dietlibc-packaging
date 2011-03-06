@@ -1,4 +1,5 @@
 #include <string.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -21,12 +22,32 @@ int gethostbyname_r(const char* name, struct hostent* result,
   result->h_name=buf;
   if (buflen<L) { *h_errnop=ERANGE; return 1; }
   strcpy(buf,name);
+#ifdef WANT_INET_ADDR_DNS
+  result->h_addr_list=(char**)(buf+strlen(name)+1);
+  result->h_addr_list+=sizeof(unsigned long)-((unsigned long)(result->h_addr_list)&(sizeof(unsigned long)-1));
+  result->h_addr_list[0]=(char*)&result->h_addr_list[2];
+  if (inet_pton(AF_INET,name,result->h_addr_list[0])) {
+    result->h_addrtype=AF_INET;
+    result->h_length=4;
+commonip:
+    result->h_aliases=result->h_addr_list+2*sizeof(char**);
+    result->h_aliases[0]=0;
+    result->h_addr_list[1]=0;
+    *RESULT=result;
+    *h_errnop=0;
+    return 0;
+  } else if (inet_pton(AF_INET6,name,result->h_addr_list[0])) {
+    result->h_addrtype=AF_INET6;
+    result->h_length=16;
+    goto commonip;
+  }
+#endif
 #ifdef WANT_ETC_HOSTS
   {
     struct hostent* r;
     while ((r=gethostent_r(buf,buflen))) {
       int i;
-      if (r->h_addrtype==AF_INET && !strcmp(r->h_name,name)) {	/* found it! */
+      if (r->h_addrtype==AF_INET && !strcasecmp(r->h_name,name)) {	/* found it! */
 found:
 	memmove(result,r,sizeof(struct hostent));
 	*RESULT=result;
@@ -36,7 +57,7 @@ found:
       }
       for (i=0; i<16; ++i) {
 	if (r->h_aliases[i]) {
-	  if (!strcmp(r->h_aliases[i],name)) goto found;
+	  if (!strcasecmp(r->h_aliases[i],name)) goto found;
 	} else break;
       }
     }

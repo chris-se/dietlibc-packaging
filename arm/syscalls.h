@@ -221,9 +221,313 @@
 #define __NR_mincore			(__NR_SYSCALL_BASE+219)
 #define __NR_madvise			(__NR_SYSCALL_BASE+220)
 #define __NR_fcntl64			(__NR_SYSCALL_BASE+221)
+#define __NR_security			(__NR_SYSCALL_BASE+223)
+					/* 222 for tux */
+#define __NR_gettid			(__NR_SYSCALL_BASE+224)
+#define __NR_readahead			(__NR_SYSCALL_BASE+225)
+#define __NR_setxattr			(__NR_SYSCALL_BASE+226)
+#define __NR_lsetxattr			(__NR_SYSCALL_BASE+227)
+#define __NR_fsetxattr			(__NR_SYSCALL_BASE+228)
+#define __NR_getxattr			(__NR_SYSCALL_BASE+229)
+#define __NR_lgetxattr			(__NR_SYSCALL_BASE+230)
+#define __NR_fgetxattr			(__NR_SYSCALL_BASE+231)
+#define __NR_listxattr			(__NR_SYSCALL_BASE+232)
+#define __NR_llistxattr			(__NR_SYSCALL_BASE+233)
+#define __NR_flistxattr			(__NR_SYSCALL_BASE+234)
+#define __NR_removexattr		(__NR_SYSCALL_BASE+235)
+#define __NR_lremovexattr		(__NR_SYSCALL_BASE+236)
+#define __NR_fremovexattr		(__NR_SYSCALL_BASE+237)
+#define __NR_tkill			(__NR_SYSCALL_BASE+238)
 
-#define syscall_weak(name,wsym,sym) __syscall_weak $__NR_##name, wsym, sym
-.macro __syscall_weak name wsym sym
+#define __NR_sendfile64			(__NR_SYSCALL_BASE+239)
+#define __NR_futex			(__NR_SYSCALL_BASE+240)
+#define __NR_sched_setaffinity		(__NR_SYSCALL_BASE+241)
+#define __NR_sched_getaffinity		(__NR_SYSCALL_BASE+242)
+#define __NR_io_setup			(__NR_SYSCALL_BASE+243)
+#define __NR_io_destroy			(__NR_SYSCALL_BASE+244)
+#define __NR_io_getevents		(__NR_SYSCALL_BASE+245)
+#define __NR_io_submit			(__NR_SYSCALL_BASE+246)
+#define __NR_io_cancel			(__NR_SYSCALL_BASE+247)
+#define __NR_exit_group			(__NR_SYSCALL_BASE+248)
+#define __NR_lookup_dcookie		(__NR_SYSCALL_BASE+249)
+#define __NR_epoll_create		(__NR_SYSCALL_BASE+250)
+#define __NR_epoll_ctl			(__NR_SYSCALL_BASE+251)
+#define __NR_epoll_wait			(__NR_SYSCALL_BASE+252)
+#define __NR_remap_file_pages		(__NR_SYSCALL_BASE+253)
+#define __NR_set_thread_area		(__NR_SYSCALL_BASE+254)
+#define __NR_get_thread_area		(__NR_SYSCALL_BASE+255)
+#define __NR_set_tid_address		(__NR_SYSCALL_BASE+256)
+
+
+/* ok the next few values are for the optimization of the unified syscalls
+ * on arm.
+ * If the syscall has #arguments
+ *	<=4 set to 0
+ *	 >4 set to 1
+ *
+ * Since the majority of the syscalls need <=4 arguments this saves a lot
+ * of byte (12 per syscall) and cycles (~16)
+ */
+#define __ARGS_exit			0
+#define __ARGS_fork			0
+#define __ARGS_read			0
+#define __ARGS_write			0
+#define __ARGS_open			0
+#define __ARGS_close			0
+#define __ARGS_waitpid			0
+#define __ARGS_creat			0
+#define __ARGS_link			0
+#define __ARGS_unlink			0
+#define __ARGS_execve			0
+#define __ARGS_chdir			0
+#define __ARGS_time			0
+#define __ARGS_mknod			0
+#define __ARGS_chmod			0
+#define __ARGS_lchown			0
+#define __ARGS_break			0
+
+#define __ARGS_lseek			0
+#define __ARGS_getpid			0
+#define __ARGS_mount			1
+#define __ARGS_umount			0
+#define __ARGS_setuid			0
+#define __ARGS_getuid			0
+#define __ARGS_stime			0
+#define __ARGS_ptrace			0
+#define __ARGS_alarm			0
+
+#define __ARGS_pause			0
+#define __ARGS_utime			0
+#define __ARGS_stty			0
+#define __ARGS_gtty			0
+#define __ARGS_access			0
+#define __ARGS_nice			0
+#define __ARGS_ftime			0
+#define __ARGS_sync			0
+#define __ARGS_kill			0
+#define __ARGS_rename			0
+#define __ARGS_mkdir			0
+#define __ARGS_rmdir			0
+#define __ARGS_dup			0
+#define __ARGS_pipe			0
+#define __ARGS_times			0
+#define __ARGS_prof			0
+#define __ARGS_brk			0
+#define __ARGS_setgid			0
+#define __ARGS_getgid			0
+#define __ARGS_signal			0
+#define __ARGS_geteuid			0
+#define __ARGS_getegid			0
+#define __ARGS_acct			0
+#define __ARGS_umount2			0
+#define __ARGS_lock			0
+#define __ARGS_ioctl			0
+#define __ARGS_fcntl			0
+#define __ARGS_mpx			0
+#define __ARGS_setpgid			0
+#define __ARGS_ulimit			0
+
+#define __ARGS_umask			0
+#define __ARGS_chroot			0
+#define __ARGS_ustat			0
+#define __ARGS_dup2			0
+#define __ARGS_getppid			0
+#define __ARGS_getpgrp			0
+#define __ARGS_setsid			0
+#define __ARGS_sigaction		0
+#define __ARGS_sgetmask			0
+#define __ARGS_ssetmask			0
+#define __ARGS_setreuid			0
+#define __ARGS_setregid			0
+#define __ARGS_sigsuspend		0
+#define __ARGS_sigpending		0
+#define __ARGS_sethostname		0
+#define __ARGS_setrlimit		0
+#define __ARGS_getrlimit		0
+#define __ARGS_getrusage		0
+#define __ARGS_gettimeofday		0
+#define __ARGS_settimeofday		0
+#define __ARGS_getgroups		0
+#define __ARGS_setgroups		0
+#define __ARGS_select			0
+#define __ARGS_symlink			0
+
+#define __ARGS_readlink			0
+#define __ARGS_uselib			0
+#define __ARGS_swapon			0
+#define __ARGS_reboot			0
+#define __ARGS_readdir			0
+#define __ARGS_mmap			0	/* this is NOT 1 !!! (special case) */
+#define __ARGS_munmap			0
+#define __ARGS_truncate			0
+#define __ARGS_ftruncate		0
+#define __ARGS_fchmod			0
+#define __ARGS_fchown			0
+#define __ARGS_getpriority		0
+#define __ARGS_setpriority		0
+#define __ARGS_profil			0
+#define __ARGS_statfs			0
+#define __ARGS_fstatfs			0
+#define __ARGS_ioperm			0
+#define __ARGS_socketcall		0
+#define __ARGS_syslog			0
+#define __ARGS_setitimer		0
+#define __ARGS_getitimer		0
+#define __ARGS_stat			0
+#define __ARGS_lstat			0
+#define __ARGS_fstat			0
+
+
+#define __ARGS_vhangup			0
+#define __ARGS_idle			0
+#define __ARGS_syscall			0
+#define __ARGS_wait4			0
+#define __ARGS_swapoff			0
+#define __ARGS_sysinfo			0
+#define __ARGS_ipc			1
+#define __ARGS_fsync			0
+#define __ARGS_sigreturn		0
+#define __ARGS_clone			0
+#define __ARGS_setdomainname		0
+#define __ARGS_uname			0
+#define __ARGS_modify_ldt		0
+#define __ARGS_adjtimex			0
+#define __ARGS_mprotect			0
+#define __ARGS_sigprocmask		0
+#define __ARGS_create_module		0
+#define __ARGS_init_module		0
+#define __ARGS_delete_module		0
+#define __ARGS_get_kernel_syms		0
+#define __ARGS_quotactl			0
+#define __ARGS_getpgid			0
+#define __ARGS_fchdir			0
+#define __ARGS_bdflush			0
+#define __ARGS_sysfs			0
+#define __ARGS_personality		0
+#define __ARGS_afs_syscall		0
+#define __ARGS_setfsuid			0
+#define __ARGS_setfsgid			0
+#define __ARGS__llseek			1
+#define __ARGS_getdents			0
+#define __ARGS__newselect		1
+#define __ARGS_flock			0
+#define __ARGS_msync			0
+#define __ARGS_readv			0
+#define __ARGS_writev			0
+#define __ARGS_getsid			0
+#define __ARGS_fdatasync		0
+#define __ARGS__sysctl			0
+#define __ARGS_mlock			0
+#define __ARGS_munlock			0
+#define __ARGS_mlockall			0
+#define __ARGS_munlockall		0
+#define __ARGS_sched_setparam		0
+#define __ARGS_sched_getparam		0
+#define __ARGS_sched_setscheduler	0
+#define __ARGS_sched_getscheduler	0
+#define __ARGS_sched_yield		0
+#define __ARGS_sched_get_priority_max	0
+#define __ARGS_sched_get_priority_min	0
+#define __ARGS_sched_rr_get_interval	0
+#define __ARGS_nanosleep		0
+#define __ARGS_mremap			0
+#define __ARGS_setresuid		0
+#define __ARGS_getresuid		0
+#define __ARGS_vm86			0
+#define __ARGS_query_module		1
+#define __ARGS_poll			0
+#define __ARGS_nfsservctl		0
+#define __ARGS_setresgid		0
+#define __ARGS_getresgid		0
+#define __ARGS_prctl			1
+#define __ARGS_rt_sigreturn		0
+#define __ARGS_rt_sigaction		0
+#define __ARGS_rt_sigprocmask		0
+#define __ARGS_rt_sigpending		0
+#define __ARGS_rt_sigtimedwait		0
+#define __ARGS_rt_sigqueueinfo		0
+#define __ARGS_rt_sigsuspend		0
+#define __ARGS_pread			0
+#define __ARGS_pwrite			0
+#define __ARGS_chown			0
+#define __ARGS_getcwd			0
+#define __ARGS_capget			0
+#define __ARGS_capset			0
+#define __ARGS_sigaltstack		0
+#define __ARGS_sendfile			0
+
+#define __ARGS_vfork			0
+#define __ARGS_ugetrlimit		0
+#define __ARGS_mmap2			1
+#define __ARGS_truncate64		0
+#define __ARGS_ftruncate64		0
+#define __ARGS_stat64			0
+#define __ARGS_lstat64			0
+#define __ARGS_fstat64			0
+#define __ARGS_lchown32			0
+#define __ARGS_getuid32			0
+#define __ARGS_getgid32			0
+#define __ARGS_geteuid32		0
+#define __ARGS_getegid32		0
+#define __ARGS_setreuid32		0
+#define __ARGS_setregid32		0
+#define __ARGS_getgroups32		0
+#define __ARGS_setgroups32		0
+#define __ARGS_fchown32			0
+#define __ARGS_setresuid32		0
+#define __ARGS_getresuid32		0
+#define __ARGS_setresgid32		0
+#define __ARGS_getresgid32		0
+#define __ARGS_chown32			0
+#define __ARGS_setuid32			0
+#define __ARGS_setgid32			0
+#define __ARGS_setfsuid32		0
+#define __ARGS_setfsgid32		0
+#define __ARGS_getdents64		0
+#define __ARGS_pivot_root		0
+#define __ARGS_mincore			0
+#define __ARGS_madvise			0
+#define __ARGS_fcntl64			0
+
+#define __ARGS_security			0
+#define __ARGS_gettid			0
+#define __ARGS_readahead		0
+#define __ARGS_setxattr			1
+#define __ARGS_lsetxattr		1
+#define __ARGS_fsetxattr		1
+#define __ARGS_getxattr			0
+#define __ARGS_lgetxattr		0
+#define __ARGS_fgetxattr		0
+#define __ARGS_listxattr		0
+#define __ARGS_llistxattr		0
+#define __ARGS_flistxattr		0
+#define __ARGS_removexattr		0
+#define __ARGS_lremovexattr		0
+#define __ARGS_fremovexattr		0
+#define __ARGS_tkill			0
+
+#define __ARGS_sendfile64		0
+#define __ARGS_futex			0
+#define __ARGS_sched_setaffinity	0
+#define __ARGS_sched_getaffinity	0
+#define __ARGS_io_setup			0
+#define __ARGS_io_destroy		0
+#define __ARGS_io_getevents		0
+#define __ARGS_io_submit		0
+#define __ARGS_io_cancel		0
+#define __ARGS_exit_group		0
+#define __ARGS_lookup_dcookie		0
+#define __ARGS_epoll_create		0
+#define __ARGS_epoll_ctl		0
+#define __ARGS_epoll_wait		0
+#define __ARGS_remap_file_pages		0
+#define __ARGS_set_thread_area		0
+#define __ARGS_get_thread_area		0
+#define __ARGS_set_tid_address		0
+
+#ifdef __ASSEMBLER__
+#define syscall_weak(name,wsym,sym) __syscall_weak $__NR_##name, wsym, sym, __ARGS_##name
+.macro __syscall_weak name wsym sym typ
 .text
 .type \wsym,function
 .weak \wsym
@@ -231,23 +535,36 @@
 .type \sym,function
 .global \sym
 \sym:
+.ifgt \typ
 	mov	ip, sp
 	stmfd	sp!,{r4, r5, r6}
 	ldmia	ip, {r4, r5, r6}
+.endif
 	swi	\name
+.ifgt \typ
+	b	__unified_syscall4
+.else
 	b	__unified_syscall
+.endif
 .endm
 
-#define syscall(name,sym) __syscall $__NR_##name, sym
-.macro __syscall name sym
+#define syscall(name,sym) __syscall $__NR_##name, sym, __ARGS_##name
+.macro __syscall name sym typ
 .text
 .type \sym,function
 .global \sym
 \sym:
+.ifgt \typ
 	mov	ip, sp
 	stmfd	sp!,{r4, r5, r6}
 	ldmia	ip, {r4, r5, r6}
+.endif
 	swi	\name
+.ifgt \typ
+	b	__unified_syscall4
+.else
 	b	__unified_syscall
+.endif
 .endm
 
+#endif

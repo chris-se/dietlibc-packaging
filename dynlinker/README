@@ -3,9 +3,20 @@ DYN-LINKER
   This is the Dynamic linker for the dietlibc.
   Written from scratch by Olaf Dreesen.
 
+Fri Sep 13 16:28:42 CEST 2002
+THIS CODE IS OBSOLETE ! DON'T USE IT ANYMORE
+
+
+
 Replacement for standard ld.so
 
 It is still test-code only and depends on dietlibc/libdl code
+
+
+Mon Mar 11 19:44:20 CET 2002
+
+This is now near obsolete code...
+
 
 Thu Nov  1 17:35:15 MET 2001
 

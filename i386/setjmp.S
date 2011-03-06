@@ -30,10 +30,11 @@ __sigsetjmp:
 
 	/* Make a tail call to __sigjmp_save; it takes the same args.  */
 #ifdef	PIC
-	call 1f
-1:	popl %ecx
-	addl $_GLOBAL_OFFSET_TABLE_+[.-1b], %ecx
-	jmp *__sigjmp_save@GOT(%ecx)
+	call	1f
+	addl	$_GLOBAL_OFFSET_TABLE_, %ecx
+	jmp	*__sigjmp_save@GOT(%ecx)
+1:	movl	(%esp), %ecx
+	ret
 #else
 	jmp __sigjmp_save
 #endif

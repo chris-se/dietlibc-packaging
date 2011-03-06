@@ -1,6 +1,6 @@
 #include "dietfeatures.h"
+#include "PIC.h"
 
-#ifdef __i386__
 .text
 .global _start
 _start:
@@ -22,26 +22,53 @@ _start:
 	pushl	%eax
 	pushl	%esi
 	pushl	%ecx
-#ifdef __DYN_LIB
-	call	1f
-1:	popl	%ebx
-	addl	$_GLOBAL_OFFSET_TABLE_+[.-1b],%ebx
-	movl	environ@GOT(%ebx),%ecx
-	movl	%eax,(%ecx)
-#else
-	movl	%eax,environ
+	PIC_INIT			/* non-PIC: this is an empty line */
+	PUT_VAR %eax, environ, %ecx	/* non-PIC: movl %eax,environ */
+
+#ifdef PROFILING
+	pushl	$_etext
+	pushl	$.text
+	call	monitor
+	addl	$0x8, %esp
+#endif
+
+#ifdef WANT_SYSENTER
+	movl	%eax,%edx
+	xorl	%esi,%esi
+1:
+	add	$4,%edx
+	cmpl	%esi,-4(%edx)
+	jne	1b
+1:
+	movl	(%edx),%edi
+	test	%edi,%edi
+	jz	1f
+	addl	$8,%edx
+	cmpl	$32,%edi
+	jne	1b
+	movl	-4(%edx),%edi
+	PUT_VAR %edi, __vsyscall, %edx
+1:
 #endif
 
 #ifdef WANT_DYNAMIC
 	call	_dyn_start
 #else
+#ifdef WANT_STACKGAP
+	call	stackgap
+#else
 	call	main
 #endif
+#endif
 
+#ifdef PROFILING
+	pushl	%eax
+	call	_stop_monitor
+	popl	%eax
+#endif
 	pushl	%eax
 	call	exit
 	hlt	/* die now ! will ya ... */
 .Lstart:
 	.size	 _start,.Lstart-_start
-#endif
 

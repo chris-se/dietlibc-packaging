@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <sys/shm.h>	/* for PAGE_SIZE */
 
@@ -30,7 +31,7 @@
 #define NULL ((void*)0)
 #endif
 
-typedef union {
+typedef struct {
   void*  next;
   size_t size;
 } __alloc_t;
@@ -42,15 +43,13 @@ typedef union {
 #define PAGE_ALIGN(s)	(((s)+MEM_BLOCK_SIZE-1)&(unsigned long)(~(MEM_BLOCK_SIZE-1)))
 
 /* a simple mmap :) */
-
-#ifdef __i386__
-/* regparm exists only on i386 */
-static void *do_mmap(unsigned long size) __attribute__((regparm(1)));
-static size_t get_index(size_t _size) __attribute__((regparm(1)));
-static void* __small_malloc(size_t _size) __attribute__((regparm(1)));
+#if defined(__i386__)
+#define REGPARM(x) __attribute__((regparm(x)))
+#else
+#define REGPARM(x)
 #endif
 
-static void *do_mmap(size_t size) {
+static void REGPARM(1) *do_mmap(size_t size) {
   return mmap(0, size, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, (size_t)0);
 }
 
@@ -69,19 +68,19 @@ static __alloc_t* __small_mem[8];
 
 static inline int __ind_shift() { return (MEM_BLOCK_SIZE==4096)?4:5; }
 
-static size_t get_index(size_t _size) {
+static size_t REGPARM(1) get_index(size_t _size) {
   register size_t idx=0;
-  if (_size) {
+//  if (_size) {	/* we already check this in the callers */
     register size_t size=((_size-1)&(MEM_BLOCK_SIZE-1))>>__ind_shift();
     while(size) { size>>=1; ++idx; }
-  }
+//  }
   return idx;
 }
 
 /* small mem */
-static void __small_free(void*_ptr,size_t _size) __attribute__((regparm(2)));
+static void __small_free(void*_ptr,size_t _size) REGPARM(2);
 
-static void __small_free(void*_ptr,size_t _size) {
+static void REGPARM(2) __small_free(void*_ptr,size_t _size) {
   __alloc_t* ptr=BLOCK_START(_ptr);
   size_t size=_size;
   size_t idx=get_index(size);
@@ -92,7 +91,7 @@ static void __small_free(void*_ptr,size_t _size) {
   __small_mem[idx]=ptr;
 }
 
-static void* __small_malloc(size_t _size) {
+static void* REGPARM(1) __small_malloc(size_t _size) {
   __alloc_t *ptr;
   size_t size=_size;
   size_t idx;
@@ -142,31 +141,45 @@ void __libc_free(void *ptr) __attribute__((alias("_alloc_libc_free")));
 void free(void *ptr) __attribute__((weak,alias("_alloc_libc_free")));
 void if_freenameindex(void* ptr) __attribute__((alias("free")));
 
+#ifdef WANT_MALLOC_ZERO
+static __alloc_t zeromem[2];
+#endif
+
 static void* _alloc_libc_malloc(size_t size) {
   __alloc_t* ptr;
   size_t need;
-  if (size) {
-    size+=sizeof(__alloc_t);
-    if (size<=__MAX_SMALL_SIZE) {
-      need=GET_SIZE(size);
-      if ((ptr=__small_malloc(need))==MAP_FAILED) goto err_out;
-    }
-    else {
-      need=PAGE_ALIGN(size);
-      if ((ptr=do_mmap(need))==MAP_FAILED) goto err_out;
-    }
-    ptr->size=need;
-    return BLOCK_RET(ptr);
+#ifdef WANT_MALLOC_ZERO
+  if (!size) return BLOCK_RET(zeromem);
+#else
+  if (!size) goto err_out;
+#endif
+  size+=sizeof(__alloc_t);
+  if (size<sizeof(__alloc_t)) goto err_out;
+  if (size<=__MAX_SMALL_SIZE) {
+    need=GET_SIZE(size);
+    ptr=__small_malloc(need);
   }
+  else {
+    need=PAGE_ALIGN(size);
+    if (!need) ptr=MAP_FAILED; else ptr=do_mmap(need);
+  }
+  if (ptr==MAP_FAILED) goto err_out;
+  ptr->size=need;
+  return BLOCK_RET(ptr);
 err_out:
   (*__errno_location())=ENOMEM;
   return 0;
 }
 void* __libc_malloc(size_t size) __attribute__((alias("_alloc_libc_malloc")));
 void* malloc(size_t size) __attribute__((weak,alias("_alloc_libc_malloc")));
+void* calloc(size_t nmemb, size_t _size) __attribute__((weak));
 
-void *calloc(size_t nmemb, size_t _size) {
+void* calloc(size_t nmemb, size_t _size) {
   register size_t size=_size*nmemb;
+  if (nmemb && size/nmemb!=_size) {
+    (*__errno_location())=ENOMEM;
+    return 0;
+  }
   return malloc(size);
 }
 
@@ -177,6 +190,7 @@ void* __libc_realloc(void* ptr, size_t _size) {
     if (size) {
       __alloc_t* tmp=BLOCK_START(ptr);
       size+=sizeof(__alloc_t);
+      if (size<sizeof(__alloc_t)) goto retzero;
       size=(size<=__MAX_SMALL_SIZE)?GET_SIZE(size):PAGE_ALIGN(size);
       if (tmp->size!=size) {
 	if ((tmp->size<=__MAX_SMALL_SIZE)) {
@@ -185,7 +199,7 @@ void* __libc_realloc(void* ptr, size_t _size) {
 	    register __alloc_t* foo=BLOCK_START(new);
 	    size=foo->size;
 	    if (size>tmp->size) size=tmp->size;
-	    memcpy(new,ptr,size-sizeof(__alloc_t));
+	    if (size) memcpy(new,ptr,size-sizeof(__alloc_t));
 	    _alloc_libc_free(ptr);
 	  }
 	  ptr=new;
@@ -195,6 +209,7 @@ void* __libc_realloc(void* ptr, size_t _size) {
 	  size=PAGE_ALIGN(size);
 	  foo=mremap(tmp,tmp->size,size,MREMAP_MAYMOVE);
 	  if (foo==MAP_FAILED) {
+retzero:
 	    (*__errno_location())=ENOMEM;
 	    ptr=0;
 	  }
@@ -207,6 +222,7 @@ void* __libc_realloc(void* ptr, size_t _size) {
     }
     else { /* size==0 */
       _alloc_libc_free(ptr);
+      ptr = NULL;
     }
   }
   else { /* ptr==0 */

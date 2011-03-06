@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-
 #include <utmp.h>
 
 static const char *utmp_file_name = _PATH_UTMP;
@@ -36,6 +35,7 @@ void utmpname(const char *file) {
 
 void setutent() {
   if (fd<0) fd = open(utmp_file_name,O_RDWR);
+  if (fd<0) fd = open(utmp_file_name,O_RDONLY);
   fcntl (fd, F_SETFD, FD_CLOEXEC);
   lseek(fd,0,SEEK_SET);
 }

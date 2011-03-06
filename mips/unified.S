@@ -1,14 +1,22 @@
 #include <dietfeatures.h>
+#include "syscalls.h"
 
 	.text
 	.align	2
+	.weak exit
+exit:
+	.global _exit
+	.ent _exit
+_exit:
+	li	$2,__NR_exit
+	syscall
+	.end _exit
 	.globl	__unified_syscall
 	.ent	__unified_syscall
 __unified_syscall:
-	syscall
 	bne	$7, $0, .Lerror
 
-/* here we go an "reused" the return for weak-void functions */
+/* here we go and "reuse" the return for weak-void functions */
 #include "dietuglyweaks.h"
 
 	jr	$31

@@ -4,6 +4,8 @@
 #include <sys/cdefs.h>
 #include <sys/resource.h>
 
+__BEGIN_DECLS
+
 #define WNOHANG		0x00000001
 #define WUNTRACED	0x00000002
 
@@ -35,11 +37,17 @@
 /* Nonzero if STATUS indicates the child dumped core. */
 #define WCOREDUMP(status) ((status) & 0x80)
 
+#ifdef _BSD_SOURCE
+#define W_STOPCODE(sig) ((sig) << 8 | 0x7f)
+#endif
+
 pid_t wait(int *status) __THROW;
 pid_t waitpid(pid_t pid, int *status, int options) __THROW;
 
 pid_t wait3(int *status, int options, struct rusage *rusage) __THROW;
 
 pid_t wait4(pid_t pid, int *status, int options, struct rusage *rusage) __THROW;
+
+__END_DECLS
 
 #endif

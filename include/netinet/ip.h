@@ -3,6 +3,9 @@
 
 #include <inttypes.h>
 #include <endian.h>
+#include <netinet/in.h>
+
+__BEGIN_DECLS
 
 #define	IPVERSION	4               /* IP version number */
 #define	IP_MAXPACKET	65535		/* maximum packet size */
@@ -76,22 +79,47 @@
 #define IPOPT_TS_TSANDADDR	1		/* timestamps and addresses */
 #define IPOPT_TS_PRESPEC	3		/* specified modules only */
 
-struct iphdr {
+struct iphdr {				/* size 20/0x14 */
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-  unsigned char ihl:4, version:4;
+  unsigned int ihl:4, version:4;	/* offset 0; version=ip version (4) */
 #else
-  unsigned char version:4, ihl:4;
+  unsigned int version:4, ihl:4;	/* offset 0; ihl=ip header length, measured in words (5) */
 #endif
-  unsigned char tos;
-  unsigned short tot_len;
-  unsigned short id;
-  unsigned short frag_off;
-  unsigned char ttl;
-  unsigned char protocol;
-  unsigned short check;
-  unsigned int saddr;
-  unsigned int daddr;
+  unsigned char tos;			/* offset 1 */
+  unsigned short tot_len;		/* offset 2; total bytes in packet in network byte order */
+  unsigned short id;			/* offset 4 */
+  unsigned short frag_off;		/* offset 6 */
+  unsigned char ttl;			/* offset 8 */
+  unsigned char protocol;		/* offset 9; 1=ICMP, 6=TCP, 17=UDP (see netinet/in.h) */
+  unsigned short check;			/* offset 10/0xa */
+  unsigned int saddr;			/* offset 12/0xc */
+  unsigned int daddr;			/* offset 16/0x10 */
   /*The options start here. */
 };
+
+struct ip {
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+  unsigned int ip_hl:4;		/* header length */
+  unsigned int ip_v:4;		/* version */
+#endif
+#if __BYTE_ORDER == __BIG_ENDIAN
+  unsigned int ip_v:4;		/* version */
+  unsigned int ip_hl:4;		/* header length */
+#endif
+  unsigned char ip_tos;		/* type of service */
+  unsigned short ip_len;		/* total length */
+  unsigned short ip_id;		/* identification */
+  unsigned short ip_off;		/* fragment offset field */
+#define	IP_RF 0x8000			/* reserved fragment flag */
+#define	IP_DF 0x4000			/* dont fragment flag */
+#define	IP_MF 0x2000			/* more fragments flag */
+#define	IP_OFFMASK 0x1fff		/* mask for fragmenting bits */
+  unsigned char ip_ttl;		/* time to live */
+  unsigned char ip_p;			/* protocol */
+  unsigned short ip_sum;		/* checksum */
+  struct in_addr ip_src, ip_dst;	/* source and dest address */
+};
+
+__END_DECLS
 
 #endif

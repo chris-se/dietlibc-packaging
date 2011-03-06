@@ -4,6 +4,8 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
+__BEGIN_DECLS
+
 struct winsize {
   unsigned short ws_row;
   unsigned short ws_col;
@@ -22,6 +24,22 @@ struct termio {
 };
 
 /* modem lines */
+#ifdef __mips__
+#define TIOCM_LE	0x001
+#define TIOCM_DTR	0x002
+#define TIOCM_RTS	0x004
+#define TIOCM_ST	0x010
+#define TIOCM_SR	0x020
+#define TIOCM_CTS	0x040
+#define TIOCM_CAR	0x100
+#define TIOCM_RNG	0x200
+#define TIOCM_DSR	0x400
+#define TIOCM_CD	TIOCM_CAR
+#define TIOCM_RI	TIOCM_RNG
+#define TIOCM_OUT1	0x2000
+#define TIOCM_OUT2	0x4000
+#define TIOCM_LOOP	0x8000
+#else
 #define TIOCM_LE	0x001
 #define TIOCM_DTR	0x002
 #define TIOCM_RTS	0x004
@@ -36,6 +54,7 @@ struct termio {
 #define TIOCM_OUT1	0x2000
 #define TIOCM_OUT2	0x4000
 #define TIOCM_LOOP	0x8000
+#endif
 
 /* line disciplines */
 #define N_TTY		0
@@ -53,12 +72,16 @@ struct termio {
 #define N_SMSBLOCK	12	/* SMS block mode - for talking to GSM data cards about SMS messages */
 #define N_HDLC		13	/* synchronous HDLC */
 #define N_SYNC_PPP	14	/* synchronous PPP */
+#define N_HCI		15	/* Bluetooth HCI UART */
 
 typedef unsigned char	cc_t;
 typedef unsigned int	speed_t;
 typedef unsigned int	tcflag_t;
 
-#define NCCS 19
+#define _POSIX_VDISABLE '\0'
+
+#if defined(__i386__) || defined(__arm__) || defined(__ia64__) || defined(__hppa__) || defined(__s390__) || defined(__s390x__) || defined(__x86_64__)
+#define NCCS	19
 struct termios {
   tcflag_t c_iflag;		/* input mode flags */
   tcflag_t c_oflag;		/* output mode flags */
@@ -67,25 +90,139 @@ struct termios {
   cc_t c_line;			/* line discipline */
   cc_t c_cc[NCCS];		/* control characters */
 };
+#elif defined(__mips__) || defined(__mips64__)
+#define NCCS	23
+struct termios {
+	tcflag_t c_iflag;		/* input mode flags */
+	tcflag_t c_oflag;		/* output mode flags */
+	tcflag_t c_cflag;		/* control mode flags */
+	tcflag_t c_lflag;		/* local mode flags */
+	/*
+	 * Seems nonexistent in the ABI, but Linux assumes existence ...
+	 */
+	cc_t c_line;			/* line discipline */
+	cc_t c_cc[NCCS];		/* control characters */
+};
+#elif defined(powerpc) || defined(__powerpc64__) || defined(__alpha__)
+#define NCCS	19
+struct termios {
+	tcflag_t c_iflag;		/* input mode flags */
+	tcflag_t c_oflag;		/* output mode flags */
+	tcflag_t c_cflag;		/* control mode flags */
+	tcflag_t c_lflag;		/* local mode flags */
+	cc_t c_cc[NCCS];		/* control characters */
+	cc_t c_line;			/* line discipline (== c_cc[19]) */
+	speed_t c_ispeed;		/* input speed */
+	speed_t c_ospeed;		/* output speed */
+};
+#elif defined(__sparc__)
+#define NCCS 17
+struct termios {
+	tcflag_t c_iflag;		/* input mode flags */
+	tcflag_t c_oflag;		/* output mode flags */
+	tcflag_t c_cflag;		/* control mode flags */
+	tcflag_t c_lflag;		/* local mode flags */
+	cc_t c_line;			/* line discipline */
+	cc_t c_cc[NCCS];		/* control characters */
+};
+#else
+# error "Struct termios undefined on your architecture"
+#endif
 
 /* c_cc characters */
-#define VINTR 0
-#define VQUIT 1
-#define VERASE 2
-#define VKILL 3
-#define VEOF 4
-#define VTIME 5
-#define VMIN 6
-#define VSWTC 7
-#define VSTART 8
-#define VSTOP 9
-#define VSUSP 10
-#define VEOL 11
+#if defined(__alpha__)
+#define VEOF	0
+#define VEOL	1
+#define VEOL2	2
+#define VERASE	3
+#define VWERASE 4
+#define VKILL	5
+#define VREPRINT 6
+#define VSWTC	7
+#define VINTR	8
+#define VQUIT	9
+#define VSUSP	10
+#define VSTART	12
+#define VSTOP	13
+#define VLNEXT	14
+#define VDISCARD 15
+#define VMIN	16
+#define VTIME	17
+#elif defined(__mips__)
+#define VINTR	0
+#define VQUIT	1
+#define VERASE	2
+#define VKILL	3
+#define VMIN	4
+#define VTIME	5
+#define VEOL2	6
+#define VSWTC	7
+#define VSWTCH	VSWTC
+#define VSTART	8
+#define VSTOP	9
+#define VSUSP	10
 #define VREPRINT 12
 #define VDISCARD 13
 #define VWERASE 14
-#define VLNEXT 15
-#define VEOL2 16
+#define VLNEXT	15
+#define VEOF	16
+#define VEOL	17
+#elif defined(powerpc) || defined(__powerpc64__)
+#define VINTR	0
+#define VQUIT	1
+#define VERASE	2
+#define VKILL	3
+#define VEOF	4
+#define VMIN	5
+#define VEOL	6
+#define VTIME	7
+#define VEOL2	8
+#define VSWTC	9
+#define VWERASE 10
+#define VREPRINT 11
+#define VSUSP	12
+#define VSTART	13
+#define VSTOP	14
+#define VLNEXT	15
+#define VDISCARD 16
+#elif defined(__sparc__)
+#define VINTR	0
+#define VQUIT	1
+#define VERASE	2
+#define VKILL	3
+#define VEOF	4
+#define VEOL	5
+#define VEOL2	6
+#define VSWTC	7
+#define VSTART	8
+#define VSTOP	9
+#define VSUSP	10
+#define VDSUSP	11
+#define VREPRINT 12
+#define VDISCARD 13
+#define VWERASE 14
+#define VLNEXT	15
+#define VMIN	16
+#define VTIME	17
+#else			/* arm, i386, parisc, s390, x86_64 */
+#define VINTR	0
+#define VQUIT	1
+#define VERASE	2
+#define VKILL	3
+#define VEOF	4
+#define VTIME	5
+#define VMIN	6
+#define VSWTC	7
+#define VSTART	8
+#define VSTOP	9
+#define VSUSP	10
+#define VEOL	11
+#define VREPRINT 12
+#define VDISCARD 13
+#define VWERASE 14
+#define VLNEXT	15
+#define VEOL2	16
+#endif
 
 /* c_iflag bits */
 #define IGNBRK	0000001
@@ -196,32 +333,42 @@ struct termios {
 #define ECHOK	0000040
 #define ECHONL	0000100
 #define NOFLSH	0000200
-#define TOSTOP	0000400
 #define ECHOCTL	0001000
 #define ECHOPRT	0002000
 #define ECHOKE	0004000
+#ifdef __mips__
+#define IEXTEN	0000400
+#define FLUSHO	0020000
+#define TOSTOP	0100000
+#else
+#define TOSTOP	0000400
 #define FLUSHO	0010000
-#define PENDIN	0040000
 #define IEXTEN	0100000
+#endif
+#define PENDIN	0040000
 
 /* tcflow() and TCXONC use these */
-#define	TCOOFF		0
-#define	TCOON		1
-#define	TCIOFF		2
-#define	TCION		3
+#define TCOOFF		0
+#define TCOON		1
+#define TCIOFF		2
+#define TCION		3
 
 /* tcflush() and TCFLSH use these */
-#define	TCIFLUSH	0
-#define	TCOFLUSH	1
-#define	TCIOFLUSH	2
+#define TCIFLUSH	0
+#define TCOFLUSH	1
+#define TCIOFLUSH	2
 
 /* tcsetattr uses these */
-#define	TCSANOW		0
-#define	TCSADRAIN	1
-#define	TCSAFLUSH	2
+#ifdef __mips__
+#define TCSANOW		0x540e
+#define TCSADRAIN	0x540f
+#define TCSAFLUSH	0x5410
+#else
+#define TCSANOW		0
+#define TCSADRAIN	1
+#define TCSAFLUSH	2
+#endif
 
-pid_t tcgetpgrp(int fd) __THROW;
-int tcsetpgrp(int fd, pid_t pgrpid) __THROW;
 int tcgetattr(int fd, struct termios *termios_p) __THROW;
 int tcsetattr(int fd, int optional_actions, struct termios *termios_p) __THROW;
 speed_t cfgetospeed(struct termios *termios_p) __THROW;
@@ -234,5 +381,8 @@ int tcflush(int fd, int queue_selector) __THROW;
 int tcdrain(int fd) __THROW;
 int tcflow (int fd,int action) __THROW;
 int tcsendbreak (int fd,int duration) __THROW;
+pid_t tcgetsid(int fildes) __THROW;
+
+__END_DECLS
 
 #endif

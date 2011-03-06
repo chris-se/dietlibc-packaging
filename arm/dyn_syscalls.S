@@ -10,27 +10,21 @@
 #include "syscalls.h"
 
 .text
-.weak exit
-exit:
-.type _exit,function
-.global _exit
-_exit:
-__exit:
-	stmfd	sp!, {r4, r5, r6}
-	swi	__NR_exit
+__unified_syscall4:
+	ldmfd	sp!, {r4, r5, r6}
 __unified_syscall:
-	ldmfd   sp!, {r4, r5, r6}
 	cmn	r0, #4096
 	movcc	pc, lr
-	rsb	r0, r0, #0
+	rsb	r1, r0, #0
 
 	/* and PIC-code with no REAL changes ... ARM RULZ ! */
-	stmdb	sp!, {r0, lr}
+	stmdb	sp!, {r1, lr}
 	bl	__errno_location(PLT)
 	ldmia	sp!, {r1, lr}
 	str	r1, [r0]
 
 	mvn	r0, #0
+#include "dietuglyweaks.h"
 	mov	pc, lr
 
 /* ok now include all syscalls.s (*.S) and sysdep *.S */
@@ -80,6 +74,7 @@ __unified_syscall:
 #include "../syscalls.s/getrusage.S"
 #include "../syscalls.s/getsid.S"
 #include "../syscalls.s/gettimeofday.S"
+#include "../syscalls.s/settimeofday.S"
 #include "../syscalls.s/getuid.S"
 #include "../syscalls.s/ioctl.S"
 #include "../syscalls.s/ioperm.S"
@@ -96,6 +91,7 @@ __unified_syscall:
 #include "../syscalls.s/mknod.S"
 #include "../syscalls.s/mlock.S"
 #include "../syscalls.s/mlockall.S"
+#include "../syscalls.s/mmap2.S"
 #include "../syscalls.s/mount.S"
 #include "../syscalls.s/mprotect.S"
 #include "../syscalls.s/mremap.S"
@@ -137,6 +133,7 @@ __unified_syscall:
 #include "../syscalls.s/sched_yield.S"
 #include "../syscalls.s/select.S"
 #include "../syscalls.s/sendfile.S"
+#include "../syscalls.s/sendfile64.S"
 #include "../syscalls.s/setdomainname.S"
 #include "../syscalls.s/setfsgid.S"
 #include "../syscalls.s/setfsuid.S"
@@ -154,7 +151,7 @@ __unified_syscall:
 #include "../syscalls.s/setsid.S"
 #include "../syscalls.s/setuid.S"
 #include "../syscalls.s/sigaltstack.S"
-#include "../syscalls.s/signal.S"
+//#include "../syscalls.s/signal.S"
 #include "../syscalls.s/socketcall.S"
 #include "../syscalls.s/stat.S"
 #include "../syscalls.s/stat64.S"
@@ -167,6 +164,7 @@ __unified_syscall:
 #include "../syscalls.s/sysctl.S"
 #include "../syscalls.s/sysinfo.S"
 #include "../syscalls.s/syslog.S"
+#include "../syscalls.s/sysfs.S"
 #include "../syscalls.s/time.S"
 #include "../syscalls.s/times.S"
 #include "../syscalls.s/truncate.S"
@@ -181,6 +179,9 @@ __unified_syscall:
 #include "../syscalls.s/waitpid.S"
 #include "../syscalls.s/write.S"
 #include "../syscalls.s/writev.S"
+#include "../syscalls.s/msync.S"
+#include "../syscalls.s/capget.S"
+#include "../syscalls.s/capset.S"
 
 #include "../syscalls.s/chown32.S"
 #include "../syscalls.s/fchown32.S"
@@ -198,8 +199,15 @@ __unified_syscall:
 #include "../syscalls.s/setresgid32.S"
 #include "../syscalls.s/setreuid32.S"
 #include "../syscalls.s/setuid32.S"
+#include "../syscalls.s/alarm.S"
+#include "../syscalls.s/ptrace.S"
+#include "../syscalls.s/ftruncate64.S"
+#include "../syscalls.s/truncate64.S"
 
 /* other asm-files w.o. changes ... */
+__exit:
+	swi	$__NR_exit
+	eor	pc,lr,lr
 #define _exit __exit
 #include "clone.S"
 #undef _exit

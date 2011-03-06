@@ -2,8 +2,9 @@
 #define _SCHED_H 1
 
 #include <time.h>
-
 #include <sys/types.h>
+
+__BEGIN_DECLS
 
 /*
  * cloning flags:
@@ -19,7 +20,9 @@
 #define CLONE_PARENT    0x00008000      /* set if we want to have the same parent as the cloner */
 #define CLONE_THREAD    0x00010000      /* Same thread group? */
 
-#define CLONE_SIGNAL    (CLONE_SIGHAND | CLONE_THREA)
+#define CLONE_SIGNAL    (CLONE_SIGHAND | CLONE_THREAD)
+
+int clone(void*(*fn)(void*),void*stack,int flags,void*arg);
 
 /*
  * Scheduling policies
@@ -40,17 +43,17 @@ struct sched_param {
 
 /* END OF COPY form kernel-header */
 
-int __sched_setparam(pid_t pid, const struct sched_param *p);
-int sched_setparam(pid_t pid, const struct sched_param *p);
+int __sched_setparam(pid_t pid, const struct sched_param* p);
+int sched_setparam(pid_t pid, const struct sched_param* p);
 
-int __sched_getparam(pid_t pid, struct sched_param *p);
-int sched_getparam(pid_t pid, struct sched_param *p);
+int __sched_getparam(pid_t pid, struct sched_param* p);
+int sched_getparam(pid_t pid, struct sched_param* p);
 
 int __sched_getscheduler(pid_t pid);
 int sched_getscheduler(pid_t pid);
 
-int __sched_setscheduler(pid_t pid, int policy, const struct sched_param *p);
-int sched_setscheduler(pid_t pid, int policy, const struct sched_param *p);
+int __sched_setscheduler(pid_t pid, int policy, const struct sched_param* p);
+int sched_setscheduler(pid_t pid, int policy, const struct sched_param* p);
 
 int __sched_yield(void);
 int sched_yield(void);
@@ -61,7 +64,9 @@ int sched_get_priority_max(int policy);
 int __sched_get_priority_min(int policy);
 int sched_get_priority_min(int policy);
 
-int __sched_rr_get_interval(pid_t pid, struct timespec *tp);
-int sched_rr_get_interval(pid_t pid, struct timespec *tp);
+int __sched_rr_get_interval(pid_t pid, struct timespec* tp);
+int sched_rr_get_interval(pid_t pid, struct timespec* tp);
+
+__END_DECLS
 
 #endif

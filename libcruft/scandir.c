@@ -1,7 +1,5 @@
 #include <stdlib.h>
-#define scandir _duh
 #include <dirent.h>
-#undef scandir
 #include <string.h>
 
 int scandir(const char *dir, struct dirent ***namelist,
@@ -26,7 +24,9 @@ int scandir(const char *dir, struct dirent ***namelist,
 	closedir(d);
 	return -1;
       }
-      strncpy(tmp[num-1]->d_name,D->d_name,NAME_MAX);
+      memccpy(tmp[num-1]->d_name,D->d_name,0,NAME_MAX);
+      tmp[num-1]->d_off=D->d_off;
+      tmp[num-1]->d_reclen=D->d_reclen;
       *namelist=tmp;
 /*      printf("%p; tmp[num-1(%d)]=%p\n",*namelist,num-1,tmp[num-1]); */
     }
@@ -43,6 +43,7 @@ int scandir(const char *dir, struct dirent ***namelist,
   }
 #endif
 //  qsort(&(*namelist)[0],num,sizeof(struct dirent*),(int (*)(const void*,const void*))(compar));
-  qsort(*namelist,num,sizeof(struct dirent*),(int (*)(const void*,const void*))(compar));
+  if (compar)
+    qsort(*namelist,num,sizeof(struct dirent*),(int (*)(const void*,const void*))(compar));
   return num;
 }

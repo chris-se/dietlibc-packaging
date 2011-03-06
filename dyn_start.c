@@ -5,23 +5,6 @@
 
 typedef void(*structor)(void);
 
-#if 0 
-
-/* OLD tricks are this still needed ? */
-
-/* dirty trick to force gcc to be in the data section */
-static structor force_to_data[0] = {};
-
-/* next dirty tricks to make program/sharedlib "local" objects and functions */
-
-asm ( ".section .ctors,\"aw\" "); /* now change the section without gcc knowing it ! */
-static structor __CTOR_LIST__[1]={((structor)-1)};
-
-asm ( ".section .dtors,\"aw\" "); /* here too a section change */
-static structor __DTOR_LIST__[1]={((structor)-1)};
-
-#endif
-
 __attribute__((section(".ctors")))
 static structor __CTOR_LIST__[1]={((structor)-1)};
 
@@ -34,13 +17,19 @@ static void __do_global_dtors_aux(void)
   for (df=((__DTOR_LIST__)+1);(*df) != (structor)0; df++) (*df)();
 }
 
-__attribute__((section(".fini"))) void _fini(void);
+void _fini(void) __attribute__((section(".fini")));
 __attribute__((section(".fini"))) void _fini(void)
 {
   __do_global_dtors_aux();
 }
 
+#ifdef WANT_STACKGAP
+int stackgap(int argc,char* argv[],char* envp[]);
+#endif
+
+#ifndef __DYN_LIB_SHARED
 /* pre main, post _start */
+int _dyn_start(int argc, char **argv, char **envp, structor dl_init);
 int _dyn_start(int argc, char **argv, char **envp, structor dl_init)
 {
   static __attribute__((section(".init"))) void _init(void);
@@ -49,6 +38,11 @@ int _dyn_start(int argc, char **argv, char **envp, structor dl_init)
   if (dl_init) atexit(dl_init);
   _init();
   atexit(_fini);
+#ifdef WANT_STACKGAP
+  return stackgap(argc, argv, envp);
+#else
   return main(argc, argv, envp);
+#endif
 }
+#endif
 #endif

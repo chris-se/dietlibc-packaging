@@ -1,5 +1,6 @@
 #include "dietfeatures.h"
 #include <unistd.h>
+#include <md5.h>
 
 /* Initial permutation, */
 static const char IP[] = {
@@ -192,11 +193,12 @@ static char f[32];
 static char preS[48];
 
 /* The payoff: encrypt a block. */
-void encrypt(char block[64], int edflag)
+void encrypt(char block[64],int edflag)
 {
   int  i, ii;
   register int t, j, k;
 
+  (void)edflag;
   /* First, permute the bits in the input */
   for(j=0; j < 64; j++)
     L[j] = block[(int)IP[j]];
@@ -290,7 +292,7 @@ char * crypt(const char *pw, const char *salt)
   }
 
   for(i=0; i < 25; i++)
-    encrypt(block, 0);
+    encrypt(block,0);
 
   for(i=0; i < 11; i++) {
     c = 0;

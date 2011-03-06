@@ -221,6 +221,57 @@
 #define __NR_madvise1		219	/* delete when C lib stub is removed */
 #define __NR_getdents64		220
 #define __NR_fcntl64		221
+/* 223 is unused */
+#define __NR_gettid		224
+#define __NR_readahead		225
+#define __NR_setxattr		226
+#define __NR_lsetxattr		227
+#define __NR_fsetxattr		228
+#define __NR_getxattr		229
+#define __NR_lgetxattr		230
+#define __NR_fgetxattr		231
+#define __NR_listxattr		232
+#define __NR_llistxattr		233
+#define __NR_flistxattr		234
+#define __NR_removexattr	235
+#define __NR_lremovexattr	236
+#define __NR_fremovexattr	237
+#define __NR_tkill		238
+#define __NR_sendfile64		239
+#define __NR_futex		240
+#define __NR_sched_setaffinity	241
+#define __NR_sched_getaffinity	242
+#define __NR_set_thread_area	243
+#define __NR_get_thread_area	244
+#define __NR_io_setup		245
+#define __NR_io_destroy		246
+#define __NR_io_getevents	247
+#define __NR_io_submit		248
+#define __NR_io_cancel		249
+#define __NR_fadvise64		250
+
+#define __NR_exit_group		252
+#define __NR_lookup_dcookie	253
+#define __NR_epoll_create	254
+#define __NR_epoll_ctl		255
+#define __NR_epoll_wait		256
+#define __NR_remap_file_pages	257
+#define __NR_set_tid_address	258
+#define __NR_timer_create	259
+#define __NR_timer_settime	(__NR_timer_create+1)
+#define __NR_timer_gettime	(__NR_timer_create+2)
+#define __NR_timer_getoverrun	(__NR_timer_create+3)
+#define __NR_timer_delete	(__NR_timer_create+4)
+#define __NR_clock_settime	(__NR_timer_create+5)
+#define __NR_clock_gettime	(__NR_timer_create+6)
+#define __NR_clock_getres	(__NR_timer_create+7)
+#define __NR_clock_nanosleep	(__NR_timer_create+8)
+#define __NR_statfs64		268
+#define __NR_fstatfs64		269
+#define __NR_tgkill		270
+#define __NR_utimes		271
+#define __NR_fadvise64_64	272
+#define __NR_vserver		273
 
 #define syscall_weak(name,wsym,sym) \
 .text; \
@@ -231,13 +282,38 @@ wsym: ; \
 .global sym; \
 sym: \
 	movb $__NR_##name,%al; \
-	jmp __unified_syscall
+	jmp __unified_syscall; \
+.Lend##sym: ; \
+.size sym,.Lend##sym-sym
 
 #define syscall(name,sym) \
 .text; \
 .type sym,@function; \
 .global sym; \
 sym: \
+.ifle __NR_##name-255; \
 	movb $__NR_##name,%al; \
-	jmp __unified_syscall
+	jmp __unified_syscall; \
+.else; \
+	movw $__NR_##name,%ax; \
+	jmp __unified_syscall_256; \
+.endif; \
+.Lend##sym: ; \
+.size sym,.Lend##sym-sym
 
+#ifndef __PIC__
+#define __socketcall(name,NAME) \
+.text; \
+.type name,@function; \
+.weak name; \
+name: ; \
+.type __libc_##name,@function; \
+.global __libc_##name; \
+__libc_##name: ; \
+	movb $SYS_##NAME,%al; \
+	jmp socketcall; \
+.Lend##name:; \
+.size name,.Lend##name-name
+#else
+#define __socketcall(name,NAME)
+#endif

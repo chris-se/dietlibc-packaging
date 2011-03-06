@@ -126,7 +126,7 @@ struct XDR
 	/* returns bytes off from beginning */
 	bool_t (*x_setpostn) (XDR *__xdrs, unsigned int __pos);
 	/* lets you reposition the stream */
-	int32_t *(*x_inline) (XDR *__xdrs, int __len);
+	int32_t *(*x_inline) (XDR *__xdrs, unsigned int __len);
 	/* buf quick ptr to buffered data */
 	void (*x_destroy) (XDR *__xdrs);
 	/* free privates of this xdr_stream */
@@ -139,7 +139,7 @@ struct XDR
     char* x_public;		/* users' data */
     char* x_private;		/* pointer to private data */
     char* x_base;		/* private used for position info */
-    int x_handy;		/* extra private word */
+    unsigned int x_handy;	/* extra private word */
   };
 
 /*
@@ -262,10 +262,8 @@ struct xdr_discrim
  * and shouldn't be used any longer. Code which use this defines or longs
  * in the RPC code will not work on 64bit Solaris platforms !
  */
-#define IXDR_GET_LONG(buf) \
-	((long)ntohl((unsigned long)*__extension__((uint32_t*)(buf))++))
-#define IXDR_PUT_LONG(buf, v) \
-	(*__extension__((uint32_t*)(buf))++ = (long)htonl((unsigned long)(v)))
+#define IXDR_GET_LONG(buf)	      ((long)IXDR_GET_U_INT32(buf))
+#define IXDR_PUT_LONG(buf, v)	      ((long)IXDR_PUT_INT32(buf, (long)(v)))
 #define IXDR_GET_U_LONG(buf)	      ((unsigned long)IXDR_GET_LONG(buf))
 #define IXDR_PUT_U_LONG(buf, v)	      IXDR_PUT_LONG(buf, (long)(v))
 

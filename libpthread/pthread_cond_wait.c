@@ -4,33 +4,41 @@
 #include <pthread.h>
 #include "thread_internal.h"
 
-int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
-{
-  _pthread_descr tmp;
-  _pthread_descr this;
+int pthread_cond_wait(pthread_cond_t*cond,pthread_mutex_t*mutex) {
+  _pthread_descr this=__thread_self();
+  _pthread_descr*tmp;
 
-  __THREAD_INIT();
+  if (mutex->owner!=this) return EINVAL;
 
-  this=__thread_self();
+  __NO_ASYNC_CANCEL_BEGIN_(this);
 
   /* put in wait-chain */
-  __pthread_lock(&(cond->lock));
-  this->waiting=1;
-  if (cond->wait_chain) {
-    for(tmp=cond->wait_chain;tmp->waitnext;tmp=tmp->waitnext);
-    tmp->waitnext=this;
-  } else cond->wait_chain=this;
-  __pthread_unlock(&(cond->lock));
+  LOCK(cond);
+  tmp=&(cond->wait_chain);
+  this->waitnext=0;
+  while (*tmp) tmp=&((*tmp)->waitnext);
+  this->waitprev=tmp;
+  *tmp=this;
+  UNLOCK(cond);
 
-  /* Aeh yeah / wait till signal */
+  /* Aeh yeah / wait till condition-signal (or cancel) */
   pthread_mutex_unlock(mutex);
-  while (this->waiting) {
-    __thread_wait_some_time();
-    if (this->canceled) this->waiting=0;	/* we got a cancel signal */
-  }
+
+  __thread_suspend(this,1);
+
   pthread_mutex_lock(mutex);
 
-  __TEST_CANCEL();
+  /* remove from wait-chain (if not signaled) */
+  LOCK(cond);
+  if (this->waitnext) {
+    this->waitnext->waitprev=this->waitprev;
+    *(this->waitprev)=this->waitnext;
+  }
+  else *(this->waitprev)=0;
+  UNLOCK(cond);
+
+  __NO_ASYNC_CANCEL_END_(this);
+
   return 0;
 }
 

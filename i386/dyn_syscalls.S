@@ -8,6 +8,21 @@
 
 #include <dietfeatures.h>
 #include "syscalls.h"
+#include "PIC.h"
+
+#ifdef WANT_SYSENTER
+.data
+.type __vsyscall,@object
+.global __vsyscall
+__vsyscall:
+.Lvsyscall:
+.long	.Lcallint80
+
+.text
+.Lcallint80:
+	int	$0x80
+	ret
+#endif
 
 /* ok now include all syscalls.s (*.S) and sysdep *.S */
 
@@ -47,59 +62,79 @@
 #include "../syscalls.s/pipe.S"
 #include "../syscalls.s/poll.S"
 #include "../syscalls.s/readv.S"
-#include "../syscalls.s/signal.S"
-#include "../syscalls.s/socketcall.S"
 #include "../syscalls.s/stat.S"
 #include "../syscalls.s/stat64.S"
 #include "../syscalls.s/truncate.S"
 #include "../syscalls.s/umask.S"
 #include "../syscalls.s/wait4.S"
 #include "../syscalls.s/writev.S"
+#include "../syscalls.s/__getpagesize.S"
 
 /* OK this is basicaly unified.S */
 .text
+.type __you_tried_to_link_a_dietlibc_object_against_glibc,@function
+.type __nop,@function
+.type __unified_syscall_256,@function
+__unified_syscall_256:
+	movzwl	%ax, %eax
+	jmp	1f
+.size __unified_syscall_256,.-__unified_syscall_256
 .type exit,@function
 .weak exit
 exit:
 .type _exit,@function
+.type __exit,@function
 .global _exit
 _exit:
 __exit:
 	mov $__NR_exit, %al
+.type __unified_syscall,@function
 __unified_syscall:
 	movzbl	%al, %eax
+1:
 	push	%edi
 	push	%esi
 	push	%ebx
 	movl	%esp,%edi
+#ifdef WANT_SYSENTER
+	/* PIC-code ... */
+	pushl	%ebp
+	PIC_INIT
+	movl	.Lvsyscall@GOTOFF(%ebx),%ebp
+	pushl	%ebx
+#endif
 	movl	0x10(%edi),%ebx
 	movl	0x14(%edi),%ecx
 	movl	0x18(%edi),%edx
 	movl	0x1c(%edi),%esi
 	movl	0x20(%edi),%edi
+#ifdef WANT_SYSENTER
+	call	*%ebp
+	popl	%ebx
+	popl	%ebp
+#else
 	int	$0x80
+#endif
 	cmp	$-124,%eax
 	jbe	.Lnoerror
 	neg	%eax
 
 	/* PIC-code Ohhhhh My. */
 	push	%eax
-	call	1f
-1:	popl	%ebx
-	addl	$_GLOBAL_OFFSET_TABLE_+[.-1b], %ebx
+#ifndef WANT_SYSENTER
+	PIC_INIT
+#endif
 	call	__errno_location@PLT
 	popl	%ebx
 	movl	%ebx,(%eax)
-
-	xor	%eax,%eax
-	dec	%eax
+	orl	$-1,%eax
 .Lnoerror:
 	pop	%ebx
 	pop	%esi
 	pop	%edi
+#include "dietuglyweaks.h"
 	ret
 
-#include "../syscalls.s/__getpagesize.S"
 #include "../syscalls.s/__pread.S"
 #include "../syscalls.s/__pwrite.S"
 #include "../syscalls.s/__reboot.S"
@@ -122,6 +157,7 @@ __unified_syscall:
 #include "../syscalls.s/fstat64.S"
 #include "../syscalls.s/fstatfs.S"
 #include "../syscalls.s/fsync.S"
+#include "../syscalls.s/fdatasync.S"
 #include "../syscalls.s/ftruncate.S"
 #include "../syscalls.s/getcwd.S"
 #include "../syscalls.s/getdents.S"
@@ -137,6 +173,7 @@ __unified_syscall:
 #include "../syscalls.s/getrusage.S"
 #include "../syscalls.s/getsid.S"
 #include "../syscalls.s/gettimeofday.S"
+#include "../syscalls.s/settimeofday.S"
 #include "../syscalls.s/ioperm.S"
 #include "../syscalls.s/iopl.S"
 #include "../syscalls.s/ipc.S"
@@ -212,6 +249,7 @@ __unified_syscall:
 #include "../syscalls.s/unlink.S"
 #include "../syscalls.s/utime.S"
 #include "../syscalls.s/vhangup.S"
+#include "../syscalls.s/msync.S"
 
 #include "../syscalls.s/chown32.S"
 #include "../syscalls.s/fchown32.S"
@@ -229,6 +267,55 @@ __unified_syscall:
 #include "../syscalls.s/setresgid32.S"
 #include "../syscalls.s/setreuid32.S"
 #include "../syscalls.s/setuid32.S"
+#include "../syscalls.s/alarm.S"
+#include "../syscalls.s/ptrace.S"
+#include "../syscalls.s/truncate64.S"
+#include "../syscalls.s/ftruncate64.S"
+#include "../syscalls.s/epoll_create.S"
+#include "../syscalls.s/epoll_ctl.S"
+#include "../syscalls.s/epoll_wait.S"
+#include "../syscalls.s/sendfile64.S"
+#include "../syscalls.s/sysfs.S"
+#include "../syscalls.s/capget.S"
+#include "../syscalls.s/capset.S"
+
+#include "../syscalls.s/timer_create.S"
+#include "../syscalls.s/timer_settime.S"
+#include "../syscalls.s/timer_gettime.S"
+#include "../syscalls.s/timer_getoverrun.S"
+#include "../syscalls.s/timer_delete.S"
+
+#include "../syscalls.s/clock_settime.S"
+#include "../syscalls.s/clock_gettime.S"
+#include "../syscalls.s/clock_getres.S"
+
+#undef __PIC__
+#undef __socketcall
+/* oh what a kludge! */
+#define socketcall .Lsocketcall
+#include "send.S"
+#include "recv.S"
+#include "socket.S"
+#include "accept.S"
+#include "shutdown.S"
+#include "socketpair.S"
+#include "setsockopt.S"
+#include "sendto.S"
+#include "sendmsg.S"
+#include "recvmsg.S"
+#include "recvfrom.S"
+#include "listen.S"
+#include "getsockopt.S"
+#include "getsockname.S"
+#include "getpeername.S"
+#include "connect.S"
+#include "bind.S"
+#undef socketcall
+.Lsocketcall:
+#include "socketcall.S"
+#define __PIC__
+#undef __socketcall
+
 
 /* so now this was the last u.s.c. */
 

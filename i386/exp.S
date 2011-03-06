@@ -1,19 +1,46 @@
-.text
-.type   exp,@function
-.global exp
-exp:                            # note: exp(x) = 2^(x*log2(e))
-        fldl2e
-        fmull    4(%esp)        # x*log2(e)
-        fld      %st(0)         # x*log2(e)              x*log2(e)
-        frndint                 # int(x*log2(e))         x*log2(e)
-        fxch                    # x*log2(e)              int(x*log2(e))
-        fsub     %st(1),%st(0)  # frac(x*log2(e))        int(x*log2(e))
-        f2xm1                   # 2^(fract(x*log2(e)))-1 int(x*log2(e))
-        fld1                    # 1                      2^(fract(x*log2(e)))-1         int(x*log2(e))
-        faddp    %st(0),%st(1)  # 2^(fract(x*log2(e)))   int(x*log2(e))
-        fscale                  # 2^(x*log2(e))          int(x*log2(e))
-        fstp     %st(1)         # 2^(x*log2(e))
-        ret
+#include "PIC.h"
 
-.ende:
-.size    exp,.ende-exp
+.text
+
+.global expf,exp,expl,__finexp
+	.type	 expf,@function
+	.type	 exp,@function
+	.type	 expl,@function
+	.type	 __finexp,@function
+expf:
+	fldl2e
+	fmuls 4(%esp)
+	jmp .Lfinexp
+expl:
+	fldl2e
+	fldt 4(%esp)
+	fmulp
+	jmp .Lfinexp
+exp:
+	fldl2e
+	fmull 4(%esp)
+#ifndef __DYN_LIB
+__finexp:
+#endif
+.Lfinexp:
+	fst	%st(1)
+	frndint
+	fst	%st(2)
+	fsubrp
+	f2xm1
+	fld1
+	faddp
+	fscale
+	ret
+
+#ifdef __DYN_LIB
+__finexp:
+	PIC_RESTORE
+	jmp .Lfinexp
+#endif
+
+.Lende:
+.size    exp,.Lende-exp
+.size    expl,.Lende-expl
+.size    expf,.Lende-expf
+.size    __finexp,.Lende-__finexp

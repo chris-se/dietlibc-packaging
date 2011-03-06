@@ -1,3 +1,535 @@
+0.28:
+  add tcgetsid (Yuri Kozlov)
+  add _udivdi3, _divdi3, _umoddi3, _moddi3 for MIPS
+    These are in libgcc, but libgcc is compiled PIC and we compile the
+    diet libc non-pic, and that is not compatible on MIPS so ld
+    complains.
+  setlocale now accepts setting the locale to "C".
+  several fixes from Gwenole Beauchesne, AMD64 and otherwise.
+  fix memory leak in regfree (thanks, Valgrind!).
+  add support for gcc ProPolice and stack gap (see README.security).
+  add ftw64 (yuck!)
+  #include <endian.h> in syscalls.s/environ.S to make sure environ is
+    actually large enough (Enrico Scholz)
+  add waitpid wrapper around wait4 for arm-linux (Avinash Bhatia)
+  make res_mkquery reject invalid domains (label>64, name>255) (Nikola Vladov)
+  make res_query return TRY_AGAIN instead of NO_DATA if no answer was
+    received (Nikola Vladov)
+  fix PT_READ_U in sys/trace.h (John K. Hohm)
+  Olaf: added mmap64 wrapper (arm,mips,sparc,...)
+  work around new kernel rt signal semantics (need to set restorer function)
+  Olaf:
+    - libdl + gcc 3.4 resulted in a SIGSEGV because local names were
+      dynamically resolved....
+    - Also fixed a bug in the symbol resolver
+    - fixing the mmap64 stuff & arm/dyn_syscalls had no mmap2 (Gerrit Pape)
+  tzfile parser fix (John K. Hohm)
+  ppc64 fixes (Gwenole Beauchesne)
+  add sigisemptyset, sigandset and sigorset (John K. Hohm)
+  minor additions to make gdb 6.3 happy (John K. Hohm)
+  ld.so support for gdb (John K. Hohm)
+  implement nice(2) via setpriority() if there is no nice syscall
+  support libm.so (John K. Hohm)
+  hack rpc/xdr.h to work with gcc 4 (Andreas Jochens via Gerrit Pape)
+  make dyn didn't work for !WANT_FULL_RESOLV_CONF (Sampo Kellomaki)
+  #undef __i686 in i386/PIC.h (George Sawinski)
+  fix timegm bug (found by Nikola Vladov)
+  add sys/swap.h (George Sawinski)
+  Olaf: dynamic x86_64 support (libdl relocator and dyn_syscalls)
+
+0.27:
+  change DNS routines to look for ip6.arpa instead of ip6.int
+  WANT_FREAD_OPTIMIZATION was broken on sockets (Johannes Stezenbach)
+  Olaf:
+    - added fix for getgrouplist (Nikola Vladov)
+    - fix the fd leak on error path (Denis Vlasenko)
+    - the regparm attribute in typedefinition generats error with gcc-2.95
+      on non-x86 arch... (reported: Johannes Stezenbach)
+  PowerPC build fix (Gerrit Pape)
+  Olaf: added missing settimeofday
+  add netinet/ether.h and netinet/if_ether.h
+  add linux/fd.h
+  add pivot_root, delete_module and init_module prototypes to unistd.h
+    (protected by _LINUX_SOURCE)
+  add some BSD legacy declarations to dirent.h (Bryan Henderson)
+  add strtoull and strtoll as aliases to strtoull and strtoll
+  use _FILE_OFFSET_BITS consistently (Indan Zupancic)
+  add support for $DIETHOME in diet, to override the compiled-in path (George)
+
+0.26:
+  iconv UTF-8 fix (Kuba Winnicki)
+  Olaf:
+    - add 'getgrouplist'
+    - fix type of 'unsetenv'
+    - add missing realtime syscalls 'clock_*' 'timer_*' and types
+  ARGH!  gcc 3.4 breaks regparm attributes on i386!
+  grep portability fixes (Gunnar Ritter)
+  add empty libcrypt.a to help compile code from others (Gunnar Ritter)
+  add make uninstall
+  fix pread64, pwrite64
+  Olaf: MIPS has a special case for the pread/pwrite syscall ...
+  Use -isystem instead of -I for our system includes (Paul Jarc)
+  Add MNT_DETACH to sys/mount.h
+  add pselect
+  fix for tzfile (Felix J. Ogris)
+  add res_close to close the DNS UDP sockets
+  remove ia64/waitpid.S; it was broken and there is a working C version
+    (Gerrit Pape)
+
+0.25:
+  fix sprintf
+  head -1  ->  head -n 1
+  handle negative precision and -0 (Jens Låås)
+  susv3 renamed IFNAMSIZ to IF_NAMESIZE
+  make diet accept "gcc-3.3.2" and "diet -v -Os gcc" (Yuri Kozlov)
+  make libcompat syscall position independent (Peter S. Mazinger)
+  fix missing pthread stdio external (Gernot Tenchio)
+  Port parts of glibc test suite (Florian Westphal)
+    Now we need more manpower to fix the bugs it uncovers ;-)
+  add linux/if_ether.h and net/ethernet.h for sniffers
+  faster string routines and a small fix for alloc (Thomas Ogrisegg)
+  remove C++ comments from header files
+  add ftrylockfile
+  C99 fixes and a new printf test from Enrico Scholz
+  epoll_event needs to be packed on x86_64 (pointed out by Indan Zupancic)
+  work around make dependency problem breaking mipsel by creating kludge
+    mipsel/syscalls.h (Samium Gromoff)
+  Fix i386 unified syscall -EMEDIUMTYPE handling (Juergen Sawinski via
+    Clifford Wolf)
+  vsnprintf: fix output when output does not fit (Enrico Scholz)
+  new dirname with test suite entry (Yuri Kozlov)
+  fnmatch: add [:charclass:], fix negation (Michael J. Pomraning)
+  make calloc a weak symbol (Martin Pohlack)
+  make NULL C++ friendly (Martin Pohlack)
+  new realpath (Thomas Ogrisegg)
+  fix stupid glibcism in sys/epoll.h
+  add pause for Alpha (Kurt Garloff)
+  ptrace fix (Dallachiesa Michele)
+  ptread.h cleanups (Martin Pohlack)
+  fix execvp and execlp (Younès)
+  fix time() for sparc64
+
+0.24:
+  work around incompatible Linux select() modifying the timeout in
+    librpc (Patch was sent from Mike Waychison from Sun)
+  the overflow checking in strtou?ll? was broken in some cases.
+    Unfortunately, correct overflow checking enlarged the routine by 20%.
+    (reported by Manuel Novoa III)
+  two stdio bug fixes (also reported by Manuel Novoa III)
+  remove several warnings (Johannes Stezenbach)
+  Olaf: fixing tmpfile (missing parameter) and __dtostr (gcc 2.95)
+  Olaf: add the pthread-semaphore support.
+  implemented experimental plug-and-play IPv6 DNS
+    (see dietfeatures.h, see http://www.fefe.de/ipv6pnpdns.html)
+  typo in parisc setjmp.S (Michael Mueller)
+  Olaf: fixing the pthread_join function
+  add IPv6 link-local%eth0 support to getaddrinfo
+  Olaf: added missing syscalls (cap{g,s}et) and addmntent
+  Add s390x and ppc64 support (Marian Jancar, SuSE)
+  Marian also contributed %m support to printf, and fixes for many bugs
+  Olaf:
+   - fixing strtok_r (rewrite)
+   - making the %m support NON DEFAULT as it is NOT SUSv3 or SUSv2
+   - make the HUGE_VAL/HUGE_VALF macros arch (endian) independend
+   - changeing __dtostr so that it returns "inf" for an inf-value not "nan"
+   - fixing the strrchr bug (reported by Gernot Tenchio)
+   - fixing the strtoul/strtoull bug (reported by Gernot Tenchio)
+   - adding the patch to printf (Gernot Tenchio)
+   - fixing snprintf (Gernot Tenchio)
+   - fixing memccpy,memcmp,strncmp (reported by Gernot Tenchio)
+   - fixing strtoXXX (Gernot Tenchio, patch modified)
+   - fixing the *scanf return behavior (reported by Enrico Scholz)
+  add printf test
+  change sys_siglist to char** (removes linker warning)
+  fix getnameinfo (Arnaldo Carvalho de Melo)
+  add ar.h (for GNU make)
+  replace qsort with new quicksort with three-way partitioning
+  parisc start.S fix (Gerrit Pape)
+  check fflush return code (Manuel Novoa III)
+  add el-cheapo strptime and more BSD legacy crap to get more of
+    e2fsutils, dump and util-linux compiled
+
+0.23:
+  update sys/soundcard.h
+  various x86_64 fixes (Gwenole Beauchesne)
+  fix assert for 64-bit platforms (Gwenole Beauchesne)
+  remove many warning from test suite (Gwenole Beauchesne)
+  hopefully fix resolver (again, Gwenole)
+  fix floorl typo (Norbert Wolff)
+  add more BSD brokenness to time.h
+  forward poll.h to sys/poll.h
+  make DNS socket close-on-exec (Felix J. Ogris)
+  add cuserid to libcompat (Andreas Krennmair)
+  add ctermid and ftok to libcompat (those are _really_ ugly)
+  copy some RPC bugfix cruft from glibc
+    warning: I don't use rpc or xdr, I don't actually understand or have
+    a way to test this.  Maybe I should remove this cruft from the
+    diet libc...?
+  make declaration of writev and readv match susv3
+  add finite (Andreas Krennmair)
+  move flock+constants to unistd.h (the Linux man page is wrong on this)
+  fix assert (Andreas Krennmair)
+  add modf, libm fixes (Andreas Krennmair)
+  rename __pure__ to __pure (Laurent Bercot)
+  utmp x86_64 biarch support (Gwenole Beauchesne)
+  add fgetpwent (Alvaro Gomes Sobral Barcellos)
+  add vsyscall support for linux 2.5 on recent CPUs
+  add a few new 2.5 syscalls, adapt to renamed epoll syscalls
+  Olaf: fixing the vsyscall support so that the binaries still work on 2.4
+  remove getline macro, caused problems with GNU sed
+  make assert equal (void)0 under -DNDEBUG (Enrico Scholz)
+  make __attribute_malloc__ #define safe (Matthias Andree)
+  add BSD utimes to libcompat (Andreas Krennmair)
+  remove gcc 3 #ifdef kludgery from include/string.h; it works with gcc
+    3.2.2+, don't know if it's gcc or us (Gerrit Pape)
+  remove _null_auth declaration in librpc/rpc_prot.c (Thayne Harbaugh)
+  fix regex bug with ^$ not matching "" (Anthony de Boer)
+  Olaf: removing "<arch>/mmap.*" where no arch-specific impementation is
+      needed. (added "syscalls.s/mmap.S")
+    - fixing the vsyscall in the dynamic library... (self made problem)
+    - removing warning in "res_query.c"
+    - changing type of stream-mutex to recursive
+    - sparc/sparc64: shrink of the unified syscall and the special syscalls
+      (fork/pipe) to use the "unified_syscall_error_handler"
+  add sendfile64 backwards compatibility glue
+  add __attribute_dontuse__ to declare a few functions as deprecated
+  use above to flag a few BSDisms ;-)
+  include <sys/cdefs.h> in errno.h, fixes __attribute_dontuse__ breakage
+  endmntent now returns 1 (Florian Westphal)
+  strtoul return value fixes (Jan Bobrowski)
+  Olaf: fixing the diet wrapper for sparc and changing the options for mips
+  a few i386/*.S fixes (Hynek Schlawack)
+  remove =0 for static variables (Thomas Ogrisegg)
+  fix strtoul (broke getaddrinfo and ssh)
+  fix segfault in parser
+  Olaf: checkin of the new libpthread implementation & added confstr
+  Make gethostbyname2 case insensitive (Thomas Ogrisegg)
+  RPC 64-bit cleanliness fixes (Gwenole Beauchesne)
+  sysctl fix (Thomas Ogrisegg)
+  make header files C++ compliant (__BEGIN_DECLS and __END_DECLS)
+  remove more warnings (Yuri Kozlov)
+  use expect() in a few strategic places
+  try to add sigcontext and ucontext for x86_64
+  add ffs, ffsl, ffsll
+  Olaf: fixing the error string list and sparc bug (Gerrit Pape)
+  first throw, then attributes (Andreas Jabs)
+  unbuffered fputc was broken on big endian (big oops, thanks Gerrit Pape)
+  fix parisc struct stat (Gerrit Pape)
+  add vasprintf (for elinks)
+  fnmatch used [^e] instead of [!e] for negation (Heiko Berges)
+  add sparc and parisc assembly routines (Thomas Ogrisegg)
+  add swab (Johannes Stezenbach)
+  make a{4} match exactly and not at least 4 times a (Ingo Oeser)
+  Olaf: fixed a libdl ref-counter bug (Thomas Walpuski)
+  All hail to the busybox chiefs!  Instead of reporting bugs they find,
+    they put a #error in their source code.  Is Erik seeing the diet
+    libc as uClibc competition that needs to be squashed even with
+    unfair methods?  People, if you find bugs, tell us!
+  Fixed fputc and freopen (found in busybox comments)
+
+0.22:
+  fix i386 libm
+  fix netinet/ip_icmp.h (Rui Prior)
+  make strings.h susv3 compliant (Gunnar Ritter)
+  remove stdio dependence in abort
+  fix truncate64, ftruncate64 (Luc Van Oostenryck and Yuri Kozlov)
+  fix and improve erand48() (Luc Van Oostenryck)
+  fix realpath for non-existant directories (Gergely Nagy and Gerrit Pape)
+  fix DNS timeout and IPv6 socket reuse
+  strtoul now accepts "-1" as well (Thomas Ogrisegg)
+  add i386 strcasecmp and __ltostr (Thomas Ogrisegg)
+  add killpg prototype (Luc Van Oostenryck)
+  remove some compiler warnings (Luc Van Oostenryck)
+  better rand() from Knuth's TAOCP (Luc Van Oostenryck)
+  fix unified x86_64 unified syscall 64-bit return value issue (Gwenole)
+  the getdents64 emulation was broken and repairing it opened a can of
+    worms.  So I ripped it out.  I also changed the readdir64 emulation
+    to work if there is no getdents64.
+  fix ia64 start.S (Thanks to Volker Birk for an account on his ia64 box)
+  many ia64 fixes (waitpid, nice, fork, vfork, time, utime ...)
+  More fixes from Gwenole (printf %p only printed the last 32 bits, I
+    botched the getdents64 #ifdefs, we violated the x86_64 ABI)
+  change signal() to do as glibc does
+  remove a few more warnings
+  add new 2.5 syscall #defines
+  add epoll_create, epoll_ctl and epoll_wait
+  the new x86 syscall numbers exceed 255, breaking our %al optimization
+    I worked around it with conditional assembly in cpp macros.  Ugh.
+  more MIPS fixes (the stoned MIPS ABI for restartable syscalls expects
+    the instruction before the syscall to be a load immediate)
+  fix fread() from a pipe (oops, tried to lseek)
+  #define _POSIX_VDISABLE in termios.h (Laurent Bercot)
+  two *printf fixes (Gernot Tenchio)
+  add nan and +-inf handling in __dtostr
+  add _SC_NGROUPS_MAX support to sysconf (Felix J. Ogris)
+  make assert() use expect(), slight optimization
+  add i386 vfork (Thomas Ogrisegg)
+  fix SA_NODEFER on sparc (Gerrit Pape, Thomas Bader)
+  fix sin, cos and __dtostr (Gernot Tenchio)
+  add /dev/epoll ioctl constants to sys/ioctl.h
+  add linux/eventpoll.h for /dev/epoll
+  fix lseek64 on 64-bit architectures
+  Olaf: fix x86_64 start-code (we have reg-args)
+    fixing some broken macros in sparc32-code (.udiv,.urem)
+    adding strndup (GNU Extension)
+  fix glob strncpy (R.L. Horn)
+  fix regfree (Uwe Ohse)
+  fix puts in full stdio mode (would omit \n)
+  fix wrong types on powerpc, broke *stat (Gerrit Pape)
+  allow more than 64k in i386 memchr (Karsten Scheibler)
+  make strftime work it WANT_TZFILE_PARSER is not set (Gwenole Beauchesne)
+  build parisc on parisc64, change libgcc link order on sparc (Gerrit Pape)
+
+0.21:
+  use gcc's size_t, ptrdiff_t and wchar_t types (Olaf)
+  use -G 8 on MIPS to reduce code size (Johannes Stezenbach)
+  add munlock (Jens Låås)
+  argh, atexit fell victim to bit rot (or maybe Olaf)
+  add WANT_INET_ADDR_DNS to make gethostbyname not look up IP numbers
+    but use them to fill in the struct hostent directly.
+  signal is now a correct signal (Olaf)
+  read optimizer cflags for diet -Os gcc from ~/.diet/gcc, overriding
+    the built-in defaults.
+  add file "SECURITY".  I will document design tradeoffs that have
+    security implications there.
+  fixed regex LINEEND condition
+  add .size directive to i386 syscalls
+  shove a few more bytes off the i386 socket calls
+  setjmp, longjmp and clone for x86_64 are now implemented but not tested (Olaf)
+  fix sparc signals
+
+0.20:
+  calloc was botched
+  umount and stime for x86_64 (Gwenole Beauchesne)
+  some malloc fixes for very big numbers (Enrico Scholz, me)
+  x86_64 unified syscall did not preserve rbx violating ABI (Gwenole)
+  realpath fix if path did not contain a slash (Gwenole)
+  add ucontext
+  add asm/statfs.h to work around people using <linux/fs.h>
+
+0.19:
+  current gcc cvs makes __thread a keyword (Eric Troan)
+  be more strict regarding hostile DNS packets (me)
+  fix ia64 compile problems (Gerrit Pape)
+  make killpg a function and not a macro (broke bash 2.05b)
+  fix ia64 start code and unified syscall (me)
+  add sparc/strlen.S from Thomas Ogrisegg
+  add more space to ARM __jmp_buf in setjmp.h (Andre)
+  fix libcompat/syscall.S (did't compile on arm)
+  add integer overflow fix in xdr_array after bugtraq advisory (me)
+  fix x86_64 socket calls and mmap (and some more) (Gwenole Beauchesne)
+  add calloc integer overflow fix after RUS-CERT advisory (me)
+  add fread and fwrite integer overflow fix (me)
+
+0.18:
+  add stpcpy (from Thomas Ogrisegg)
+  check in mktime fix (from Luc Van Oostenryck)
+  add libm2.s from contrib to i386 (oops, how long has it been sitting
+    there?)
+  add truncate64 and ftruncate64 and prototype for truncate (only had ftruncate)
+  Michal Ludvig (SuSE) ported the diet libc to the x86_64 architecture (the
+    upcoming AMD Hammer chips!).  You can't even buy the chips yet and
+    the diet libc already supports it!  Amazing ;-)
+  Michal's patch also fixed several of the outstanding warnings.  Thanks!
+  Andre sent a patch to add ARM profiling.  He says it does not work
+    yet, but it's a start.
+  added getdents64 backwards compatibility and include it in large file
+    support #defines
+  perror now checks if the message is NULL like glibc (Thomas Ogrisegg)
+  ftell did not take ungetc into account (Kevin Ryde through Debian).
+  Thomas Ogrisegg sent a port to IA64!
+  sigaddset, sigdelset and setismember segfaulted for signal 0 (Gunnar Ritter)
+  Enrico Scholz reported several bugs in the header files.
+  change __malloc__ to __attribute_malloc__
+  add pa-risc socketcall (but see TODO) (Felix J. Ogris)
+  fix *rand48 initialization (Kevin Ryde)
+  fnmatch infinite loop fix (Piotr Esden-Tempski)
+  make signal() into a sigaction wrapper function
+  add memrchr (Emil)
+  remove __attribute__((const)) from getpid() (Yuri Kozlov)
+  make getserv* also work if proto is NULL (Jens Låås)
+  now clone on parisc works (Thomas Ogrisegg)
+  getopt* fix from Thomas Walpuski
+  add syscall() to libcompat (Thomas Ogrisegg)
+  fix strncpy and strrchr i386 assembly versions for dynamic linking
+    (John K. Hohm)
+  allow short option grouping in getopt* (Ralf Wildenhues)
+  make the DNS resolver IPv6 transport capable (WANT_IPV6_DNS)
+  mention -v in diet.1 (Bryan Henderson)
+  auto-detect gcc 3 on i386 and remove compiler option warnings
+  putenv tweak (Thomas Ogrisegg)
+  add missing socket syscalls for PA-RISC and IA64 (Thomas Ogrisegg)
+  add cpio.h and tar.h (Thomas Ogrisegg)
+  change opendir/readdir/closedir from malloc to mmap (Thomas Ogrisegg)
+  cleanups from Florian LaRoche
+
+0.17:
+  fix several bugs in getservent_r
+  Gunnar Ritter reported the following:
+    moved tcgetpgrp and tcsetpgrp to unistd.h
+    adjusted lstat->lstat64 #define to make it work with function pointers
+    move __dietlibc__ #define from features.h to diet
+  Thomas Ogrisegg sent x86 memccpy and strncpy routines and introduced
+    an dietfeatures.h #define WANT_FULL_POSIX_COMPAT
+  Thomas also sent me profiling support (so far only on x86, but
+    profiling/PORTING describes what needs to be done for other
+    architectures)!
+  add contrib/dprof.c, also from Thomas.
+  Andreas Krennmair sent a patch to add the BSD regex interface to
+    libcompat
+  Andre noticed that __dtostr never sets first to false.  Oops!
+  Andre has provided a largely untested patch that seems to fix the problem.
+  Igor Gilitschenski sent a patch for the "%8.7lx" issue.
+  abort did not flush all stdio streams
+  fix some nasty regular expression bugs
+  write a stupid malloc checker (contrib/debug-realloc.c) to help me
+    debug my regular expressions.  Please read contrib/debug-realloc.txt
+  our i386 memchr,memcmp were broken for the count=0 case
+  fix DNS domain search
+  i386 memccpy exchanged esi and edi :-(  I should do more checks before
+    accepting external code...
+
+0.16:
+  "diet -v" or "diet -Os" segfaulted without further arguments.
+  Andre found two very embarassing bugs in my four lines of md5 glue.
+    I need to get more sleep.
+  Thanks Ogrisegg found that ptrace does not work as documented and
+    provided a wrapper that emulates the glibc behaviour.
+  Dirk Engling saved 8 bytes and 4 cycles in the ARM clone()
+  fix ptrace.h for S/390 and ARM
+  provide a PORTING document so we don't lose track of which file need
+    to be touched to port the diet libc to a new platform.
+  remove a few warnings
+  provide a prototype for usleep.
+  make __dtostr work on ARM by using long instead of long long.
+    Idea by Dirk Engling.
+  fix an argument counting bug in *scanf (Thomas Ogrisegg)
+  Forgot an #endif in asm/sigcontext.h (Mike Castle)
+  Kurt Garloff sent in patches to
+    fix struct termios on non-x86 architectures
+  printf("%+05d\n",500) was broken (Raimar Falke told me, Olaf fixed it)
+  create libcompat.a (and move daemon to it)
+  add getdelim and getline
+  *printf now recognize 'z' integer flag (and ignore it)
+  Dirk Engling provided a strcpy.S for ARM.
+  Olaf: fixed *scanf familie. It hadn't wored with "long long".
+  Hans Lermen fixed i386/getenv.S
+  diet -Os no longer discards -fpic and -fno-pic
+  fix i386 rand/random to use correct RAND_MAX (thanks, Jaroslav
+    Macodiseas)
+  sys/ipc.h now includes sys/types.h
+  Olaf: started to make the sparc64 port
+  scandir should not sort if compar() is NULL (reported by Andrea Marrosu)
+
+0.15:
+  vfork sucks.  I reverted to the old behavior where vfork==fork.
+  fix bsearch (and remove i386 assembly bsearch, needs to be redone).
+  Thanks Ogrisegg sent a patch to make the PA-RISC unified syscall
+    thread-safe!
+  remove vfork and add alarm to dynamic syscalls.
+  fix diet-dyn to link in dyn_dstop.o and not dyn_stop.o.
+  The MD5 code generated unaligned accesses when passed an unaligned
+    pointer on little endian ARM and MIPS.
+  MIPS unified syscall didn't compile anymore.
+  Put up new mipsel target to cross compile for little endian mips.
+  The mips target will again explicitly set endianness to big endian.
+  Compiling natively on a MIPS box should not touch the endianness.
+  Duh, when we removed return0, we broke tzset when the time zone parser
+    was disabled.  Uwe Ohse noticed this.  Thanks!
+  Fix gethostbyname to match host names case insensitively in /etc/hosts.
+    Oops, this was reported 6 weeks ago but I overlooked the email.
+    Thanks, Denis Rachal!
+  vsnprintf's zero termination was broken.
+  Uwe Ohse found a few more bugs:
+    Remove WANT_BUGGY_GLIBC_STRSEP.  The Linux man page is broken, glibc
+      does it correctly.
+    Make inet_aton use strtoul instead of strtol
+    fdopen would close the file descriptor if it could not malloc the
+      buffer.
+    strftime updates.
+    Make _FILE_OFFSET_BITS includes -Wundef clean
+  Andre found a typo in endian.h for big endian mips
+  Ryan told me that fmod was not included in libm.  Oops.
+  strstr(whatever,"") returned NULL, not whatever.  Found by a new test
+    suite entry for strstr that I wrote.
+  Thomas Ogrisegg suggested or sent patches for the following:
+    add <asm/sigcontext.h> for profiling support.
+    make strncpy a #define in string.h to save a few bytes.
+    an i386 assembler getenv implementation (roughly half the size)
+    add grantpt, ptsname, unlockpt
+  add a getenv test suite entry.
+  Andre contributed an ARM assembler md5 implementation and he fixed mmap
+    on ARM.
+  add glibc macro names in sys/reboot.h.  Mentioned by Laurent G. Bercot
+  getservent_r did not parse lines without aliases.  Thanks, Jaroslav
+    Macodiseas!
+  fix MIPS start code (argv[0] was always corrupt)
+  removed annoying -Wconversion gcc switch
+  add -v to diet.c and fix MIPS CFLAGS in diet.  Thanks, Johannes Stezenbach
+  Kurt Garloff sent these diffs:
+    add fdatasync (and make it a pthread cancellation point)
+    numerous alpha issues, like using .quad instead of .long for
+    offsets, change strip to -strip in Makefile (so a failing strip does
+    not abort the make), try to be more friendly to the gcc 2.96 that
+    SuSE 7.1 AXP ships with.
+
+0.14:
+  fix brk again (missing __brk, trivial oversight)
+  a new i386/atol.S that is 4 bytes smaller (and faster, too!).  Thanks,
+    Thomas Ogrisegg!
+  Thomas also contributed a PA-RISC port including testandset, so
+    libpthread will work once we implement clone!  Great work, Thomas.
+  made the fake locale more believable.
+  If you need gettext, use http://www.ca.postgresql.org/~petere/gettext.html
+  moved _exit into the unified syscall on x86.
+  Uwe Ohse found many more bugs:
+    getpass EINTR handling, ttyname, sysconf_cpus with SLASH_PROC_OK,
+    liblatin1 was more or less completely broken if you gave it chars as
+    arguments, not ints (signedness).  execvp had a buffer overflow in
+    case a PATH element exceeded PATH_MAX, but it's not a security
+    problem since setuid programs need to set their path to some known
+    value anyway.
+    hasmntopt did not work with foo=bar style options
+  Uwe also improved ftw's stack usage.
+  Put movl instead of popl rationale in comment in i386/unified.S since
+    three people have suggested saving a few bytes with popl now ;)
+  I discovered __attribute__((malloc)) and started using it.  For gcc 3,
+    it improves the optimizer when functions return malloced pointers.
+  Steven Rostedt pointed out that my setvbuf was broken with regard to
+    size==0 and sent a patch to fix it.
+  Thomas Ogrisegg made setenv smaller.
+  Olaf: implemented the parisc clone and an atomic testandset, modified the
+    libpthread to respect the parisc UPgrowing stack. still non functional,
+    because the unified syscall uses errno :(
+  tcgetospeed read from the wrong termios field.  Thanks, Gunnar Ritter!
+  Fixed asprintf (relied on vsnprintf(NULL,...) to return length but
+    don't write anything which was no longer the case.  It also
+    allocated one byte unnecessarily, which Uwe Ohse found.
+  Fix ttyname (readlink does not \0-terminate, forgot to do that).
+
+0.13:
+  add readdir64 and automatic mapping if _FILE_OFFSET_BITS == 64
+  make diet not include the linker safeguard stuff when preprocessing
+  Olaf: port to S/390!
+  fix vfork (it was put into dietlibc.a twice)
+  res_query did not initialize last
+  diet (not diet-dyn, of course) now adds -static to the gcc command line
+  fixed fflush on input streams (tic from ncurses exposed this)
+  duh, there is an alarm system call, too, so we use it and not setitimer
+  fix comparison in gmtime_r that caused Jan 1 to be converted to Dec 32.
+  rewrote __dtostr (it also has one more argument now)
+  Thanks to Erik Troan for bringing these to my attention:
+    make putenv behave like glibc (putenv("HOME") == unsetenv("HOME"))
+    fix strncat for the case where n == 0 (security implications?)
+    fix bsearch (it didn't find the very last element in the array, same
+      bug in both the C and the i386 assembly version).
+    fixed FNM_PATHNAME in fnmatch
+  fix brk (the syscall was documented incorrectly in the Linux man page)
+    Thanks, Thomas Ogrisegg!
+  added negated character classes to fnmatch (not required by POSIX)
+  make the utmp routines open utmp read-only if read-write doesn't work.
+  remove syscalls.c directory, it is obsolete now with unified syscalls
+
 0.12:
   more contributions from Frank Klemm.
   iconv can now do UCS-2, too.
@@ -64,7 +596,7 @@
     a little over 300 bytes on x86.
   Guillaume Cottenceau just wrote me that strncat should be even more
     broken than it already is: it should append n bytes AND THEN \0!
-    I wonder how many programmers have produces off-by-one errors here...
+    I wonder how many programmers have produced off-by-one errors here...
   Fix regexec offset return.  autoconf now believes that diet libc has
     POSIX regular expressions.
   Fix fnmatch (a/b/* matched a/b/c/d even if FNM_PATHNAME was set)

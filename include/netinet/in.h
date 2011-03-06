@@ -2,38 +2,48 @@
 #define _NETINET_IN_H
 
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <endian.h>
+
+__BEGIN_DECLS
 
 /* Standard well-defined IP protocols.  */
 enum {
   IPPROTO_IP = 0,		/* Dummy protocol for TCP		*/
+#define IPPROTO_IP IPPROTO_IP
   IPPROTO_ICMP = 1,		/* Internet Control Message Protocol	*/
+#define IPPROTO_ICMP IPPROTO_ICMP
   IPPROTO_IGMP = 2,		/* Internet Group Management Protocol	*/
+#define IPPROTO_IGMP IPPROTO_IGMP
   IPPROTO_IPIP = 4,		/* IPIP tunnels (older KA9Q tunnels use 94) */
+#define IPPROTO_IPIP IPPROTO_IPIP
   IPPROTO_TCP = 6,		/* Transmission Control Protocol	*/
+#define IPPROTO_TCP IPPROTO_TCP
   IPPROTO_EGP = 8,		/* Exterior Gateway Protocol		*/
+#define IPPROTO_EGP IPPROTO_EGP
   IPPROTO_PUP = 12,		/* PUP protocol				*/
+#define IPPROTO_PUP IPPROTO_PUP
   IPPROTO_UDP = 17,		/* User Datagram Protocol		*/
+#define IPPROTO_UDP IPPROTO_UDP
   IPPROTO_IDP = 22,		/* XNS IDP protocol			*/
+#define IPPROTO_IDP IPPROTO_IDP
   IPPROTO_RSVP = 46,		/* RSVP protocol			*/
+#define IPPROTO_RSVP IPPROTO_RSVP
   IPPROTO_GRE = 47,		/* Cisco GRE tunnels (rfc 1701,1702)	*/
-
-  IPPROTO_IPV6	 = 41,		/* IPv6-in-IPv4 tunnelling		*/
-
+#define IPPROTO_GRE IPPROTO_GRE
+  IPPROTO_IPV6 = 41,		/* IPv6-in-IPv4 tunnelling		*/
+#define IPPROTO_IPV6 IPPROTO_IPV6
   IPPROTO_PIM    = 103,		/* Protocol Independent Multicast	*/
-
+#define IPPROTO_PIM IPPROTO_PIM
   IPPROTO_ESP = 50,            /* Encapsulation Security Payload protocol */
+#define IPPROTO_ESP IPPROTO_ESP
   IPPROTO_AH = 51,             /* Authentication Header protocol       */
+#define IPPROTO_AH IPPROTO_AH
   IPPROTO_COMP   = 108,                /* Compression Header protocol */
-
+#define IPPROTO_COMP IPPROTO_COMP
   IPPROTO_RAW	 = 255,		/* Raw IP packets			*/
+#define IPPROTO_RAW IPPROTO_RAW
   IPPROTO_MAX
-};
-
-
-/* Internet address. */
-struct in_addr {
-  uint32_t	s_addr;
 };
 
 #define IP_TOS		1
@@ -75,6 +85,13 @@ struct in_addr {
 extern const struct in6_addr in6addr_any;
 extern const struct in6_addr in6addr_loopback;
 
+typedef uint16_t in_port_t;
+typedef uint32_t in_addr_t;
+
+struct in_addr {
+  in_addr_t s_addr;
+};
+
 struct ip_mreq {
   struct in_addr imr_multiaddr;	/* IP multicast address of group */
   struct in_addr imr_interface;	/* local IP address of interface */
@@ -96,14 +113,12 @@ struct in_pktinfo {
 #define __SOCK_SIZE__	16		/* sizeof(struct sockaddr)	*/
 struct sockaddr_in {
   sa_family_t		sin_family;	/* Address family		*/
-  unsigned short int	sin_port;	/* Port number			*/
+  in_port_t		sin_port;	/* Port number			*/
   struct in_addr	sin_addr;	/* Internet address		*/
-
   /* Pad to size of `struct sockaddr'. */
-  unsigned char		__pad[__SOCK_SIZE__ - sizeof(short int) -
+  unsigned char		sin_zero[__SOCK_SIZE__ - sizeof(short int) -
 			sizeof(unsigned short int) - sizeof(struct in_addr)];
 };
-#define sin_zero	__pad		/* for BSD UNIX comp. -FvK	*/
 
 
 /*
@@ -174,6 +189,15 @@ struct sockaddr_in6 {
   uint32_t		sin6_flowinfo;  /* IPv6 flow information */
   struct in6_addr	sin6_addr;      /* IPv6 address */
   uint32_t		sin6_scope_id;  /* scope id (new in RFC2553) */
+};
+
+struct sockaddr_in_pad {
+  sa_family_t		sin_family;	/* Address family		*/
+  in_port_t		sin_port;	/* Port number			*/
+  struct in_addr	sin_addr;	/* Internet address		*/
+  /* Pad to size of `struct sockaddr_in6'. */
+  unsigned char		sin_zero[sizeof(struct sockaddr_in6) - sizeof(short int) -
+			sizeof(unsigned short int) - sizeof(struct in_addr)];
 };
 
 struct ipv6_mreq {
@@ -296,7 +320,7 @@ struct ipv6_opt_hdr {
 
 /* routing header type 0 (used in cmsghdr struct) */
 
-#ifndef __STRICT_ANSI__
+#if !defined(__STRICT_ANSI__) || (__STDC_VERSION__ + 0 >= 199900L)
 struct rt0_hdr {
   struct ipv6_rt_hdr	rt_hdr;
   uint32_t		bitmap;		/* strict/loose bit map */
@@ -332,10 +356,10 @@ struct ipv6hdr {
 #undef htons
 #undef ntohl
 #undef ntohs
-unsigned long int htonl(unsigned long int hostlong);
-unsigned short int htons(unsigned short int hostshort);
-unsigned long int ntohl(unsigned long int netlong);
-unsigned short int ntohs(unsigned short int netshort);
+uint32_t htonl(uint32_t hostlong);
+uint16_t htons(uint16_t hostshort);
+uint32_t ntohl(uint32_t netlong);
+uint16_t ntohs(uint16_t netshort);
 
 #define IN6_IS_ADDR_UNSPECIFIED(a) \
 	(((__const uint32_t *) (a))[0] == 0				      \
@@ -375,5 +399,30 @@ unsigned short int ntohs(unsigned short int netshort);
 	 && (((__const uint32_t *) (a))[1] == ((__const uint32_t *) (b))[1])  \
 	 && (((__const uint32_t *) (a))[2] == ((__const uint32_t *) (b))[2])  \
 	 && (((__const uint32_t *) (a))[3] == ((__const uint32_t *) (b))[3]))
+
+/* old legacy bullshit */
+int bindresvport(int sd, struct sockaddr_in* _sin);
+
+#define IN6_IS_ADDR_MC_NODELOCAL(a) \
+	(IN6_IS_ADDR_MULTICAST(a)					      \
+	 && ((((__const uint8_t *) (a))[1] & 0xf) == 0x1))
+
+#define IN6_IS_ADDR_MC_LINKLOCAL(a) \
+	(IN6_IS_ADDR_MULTICAST(a)					      \
+	 && ((((__const uint8_t *) (a))[1] & 0xf) == 0x2))
+
+#define IN6_IS_ADDR_MC_SITELOCAL(a) \
+	(IN6_IS_ADDR_MULTICAST(a)					      \
+	 && ((((__const uint8_t *) (a))[1] & 0xf) == 0x5))
+
+#define IN6_IS_ADDR_MC_ORGLOCAL(a) \
+	(IN6_IS_ADDR_MULTICAST(a)					      \
+	 && ((((__const uint8_t *) (a))[1] & 0xf) == 0x8))
+
+#define IN6_IS_ADDR_MC_GLOBAL(a) \
+	(IN6_IS_ADDR_MULTICAST(a)					      \
+	 && ((((__const uint8_t *) (a))[1] & 0xf) == 0xe))
+
+__END_DECLS
 
 #endif

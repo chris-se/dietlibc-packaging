@@ -8,16 +8,16 @@
 .type __clone,@function
 __clone:
 	.set noreorder
-	bltzal $0,0f
-	nop
-0:	.cpload	$31
+	.cpload $25
 	.set reorder
+	subu	$29,$29,32
+	.cprestore 16
 
-	li	$0, EINVAL
+	li	$2, EINVAL
 	beqz	$4, .Lerror
 	beqz	$5, .Lerror
 
-	subu	$5, 32		/* resterve some space */
+	subu	$5, $5, 32	/* resterve some space */
 	sw	$4, 0($5)	/* save function pointer */
 	sw	$7, 4($5)	/* save arg pointer */
 
@@ -28,17 +28,19 @@ __clone:
 	bnez	$7, .Lerror
 	beqz	$2, .Lstart
 
+	addu	$29,$29,32	/* free stack */
 	jr	$31
-	.cprestore
-.end	__clone
 
 .Lerror:
 	la	$25, error_unified_syscall
 	jr	$25
 
 .Lstart:
+	lw	$28,16($29)
 	lw	$25, 0($29)
 	lw	$4,  4($29)
 	jalr	$25
 	move	$4, $2
 	jal	_exit
+
+.end	__clone

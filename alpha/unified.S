@@ -1,11 +1,17 @@
 #include <dietfeatures.h>
+#include "syscalls.h"
 
+.weak exit
+exit:
+.global _exit
+_exit:
+	lda	$0, __NR_exit
 .global __unified_syscall
 __unified_syscall:
 	callsys
 	bne	$19, .Lerror
 
-/* here we go an "reused" the return for weak-void functions */
+/* here we go and "reuse" the return for weak-void functions */
 #include "dietuglyweaks.h"
 
 	ret	$31, ($26), 0x01

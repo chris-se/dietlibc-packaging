@@ -10,7 +10,9 @@
 #include <errno.h>
 #include <arpa/nameser.h>
 #include <resolv.h>
+#include "dietfeatures.h"
 
+#ifdef WANT_FULL_RESOLV_CONF
 extern int __dns_search;
 extern char *__dns_domains[];
 
@@ -27,9 +29,10 @@ int res_search(const char *dname, int class, int type, unsigned char *answer, in
     if (count==__dns_search) break;
     Buf[len]='.';
 //    printf("appending %d: %p (%s)\n",count,__dns_domains[count],__dns_domains[count]);
-    strncpy(Buf+len+1,__dns_domains[count],MAXDNAME-len-1);
+    memccpy(Buf+len+1,__dns_domains[count],0,MAXDNAME-len-1);
     tmp=Buf;
     ++count;
   }
   return res;
 }
+#endif

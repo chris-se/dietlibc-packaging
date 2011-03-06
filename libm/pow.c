@@ -1,5 +1,6 @@
 
 #include <math.h>
+#include "dietlibm.h"
 
 double  pow ( double mant, double expo )
 {
@@ -37,5 +38,5 @@ double  pow ( double mant, double expo )
     }
     
     /* normal case */
-    return exp2 ( log2 (mant) * expo );
+    return exp ( log (mant) * expo );
 }
