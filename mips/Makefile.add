@@ -1,0 +1,4 @@
+
+LIBOBJ+=$(OBJDIR)/setjmp_aux.o
+CFLAGS+=-Os -fstrict-aliasing -fno-pic -mno-abicalls -EB
+VPATH:=mips:syscalls.s:$(VPATH)
