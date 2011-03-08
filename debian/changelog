@@ -7,8 +7,9 @@ dietlibc (0.32-5.2exp1) experimental; urgency=low
   * d/tc523086.c: add reduced testcase from pa-risc strstr bug
   * d/rules: compile and try to execute tc523086 during build
   * parisc/strstr.S: remove broken asm implementation (use generic)
+  * d/source/format, d/watch: add to please lintian
 
- -- Thorsten Glaser <tg@mirbsd.de>  Tue, 08 Mar 2011 20:41:28 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Tue, 08 Mar 2011 20:47:55 +0000
 
 dietlibc (0.32-5.2) unstable; urgency=low
 
