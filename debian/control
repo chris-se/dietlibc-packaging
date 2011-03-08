@@ -1,7 +1,8 @@
 Source: dietlibc
 Section: devel
 Priority: optional
-Maintainer: Gerrit Pape <pape@smarden.org>
+Maintainer: Hector Oron <zumbi@debian.org>
+Uploaders: Gerrit Pape <pape@smarden.org>, Thorsten Glaser <tg@mirbsd.de>
 Standards-Version: 3.8.3.0
 
 Package: dietlibc-dev
