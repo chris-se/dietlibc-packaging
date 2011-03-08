@@ -1,3 +1,11 @@
+dietlibc (0.32-5.2exp1) xexperimental; urgency=low
+
+  [ Thorsten Glaser ]
+  * Make Hector the new Maintainer (keeping Gerrit as Uploader)
+  * Add myself to Uploaders
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Tue, 08 Mar 2011 20:11:02 +0000
+
 dietlibc (0.32-5.2) unstable; urgency=low
 
   * Non-maintainer upload.
