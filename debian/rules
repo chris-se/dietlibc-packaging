@@ -1,5 +1,14 @@
 #!/usr/bin/make -f
 
+# determine whether we are cross-compiling
+DEB_BUILD_GNU_TYPE:=$(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_HOST_GNU_TYPE:=$(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+ifeq (${DEB_BUILD_GNU_TYPE},${DEB_HOST_GNU_TYPE})
+CROSS:=0
+else
+CROSS:=1
+endif
+
 ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
   DEBUG =DEBUG=1
 else
@@ -47,9 +56,11 @@ build: deb-checkdir build-stamp
 build-stamp: patch-stamp 
 	$(MAKE) prefix=/usr/lib/diet \
 	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
+ifeq (${CROSS},0)
 	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -o ttt test/select.c
 	./ttt
 	rm -f ttt
+endif
 	test '$(DYN)' -eq 0 || \
 	  $(MAKE) dyn prefix=/usr/lib/diet \
 	    MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
