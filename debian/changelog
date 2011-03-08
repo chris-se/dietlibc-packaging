@@ -1,4 +1,4 @@
-dietlibc (0.32-5.2exp1) xexperimental; urgency=low
+dietlibc (0.32-5.2exp1) experimental; urgency=low
 
   [ Thorsten Glaser ]
   * Make Héctor Orón the new Maintainer (keeping Gerrit as Uploader)
@@ -6,8 +6,9 @@ dietlibc (0.32-5.2exp1) xexperimental; urgency=low
   * d/rules: run tests only if not cross compiling
   * d/tc523086.c: add reduced testcase from pa-risc strstr bug
   * d/rules: compile and try to execute tc523086 during build
+  * parisc/strstr.S: remove broken asm implementation (use generic)
 
- -- Thorsten Glaser <tg@mirbsd.de>  Tue, 08 Mar 2011 20:11:02 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Tue, 08 Mar 2011 20:29:46 +0000
 
 dietlibc (0.32-5.2) unstable; urgency=low
 
