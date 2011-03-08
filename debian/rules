@@ -53,7 +53,7 @@ patch-stamp:
 	touch patch-stamp
 
 build: deb-checkdir build-stamp
-build-stamp: patch-stamp 
+build-stamp: patch-stamp
 	$(MAKE) prefix=/usr/lib/diet \
 	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
 ifeq (${CROSS},0)
