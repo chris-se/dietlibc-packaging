@@ -1,0 +1,27 @@
+From 2485ded64158b4949815f81753aa53594538bb75 Mon Sep 17 00:00:00 2001
+From: Gerrit Pape <pape@smarden.org>
+Date: Thu, 3 May 2007 09:21:13 +0000
+Subject: [PATCH 06/13] Don't define WANT_SSP.
+
+It causes similar problems as WANT_STACKGAP back in Dec 2004, see
+http://bug.debian.org/374349
+---
+ dietfeatures.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/dietfeatures.h b/dietfeatures.h
+index 63e388c..00fbd65 100644
+--- a/dietfeatures.h
++++ b/dietfeatures.h
+@@ -119,7 +119,7 @@
+  * compiled with -fstack-protector against it, the binary will segfault
+  * when calling that code. */
+ #if (__GNUC__>4) || ((__GNUC__==4) && (__GNUC_MINOR__>=1))
+-#define WANT_SSP
++/* #define WANT_SSP */
+ #endif
+ 
+ 
+-- 
+1.7.0.3
+

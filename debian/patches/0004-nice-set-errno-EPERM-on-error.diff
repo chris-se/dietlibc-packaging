@@ -1,0 +1,33 @@
+From 70c0929e68f0380f1003598eb9de25f229f465bf Mon Sep 17 00:00:00 2001
+From: Gerrit Pape <pape@smarden.org>
+Date: Thu, 3 May 2007 09:17:24 +0000
+Subject: [PATCH 04/13] nice(): set errno=EPERM on error.
+
+See http://bugs.debian.org/286825
+---
+ lib/__nice.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/lib/__nice.c b/lib/__nice.c
+index d751104..28581d9 100644
+--- a/lib/__nice.c
++++ b/lib/__nice.c
+@@ -1,9 +1,14 @@
+ #include "syscalls.h"
+ #include <sys/time.h>
+ #include <sys/resource.h>
++#include <errno.h>
+ 
+ #ifndef __NR_nice
+ int nice(int i) {
+-  return setpriority(PRIO_PROCESS,0,getpriority(PRIO_PROCESS,0)+i);
++  if (setpriority(PRIO_PROCESS,0,getpriority(PRIO_PROCESS,0)+i) == -1) {
++    errno=EPERM;
++    return -1;
++  }
++  return getpriority(PRIO_PROCESS,0);
+ }
+ #endif
+-- 
+1.7.0.3
+
