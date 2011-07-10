@@ -1,3 +1,18 @@
+dietlibc (0.33~cvs20110710-1) experimental; urgency=low
+
+  * New upstream pre-release
+  * Bump Standards-Version
+  * Use DEP5 as copyright format 
+  * Don't build arm* with DEBUG flag
+  * Use debian source format 3.0 (quilt)
+  * Move tc523086.c into debian/test directory 
+  * Add local-options file 
+  * Refresh debian patchset
+  * parisc/strstr.S: remove local removal
+  * strip elftrunc and dnsd resulting binaries
+
+ -- Hector Oron <zumbi@debian.org>  Sun, 10 Jul 2011 23:48:50 +0100
+
 dietlibc (0.32-5.2exp1) experimental; urgency=low
 
   [ Thorsten Glaser ]

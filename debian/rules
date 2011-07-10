@@ -30,7 +30,7 @@ ifeq ($(ARCH),mipsel)
 else
 ifneq (,$(findstring arm,$(ARCH)))
   ARCH =arm
-  DEBUG =DEBUG=1
+# DEBUG =DEBUG=1
 endif
 endif
 endif
@@ -54,14 +54,14 @@ patch-stamp:
 
 build: deb-checkdir build-stamp
 build-stamp: patch-stamp
-	rm -f parisc/strstr.S
+	#rm -f parisc/strstr.S
 	$(MAKE) prefix=/usr/lib/diet \
 	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
 ifeq (${CROSS},0)
 	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -o ttt test/select.c
 	./ttt
 	rm -f ttt
-	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -static -o ttt debian/tc523086.c
+	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -static -o ttt debian/test/tc523086.c
 	./ttt
 	rm -f ttt
 endif
@@ -103,6 +103,8 @@ install-stamp: build-stamp
 	install -d -m0755 '$(DIR)'-dev/usr/bin
 	mv '$(DIR)'-dev/usr/lib/diet/bin/diet* '$(DIR)'-dev/usr/bin/
 	ln -s ../../../bin/diet '$(DIR)'-dev/usr/lib/diet/bin/
+	strip '$(DIR)'-dev/usr/lib/diet/bin/dnsd
+	strip '$(DIR)'-dev/usr/lib/diet/bin/elftrunc
 	if test '$(DYN)' -eq 1; then \
 	  ln -s ../../../bin/diet-dyn '$(DIR)'-dev/usr/lib/diet/bin/ && \
 	  chmod 0644 '$(DIR)'/usr/lib/diet/lib/*.so && \

@@ -1,0 +1,16 @@
+Index: dietlibc-0.33/diet.c
+===================================================================
+--- dietlibc-0.33.orig/diet.c	2011-07-10 23:29:16.000000000 +0100
++++ dietlibc-0.33/diet.c	2011-07-10 23:31:53.983476151 +0100
+@@ -32,7 +32,11 @@
+   "sparc","-Os","-mcpu=v9",0,
+   "sparc64","-Os","-m64","-mhard-quad-float",0,
+   "alpha","-Os","-fomit-frame-pointer",0,
++#ifdef __ARM_PCS_VFP
++  "arm","-Os","-fomit-frame-pointer","-mfloat-abi=hard",0,
++#else
+   "arm","-Os","-fomit-frame-pointer",0,
++#endif
+   "mips","-Os","-fomit-frame-pointer",0,
+   "mipsel","-Os","-fomit-frame-pointer","-mno-abicalls","-fno-pic","-G","0",0,
+   "ppc","-Os","-fomit-frame-pointer","-mpowerpc-gpopt","-mpowerpc-gfxopt",0,

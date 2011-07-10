@@ -3,7 +3,7 @@ Section: devel
 Priority: optional
 Maintainer: Hector Oron <zumbi@debian.org>
 Uploaders: Gerrit Pape <pape@smarden.org>, Thorsten Glaser <tg@mirbsd.de>
-Standards-Version: 3.8.3.0
+Standards-Version: 3.9.2
 
 Package: dietlibc-dev
 Section: libdevel
