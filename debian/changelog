@@ -3,8 +3,9 @@ dietlibc (0.32-6) xunstable; urgency=low
   [ Thorsten Glaser ]
   * d/control, d/copyright: plug more lintian warnings
   * d/diff/0016-arm-force-thumb-mode: new, fix FTBFS on oneiric/armel
+  * d/diff/0017-disable-propolice: fix FTBFS on SSP-by-default gcc
 
- -- Thorsten Glaser <tg@mirbsd.de>  Fri, 16 Sep 2011 18:15:04 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Fri, 16 Sep 2011 18:24:58 +0000
 
 dietlibc (0.32-5.2exp1) experimental; urgency=low
 

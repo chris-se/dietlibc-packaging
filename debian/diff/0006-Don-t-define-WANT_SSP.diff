@@ -4,7 +4,7 @@ Date: Thu, 3 May 2007 09:21:13 +0000
 Subject: [PATCH 06/13] Don't define WANT_SSP.
 
 It causes similar problems as WANT_STACKGAP back in Dec 2004, see
-http://bug.debian.org/374349
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=374349
 ---
  dietfeatures.h |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
