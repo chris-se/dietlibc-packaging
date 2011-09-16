@@ -16,16 +16,12 @@ __exit:
 	movb	$__NR_exit,%al
 
 .global __unified_syscall
-.global __unified_syscall_16bit
 __unified_syscall:
 _unified_syscall:
-	mov	$0, %al
-__unified_syscall_16bit:
-	movzwl	%ax, %eax
+	movzbl	%al, %eax
 	mov	%rcx, %r10
 	syscall
-__error_unified_syscall:
-	cmpq	$-132, %rax
+	cmpq	$-128, %rax
 	jbe	.Lnoerror
 	negl	%eax
 	pushq	%rax
@@ -162,8 +158,6 @@ __error_unified_syscall:
 #include "../syscalls.s/rt_sigqueueinfo.S"
 #include "../syscalls.s/rt_sigsuspend.S"
 #include "../syscalls.s/rt_sigtimedwait.S"
-#include "../syscalls.s/sched_getaffinity.S"
-#include "../syscalls.s/sched_setaffinity.S"
 #include "../syscalls.s/sched_get_priority_max.S"
 #include "../syscalls.s/sched_get_priority_min.S"
 #include "../syscalls.s/sched_getparam.S"
@@ -296,9 +290,6 @@ __error_unified_syscall:
 
 #include "../syscalls.s/timerfd.S"
 #include "../syscalls.s/__signalfd.S"
-
-#include "../syscalls.s/fallocate.S"
-#include "../syscalls.s/utimes.S"
 
 #define _exit __exit
 #include "clone.S"

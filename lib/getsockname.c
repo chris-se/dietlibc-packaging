@@ -1,6 +1,3 @@
-#include "syscalls.h"
-#ifdef __NR_socketcall
-
 #include <linuxnet.h>
 #include <sys/socket.h>
 
@@ -13,5 +10,3 @@ int __libc_getsockname(int a, void * b, int c) {
 }
 
 int getsockname(int a, struct sockaddr* b, socklen_t* c) __attribute__((weak,alias("__libc_getsockname")));
-
-#endif

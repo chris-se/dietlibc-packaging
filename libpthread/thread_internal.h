@@ -13,9 +13,6 @@
 #error "the diet libc is not compiled with thread safeness enabled!"
 #endif
 
-extern int __modern_linux;	/* can be -1 (old linux), 0 (unknown), or 1 (new linux). */
-/* if 1, assume 2.6 kernel with TLS and futexes et al */
-
 #undef errno
 #define _errno_ (*__errno_location())
 
@@ -88,6 +85,7 @@ struct _pthread_descr_struct {
   int h_errno;
   struct res_state __res;
 #endif
+
 } __attribute__((aligned(32)));
 #define thread_sig_mask jmp_exit->__saved_mask
 

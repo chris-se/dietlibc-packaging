@@ -1,9 +1,5 @@
 #include <setjmp.h>
 
-	.globl __longjmp
-	.section	".opd","aw"
-	.align 3
-__longjmp:
 		.quad	.__longjmp,.TOC.@tocbase,0
 		.text
 		.size	__longjmp,24

@@ -1,25 +1,18 @@
-dietlibc (0.33~cvs20110710-2) experimental; urgency=low
+dietlibc (0.32-7) unstable; urgency=low
 
-  * Fix build for ARMv7 arches.
-  * Fix FTBFS on s390. 
-  * Drop 0015-arm-soft-and-hard-support.diff 
+  * d/p/0019-fix-s390-setjmp.diff: fix setjmp.S FTBFS on s390.
 
- -- Hector Oron <zumbi@debian.org>  Sat, 17 Sep 2011 13:09:44 +0100
+ -- Hector Oron <zumbi@debian.org>  Sat, 17 Sep 2011 00:29:08 +0100
 
-dietlibc (0.33~cvs20110710-1) experimental; urgency=low
+dietlibc (0.32-6) unstable; urgency=low
 
-  * New upstream pre-release
-  * Bump Standards-Version
-  * Use DEP5 as copyright format 
-  * Don't build arm* with DEBUG flag
-  * Use debian source format 3.0 (quilt)
-  * Move tc523086.c into debian/test directory 
-  * Add local-options file 
-  * Refresh debian patchset
-  * parisc/strstr.S: remove local removal
-  * strip elftrunc and dnsd resulting binaries
+  [ Thorsten Glaser ]
+  * d/control, d/copyright: plug more lintian warnings
+  * d/diff/0017-disable-propolice: fix FTBFS on SSP-by-default gcc
+  * d/control: mention dynamic linking is currently disabled
+  * Upload to unstable, fixes oneiric/amd64 and sid/hppa at least
 
- -- Hector Oron <zumbi@debian.org>  Sun, 10 Jul 2011 23:48:50 +0100
+ -- Thorsten Glaser <tg@mirbsd.de>  Fri, 16 Sep 2011 19:06:19 +0000
 
 dietlibc (0.32-5.2exp1) experimental; urgency=low
 

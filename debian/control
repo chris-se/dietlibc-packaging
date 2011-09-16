@@ -3,7 +3,8 @@ Section: devel
 Priority: optional
 Maintainer: Hector Oron <zumbi@debian.org>
 Uploaders: Gerrit Pape <pape@smarden.org>, Thorsten Glaser <tg@mirbsd.de>
-Standards-Version: 3.9.2
+Homepage: http://www.fefe.de/dietlibc/
+Standards-Version: 3.8.3.0
 
 Package: dietlibc-dev
 Section: libdevel
@@ -15,13 +16,10 @@ Description: diet libc - a libc optimized for small size
  can be used to create small statically linked binaries for Linux
  on alpha, arm, ia64, mips, mipsel, ppc, parisc, s390, sparc and x86.
  .
+ The diet libc also supports dynamic linking, but this has been
+ temporarily disabled because of problems with it.
+ .
  This package is used to compile programs with the diet libc.
- .
- The diet libc also supports dynamic linking, currently on the arm and
- i386 architectures only.  The 'dietlibc' package provides the shared
- libraries.
- .
- See http://www.fefe.de/dietlibc/ for more information.
 
 Package: dietlibc-doc
 Architecture: all
@@ -33,9 +31,3 @@ Description: diet libc documentation - a libc optimized for small size
  on alpha, arm, ia64, mips, mipsel, ppc, parisc, s390, sparc and x86.
  .
  This package contains the documentation for the diet libc.
- .
- The diet libc also supports dynamic linking, currently on the arm and
- i386 architectures only. The dietlibc package provides the shared
- libraries.
- .
- See http://www.fefe.de/dietlibc/ for more information.

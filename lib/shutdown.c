@@ -1,6 +1,3 @@
-#include "syscalls.h"
-#ifdef __NR_socketcall
-
 #include <linuxnet.h>
 #include <sys/socket.h>
 
@@ -13,5 +10,3 @@ int __libc_shutdown(int s, int how) {
 }
 
 int shutdown(int s, int how) __attribute__((weak,alias("__libc_shutdown")));
-
-#endif

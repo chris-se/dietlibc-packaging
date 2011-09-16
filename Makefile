@@ -155,8 +155,6 @@ $(OBJDIR) $(PICODIR):
 
 % :: %,v
 
-$(OBJDIR)/%.o: $(OBJDIR)
-
 ifeq ($(CC),tcc)
 $(OBJDIR)/%.o: %.S $(ARCH)/syscalls.h
 	$(CROSS)cpp $(INC) $< | $(CROSS)as -o $@
@@ -283,9 +281,6 @@ $(PICODIR)/libpthread.so: $(DYN_PTHREAD_OBJS) dietfeatures.h
 $(PICODIR)/libdl.so: libdl/_dl_main.c dietfeatures.h
 	$(LD_UNSET) $(CROSS)$(CC) -D__OD_CLEAN_ROOM -DNODIETREF -fPIC -nostdlib -shared -Bsymbolic -Wl,-Bsymbolic \
 		-o $@ $(SAFE_CFLAGS) $(INC) libdl/_dl_main.c -Wl,-soname=libdl.so
-
-$(OBJDIR)/pthread_create.o $(PICODIR)/pthread_create.o: dietfeatures.h
-$(OBJDIR)/pthread_internal.o $(PICODIR)/pthread_internal.o: dietfeatures.h
 
 #$(PICODIR)/libdl.so: $(DYN_LIBDL_OBJS) dietfeatures.h
 #	$(CROSS)$(CC) -nostdlib -shared -o $@ $(CFLAGS) -fPIC $(DYN_LIBDL_OBJS) -L$(PICODIR) -ldietc -Wl,-soname=libdl.so
@@ -451,7 +446,7 @@ $(OBJDIR)/assert_fail.o $(OBJDIR)/sprintf.o $(OBJDIR)/vsnprintf.o $(OBJDIR)/___d
 fclose.o $(OBJDIR)/fdglue.o $(OBJDIR)/fflush.o $(OBJDIR)/fgetc.o $(OBJDIR)/fputc.o $(OBJDIR)/fread.o $(OBJDIR)/fseek.o $(OBJDIR)/printf.o $(OBJDIR)/setvbuf.o $(OBJDIR)/stderr.o $(OBJDIR)/stdin.o $(OBJDIR)/stdout.o $(OBJDIR)/fwrite.o $(OBJDIR)/puts.o: dietfeatures.h
 
 # these depend on dietfeatures.h for fast string routines
-strcasecmp.o $(OBJDIR)/strcat.o $(OBJDIR)/strchr.o $(OBJDIR)/strcmp.o $(OBJDIR)/strcpy.o $(OBJDIR)/strlen.o $(OBJDIR)/strncasecmp.o $(OBJDIR)/strncat.o $(OBJDIR)/strrchr.o $(OBJDIR)/memchr.o: dietfeatures.h
+strcasecmp.o $(OBJDIR)/strcat.o $(OBJDIR)/strchr.o $(OBJDIR)/strcmp.o $(OBJDIR)/strcpy.o $(OBJDIR)/strlen.o $(OBJDIR)/strncasecmp.o $(OBJDIR)/strncat.o $(OBJDIR)/strrchr.o: dietfeatures.h
 
 # this depends on dietfeatures.h for WANT_NON_COMPLIANT_STRNCAT
 $(OBJDIR)/strncpy.o: dietfeatures.h
@@ -524,10 +519,7 @@ $(LIBPTHREAD_OBJS): include/pthread.h
 $(OBJDIR)/fcntl64.o: dietfeatures.h
 
 # WANT_SSP
-# This facepalm brought to you by: Ubuntu!
 $(OBJDIR)/stackgap.o: dietfeatures.h
-	$(CROSS)$(CC) $(INC) $(CFLAGS) -c lib/stackgap.c -o $@ -D__dietlibc__ -fno-stack-protector
-	$(COMMENT) -$(CROSS)strip -x -R .comment -R .note $@
 
 # WANT_MALLOC_ZERO
 $(OBJDIR)/strndup.o: dietfeatures.h

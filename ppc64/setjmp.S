@@ -6,11 +6,6 @@
 #define JUMPTARGET(name) .name
 #endif
 
-
-	.globl __sigsetjmp
-	.section	".opd","aw"
-	.align 3
-__sigsetjmp:
 		.quad	.__sigsetjmp,.TOC.@tocbase,0
 		.text
 		.size	__sigsetjmp,24

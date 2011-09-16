@@ -1,0 +1,11 @@
+diff -Naur dietlibc-0.32/s390/setjmp.S dietlibc-0.32.x/s390/setjmp.S
+--- dietlibc-0.32/s390/setjmp.S	2001-11-26 14:50:08.000000000 +0000
++++ dietlibc-0.32.x/s390/setjmp.S	2011-09-16 23:26:36.919860262 +0000
+@@ -14,6 +14,7 @@
+ 
+ .global _setjmp
+ .type	_setjmp,@function
++_setjmp:
+ 	lhi	%r3,0
+ .size	_setjmp,.-_setjmp
+ 

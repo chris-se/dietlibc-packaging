@@ -3,8 +3,6 @@
 #include <limits.h>
 #include <sys/resource.h>
 #include <fcntl.h>
-#define _GNU_SOURCE
-#include <sched.h>
 
 extern int __sc_nr_cpus();
 
@@ -65,12 +63,7 @@ long sysconf(int name)
     return NGROUPS_MAX;
 
   case _SC_NPROCESSORS_ONLN:
-    {
-      cpu_set_t m;
-      if (sched_getaffinity(0, sizeof(m), &m))
-	return __sc_nr_cpus();
-      return CPU_COUNT(&m);
-    }
+    return __sc_nr_cpus();
 
   }
   errno=ENOSYS;

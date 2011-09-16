@@ -4,19 +4,19 @@
 #include <endian.h>
 
 #ifndef __SCHAR_MAX__
-#define __SCHAR_MAX__   0x7f
+#define __SCHAR_MAX__   127
 #endif
 #ifndef __SHRT_MAX__
-#define __SHRT_MAX__    0x7fff
+#define __SHRT_MAX__    32767
 #endif
 #ifndef __INT_MAX__
-#define __INT_MAX__     0x7fffffff
+#define __INT_MAX__     2147483647
 #endif
 #ifndef __LONG_MAX__
 #if __WORDSIZE == 64
-#define __LONG_MAX__    0x7fffffffffffffffl
+#define __LONG_MAX__    9223372036854775807L
 #else
-#define __LONG_MAX__    0x7fffffffl
+#define __LONG_MAX__    2147483647L
 #endif
 #endif
 
@@ -38,23 +38,27 @@
 #define CHAR_MAX SCHAR_MAX
 #endif
 
-#define SHRT_MIN	(-1 - SHRT_MAX)
-#define SHRT_MAX	(__SHRT_MAX__)
-#define USHRT_MAX	(SHRT_MAX * 2 + 1)
+#define SHRT_MIN        (-1 - SHRT_MAX)
+#define SHRT_MAX        (__SHRT_MAX__)
+#if ((__INT_MAX__) == (__SHRT_MAX__))
+#define USHRT_MAX       (SHRT_MAX * 2U + 1U)
+#else
+#define USHRT_MAX       (SHRT_MAX * 2 + 1)
+#endif
 
-#define INT_MIN		(-1 - INT_MAX)
-#define INT_MAX		(__INT_MAX__)
-#define UINT_MAX	(INT_MAX * 2u + 1)
+#define INT_MIN         (-1 - INT_MAX)
+#define INT_MAX         (__INT_MAX__)
+#define UINT_MAX        (INT_MAX * 2U + 1U)
 
-#define LONG_MIN	(-1l - LONG_MAX)
-#define LONG_MAX	(__LONG_MAX__)
-#define ULONG_MAX	(LONG_MAX * 2ul + 1)
+#define LONG_MIN        (-1L - LONG_MAX)
+#define LONG_MAX        ((__LONG_MAX__) + 0L)
+#define ULONG_MAX       (LONG_MAX * 2UL + 1UL)
 
-#define LLONG_MAX	0x7fffffffffffffffll
-#define LLONG_MIN	(-1ll - LLONG_MAX)
+#define LLONG_MAX 9223372036854775807LL
+#define LLONG_MIN (-LLONG_MAX - 1LL)
 
 /* Maximum value an `unsigned long long int' can hold.  (Minimum is 0.)  */
-#define ULLONG_MAX (~0ull)
+#define ULLONG_MAX 18446744073709551615ULL
 
 #define SSIZE_MIN LONG_MIN
 #define SSIZE_MAX LONG_MAX

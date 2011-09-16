@@ -1,6 +1,3 @@
-#include "syscalls.h"
-#ifdef __NR_socketcall
-
 #include <sys/socket.h>
 #include <linuxnet.h>
 
@@ -14,5 +11,3 @@ int __libc_sendto(int a, const void * b, size_t c, int flags, void *to, int tole
 
 int sendto(int a, const void * b, size_t c, int flags, const struct sockaddr* to, socklen_t tolen)
   __attribute__ ((weak, alias("__libc_sendto")));
-
-#endif
