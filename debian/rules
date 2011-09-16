@@ -52,6 +52,11 @@ patch-stamp:
 	done
 	touch patch-stamp
 
+unpatch: deb-checkdir
+	test ! -e patch-stamp || \
+	  for i in `ls -1r debian/diff/*.diff || :`; do patch -p1 -R -E <$$i; done
+	rm -f patch-stamp
+
 build: deb-checkdir build-stamp
 build-stamp: patch-stamp
 	rm -f parisc/strstr.S
