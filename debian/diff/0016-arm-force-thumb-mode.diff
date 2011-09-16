@@ -1,0 +1,25 @@
+Description: fix FTBFS on armel on *buntu
+Author: Matthias Klose
+
+--- a/arm/__longjmp.S	Tue Mar  8 20:01:09 2011
++++ b/arm/__longjmp.S	Fri Sep 16 18:12:17 2011
+@@ -5,7 +5,7 @@ __longjmp:
+ 	mov	ip, r0
+ 	movs	r0, r1
+ 	moveq	r0, #1
+-#ifndef	__SOFTFP__
++#ifndef	__thumb2__
+ 	lfm	f4, 4, [ip], #48
+ #endif
+ 	ldmia   ip, {r4-r11, sp, pc}
+--- a/arm/setjmp.S	Tue Mar  8 20:01:09 2011
++++ b/arm/setjmp.S	Fri Sep 16 18:12:13 2011
+@@ -8,7 +8,7 @@ __setjmp:
+ __sigsetjmp:
+ .weak sigsetjmp
+ sigsetjmp:
+-#ifndef	__SOFTFP__
++#ifndef	__thumb2__
+ 	sfm	f4, 4, [r0], #48
+ #endif
+ 	stmia	r0, {r4-r11, sp, lr}

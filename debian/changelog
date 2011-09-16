@@ -1,9 +1,10 @@
-dietlibc (0.32-5.2exp2) xexperimental; urgency=low
+dietlibc (0.32-6) xunstable; urgency=low
 
   [ Thorsten Glaser ]
   * d/control, d/copyright: plug more lintian warnings
+  * d/diff/0016-arm-force-thumb-mode: new, fix FTBFS on oneiric/armel
 
- -- Thorsten Glaser <tg@mirbsd.de>  Tue, 08 Mar 2011 21:25:23 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Fri, 16 Sep 2011 18:15:04 +0000
 
 dietlibc (0.32-5.2exp1) experimental; urgency=low
 
