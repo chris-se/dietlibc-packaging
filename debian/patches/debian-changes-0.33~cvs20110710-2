@@ -1,0 +1,48 @@
+Description: Upstream changes introduced in version 0.33~cvs20110710-2
+ This patch has been created by dpkg-source during the package build.
+ Here's the last changelog entry, hopefully it gives details on why
+ those changes were made:
+ .
+ dietlibc (0.33~cvs20110710-2) experimental; urgency=low
+ .
+   * Fix build for ARMv7 arches.
+   * Fix FTBFS on s390.
+   * Drop 0015-arm-soft-and-hard-support.diff
+ .
+ The person named in the Author field signed this changelog entry.
+Author: Hector Oron <zumbi@debian.org>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: http://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- dietlibc-0.33~cvs20110710.orig/s390/setjmp.S
++++ dietlibc-0.33~cvs20110710/s390/setjmp.S
+@@ -14,6 +14,7 @@ __setjmp:
+ 
+ .global _setjmp
+ .type	_setjmp,@function
++_setjmp:
+ 	lhi	%r3,0
+ .size	_setjmp,.-_setjmp
+ 
+--- dietlibc-0.33~cvs20110710.orig/diet.c
++++ dietlibc-0.33~cvs20110710/diet.c
+@@ -29,7 +29,7 @@ static const char* Os[] = {
+ 	 "-falign-functions=1","-falign-jumps=1",
+ 	 "-falign-loops=1","-fomit-frame-pointer",0,
+   "x86_64","-Os",0,
+-  "sparc","-Os","-mcpu=v9",0,
++  "sparc","-Os","-mcpu=supersparc",0,
+   "sparc64","-Os","-m64","-mhard-quad-float",0,
+   "alpha","-Os","-fomit-frame-pointer",0,
+   "arm","-Os","-fomit-frame-pointer",0,
