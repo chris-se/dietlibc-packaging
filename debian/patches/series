@@ -12,4 +12,8 @@
 0012-Add-an-implementation-of-umount-3-for-ia64.diff
 0013-sparc-use-mcpu-v9-instead-of-mcpu-supersparc.diff
 0014-sparc_v9-does-not-imply-arch64.diff
-0015-arm-soft-and-hard-support.diff
+#0015-arm-soft-and-hard-support.diff
+0017-disable-propolice.diff
+0018-manpage.diff
+debian-changes-0.33~cvs20110710-1
+debian-changes-0.33~cvs20110710-2
