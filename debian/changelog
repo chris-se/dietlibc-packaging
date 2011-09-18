@@ -1,3 +1,12 @@
+dietlibc (0.33~cvs20110918-2) UNRELEASED; urgency=low
+
+  [ Thorsten Glaser ]
+  * d/control: do not Recommend or Suggest the dietlibc package
+    which is currently not built for any architecture
+  * d/control: move homepage link from Description into its header
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Sun, 18 Sep 2011 20:04:27 +0000
+
 dietlibc (0.33~cvs20110918-1) experimental; urgency=low
 
   [ Hector Oron ]
