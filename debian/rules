@@ -30,7 +30,7 @@ ifeq ($(ARCH),mipsel)
 else
 ifneq (,$(findstring arm,$(ARCH)))
   ARCH =arm
-  DEBUG =DEBUG=1
+# DEBUG =DEBUG=1
 endif
 endif
 endif
@@ -52,25 +52,16 @@ patch-stamp:
 	done
 	touch patch-stamp
 
-unpatch: deb-checkdir
-	test ! -e patch-stamp || \
-	  for i in `ls -1r debian/diff/*.diff || :`; do patch -p1 -R -E <$$i; done
-	rm -f patch-stamp
-
 build: deb-checkdir build-stamp
 build-stamp: patch-stamp
-	# #523086: strstr.S in 0.32 is broken on HPPA;
-	# Added a testcase to fail the build in presence of the bug.
-	# Removing the asm file causes the C file to be used instead).
-	# The right fix would be fixing hppa asm.
-	rm -f parisc/strstr.S
+	#rm -f parisc/strstr.S
 	$(MAKE) prefix=/usr/lib/diet \
 	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
 ifeq (${CROSS},0)
 	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -o ttt test/select.c
 	./ttt
 	rm -f ttt
-	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -static -o ttt debian/tc523086.c
+	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -static -o ttt debian/test/tc523086.c
 	./ttt
 	rm -f ttt
 endif
@@ -112,16 +103,13 @@ install-stamp: build-stamp
 	install -d -m0755 '$(DIR)'-dev/usr/bin
 	mv '$(DIR)'-dev/usr/lib/diet/bin/diet* '$(DIR)'-dev/usr/bin/
 	ln -s ../../../bin/diet '$(DIR)'-dev/usr/lib/diet/bin/
+	strip '$(DIR)'-dev/usr/lib/diet/bin/dnsd
+	strip '$(DIR)'-dev/usr/lib/diet/bin/elftrunc
 	if test '$(DYN)' -eq 1; then \
 	  ln -s ../../../bin/diet-dyn '$(DIR)'-dev/usr/lib/diet/bin/ && \
 	  chmod 0644 '$(DIR)'/usr/lib/diet/lib/*.so && \
 	  chmod 0755 '$(DIR)'/usr/lib/diet/lib/libdl.so; \
 	fi
-	for a in dnsd elftrunc; do \
-		a='$(DIR)'-dev/usr/lib/diet/bin/"$$a"; \
-		test -e "$$a" || continue; \
-		strip -s -R .note -R .comment "$$a" || exit 1; \
-	done
 	install -d -m0755 $(DIR)-dev/usr/share/man
 	mv $(DIR)/usr/lib/diet/man/man? $(DIR)-dev/usr/share/man/
 	gzip -9 $(DIR)-dev/usr/share/man/man?/*

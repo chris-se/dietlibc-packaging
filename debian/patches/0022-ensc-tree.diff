@@ -1,0 +1,2070 @@
+Description: Upstream changes introduced in version 0.33~cvs20110710-3
+ This patch has been created by dpkg-source during the package build.
+ Here's the last changelog entry, hopefully it gives details on why
+ those changes were made:
+ .
+ dietlibc (0.33~cvs20110710-3) experimental; urgency=low
+ .
+   * Update to cvs20110918.
+     - Fixes memchr('\0') (Closes: #582654)
+   * SIGILL in sigsetjmp on s390: fixed on last release (Closes: #523110)
+   * Port some fixes from Enrico Scholz tree:
+     - */start.S: add WNAT_ELF_INFO
+     - dynlinker/ldso_start.S: __elfinfo follow after __environ
+     - ia64/Makefile.add : make __pause syscall
+     - ia64/clone.S: finalize clone2
+     - Add testcases for setjmp, sigsetjmp, sysconf, ftruncate, ..
+ .
+ The person named in the Author field signed this changelog entry.
+Author: Hector Oron <zumbi@debian.org>
+Bug-Debian: http://bugs.debian.org/523110
+Bug-Debian: http://bugs.debian.org/582654
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: http://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- dietlibc-0.33~cvs20110710.orig/dietdirent.h
++++ dietlibc-0.33~cvs20110710/dietdirent.h
+@@ -1,8 +1,12 @@
+ #include <sys/shm.h>
+ 
++#include "dietpagesize.h"
++
+ struct __dirstream {
+-  char buf[PAGE_SIZE-(sizeof (int)*3)];
+   int fd;
+   unsigned int num;
+   unsigned int cur;
++  char buf[] __attribute__((__aligned__(8)));
+ };				/* stream data from opendir() */
++
++#define __DIRSTREAM_BUF_SIZE	(__DIET_PAGE_SIZE - offsetof(struct __dirstream, buf))
+--- dietlibc-0.33~cvs20110710.orig/dietfeatures.h
++++ dietlibc-0.33~cvs20110710/dietfeatures.h
+@@ -138,6 +138,16 @@
+ /* #define WANT_SSP */
+ #endif
+ 
++/* Some platforms like x86_64, ppc* or mips do not have a fixed PAGE_SIZE.
++ * Select WANT_DYN_PAGESIZE to detect the current PAGE_SIZE at runtime. Else,
++ * define WANT_STATIC_PAGESIZE to a proper value (must be a power of 2)
++ * matching the configured pagesize of the kernel where your binaries are
++ * running on.
++ *
++ * Selecting WANT_DYN_PAGESIZE enlarges the startup code by around 1-3
++ * instructions and might add an additional __elfinfo symbol */
++#define WANT_DYN_PAGESIZE
++/* #define WANT_STATIC_PAGESIZE 0x10000UL */
+ 
+ 
+ /* stop uncommenting here ;-) */
+@@ -169,4 +179,8 @@
+ #endif
+ #endif
+ 
++#ifdef WANT_DYN_PAGESIZE
++#define WANT_ELFINFO
++#endif
++
+ #endif
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/dietpagesize.h
+@@ -0,0 +1,31 @@
++#ifndef H_DIETLIBC_DIETPAGESIZE_H
++#define H_DIETLIBC_DIETPAGESIZE_H
++
++#include <strings.h>
++#include "dietfeatures.h"
++
++extern size_t __libc_getpagesize(void) __attribute__((__const__)) __pure;
++
++#if defined(WANT_STATIC_PAGESIZE)
++#  define __DIET_PAGE_SIZE_PREDEF	(WANT_STATIC_PAGESIZE)
++#  define __DIET_PAGE_SHIFT_PREDEF	(ffs(__DIET_PAGE_SIZE_PREDEF)-1)
++#elif defined(__alpha__) || defined(__sparc__)
++#  define __DIET_PAGE_SIZE_PREDEF	(8192UL)
++#  define __DIET_PAGE_SHIFT_PREDEF	(13)
++#elif defined(__powerpc64__)
++#  define __DIET_PAGE_SIZE_PREDEF	(65536UL)
++#  define __DIET_PAGE_SHIFT_PREDEF	(16)
++#else
++#  define __DIET_PAGE_SIZE_PREDEF	(4096UL)
++#  define __DIET_PAGE_SHIFT_PREDEF	(12)
++#endif
++
++#ifdef WANT_DYN_PAGESIZE
++#  define __DIET_PAGE_SIZE	(__libc_getpagesize())
++#  define __DIET_PAGE_SHIFT	(ffs(__DIET_PAGE_SIZE)-1)
++#else
++#  define __DIET_PAGE_SIZE	__DIET_PAGE_SIZE_PREDEF
++#  define __DIET_PAGE_SHIFT	__DIET_PAGE_SHIFT_PREDEF
++#endif
++
++#endif	/* H_DIETLIBC_DIETPAGESIZE_H */
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/dietelfinfo.h
+@@ -0,0 +1,20 @@
++#include "dietfeatures.h"
++
++#ifdef WANT_ELFINFO
++#include <elf.h>
++#include <endian.h>
++#include <stdint.h>
++
++/* TODO: exported interface from <linux/elf.h> has been changed in 2.6.25 so
++ * the 'elf_addr_t' type is not available anymore. Hence, derive it from
++ * __WORDSIZE__. */
++
++#if __WORDSIZE == 64
++typedef uint64_t	__diet_elf_addr_t;
++#elif __WORDSIZE == 32
++typedef uint32_t	__diet_elf_addr_t;
++#endif
++
++__diet_elf_addr_t const *	__get_elf_aux_value(unsigned int tag)
++	__attribute__((__visibility__("hidden"),__const__)) __pure;
++#endif
+--- dietlibc-0.33~cvs20110710.orig/i386/start.S
++++ dietlibc-0.33~cvs20110710/i386/start.S
+@@ -20,12 +20,18 @@ _start:
+ 	PIC_INIT			/* non-PIC: this is an empty line */
+ 	PUT_VAR %esi, environ, %ecx	/* non-PIC: movl %esi,environ */
+ 
+-#ifdef WANT_SYSENTER
++#if defined(WANT_ELFINFO) || defined(WANT_SYSENTER)
+ /* skip environment, scan for NULL */
+ 1:
+ 	lodsl
+ 	testl	%eax,%eax
+ 	jnz	1b
++#  ifdef WANT_ELFINFO
++	PUT_VAR %esi, __elfinfo, %ecx
++#  endif
++#endif
++
++#ifdef WANT_SYSENTER
+ /* The ELF auxvec follows the environment, consists of key/value pairs.
+    We are looking for key 32, which stands for the vsyscall page */
+ 1:
+--- dietlibc-0.33~cvs20110710.orig/sparc/shmat.c
++++ dietlibc-0.33~cvs20110710/sparc/shmat.c
+@@ -3,17 +3,15 @@
+ #include <sys/shm.h>
+ #include <unistd.h>
+ 
+-extern void* __ipc();
++#include "../dietpagesize.h"
+ 
+-#ifndef PAGE_SIZE
+-#define PAGE_SIZE 4096
+-#endif
++extern void* __ipc();
+ 
+ void* shmat(int shmid,const void* shmaddr,int shmflg) {
+   void* raddr;
+   register void* result;
+   result=__ipc(SHMAT,shmid,shmflg,&raddr,shmaddr);
+-  if ((unsigned long)result <= -(unsigned long)PAGE_SIZE)
++  if ((unsigned long)result <= -(unsigned long)__DIET_PAGE_SIZE)
+     result=raddr;
+   return result;
+ }
+--- dietlibc-0.33~cvs20110710.orig/sparc/start.S
++++ dietlibc-0.33~cvs20110710/sparc/start.S
+@@ -25,6 +25,17 @@ _start:
+ 	or	%o3, %lo(environ), %o3
+ 	st	%o2, [%o3]
+ 
++#ifdef WANT_ELFINFO
++#  warning "VERIFY ME!"
++1:	add	%o2, %o2, 4
++	ld	[%o2-4], %o4
++	orcc	%o4, %o4, %o4
++	bne	1b
++
++	add	%o3, %o3, 4
++	st	%o2, [%o3]
++#endif
++
+ /* When starting a binary via the dynamic linker, %g1 contains the
+    address of the shared library termination function, which will be
+    registered with atexit(). If we are statically linked, this will
+--- dietlibc-0.33~cvs20110710.orig/s390/start.S
++++ dietlibc-0.33~cvs20110710/s390/start.S
+@@ -30,6 +30,17 @@ _start:
+ 	l	%r1,8(%r13)
+ 	st	%r4,0(%r1)
+ 
++#ifdef WANT_ELFINFO
++#  warning "VERIFY ME!"
++1:	ahi	%r4, 4		# increment envp
++	l	%r12, -4(0,%r4)	# load envp[-1] into %r12
++	or	%r12, %r12	# test %r12 for NULL
++	brc	1, 1b
++
++	ahi	%r1, 4
++	st	%r4,0(%r1)
++#endif
++
+ /* call main or _dyn_start */
+ 	l	%r1,0(%r13)
+ 	basr	%r14,%r1
+--- dietlibc-0.33~cvs20110710.orig/dynlinker/ldso_start.S
++++ dietlibc-0.33~cvs20110710/dynlinker/ldso_start.S
+@@ -86,6 +86,15 @@ __environ:
+ 	.long 0
+ #endif
+ 
++/* __elfinfo must follow __environ immediately */
++.global __elfinfo
++__elfinfo:
++#if __WORDSIZE == 64
++	.quad 0
++#else
++	.long 0
++#endif
++
+ .global fini_entry
+ fini_entry:
+ 	.long 0
+--- dietlibc-0.33~cvs20110710.orig/alpha/start.S
++++ dietlibc-0.33~cvs20110710/alpha/start.S
+@@ -24,6 +24,15 @@ _start:
+ 
+ 	stq	$18, environ
+ 
++#ifdef WANT_ELFINFO
++#  warning "MAKE ME alpha ASSEMBLER!"
++1:	ldq	$19, $18	; load *envp into $19
++	addq	$18,  1,  $18	; increment *envp
++	orr	$19, $19, $19
++	jne	1b
++	stq	$18, __elfinfo
++#endif
++
+ #ifdef WANT_DYNAMIC
+ /* in v0 ($0) is the ld.so _fini pointer */
+ 	mov	 $0, $19	/* mov v0(dynload) to a3 */
+--- dietlibc-0.33~cvs20110710.orig/libcompat/syscall.S
++++ dietlibc-0.33~cvs20110710/libcompat/syscall.S
+@@ -130,6 +130,13 @@ syscall:
+ 	b    __unified_syscall
+ 
+ #else
+-		/* arch not implemented yet */
++#include <endian.h>
++	.section	.comment
++#if (__WORDSIZE == 64)
++	.quad		__syscall_2_not_implemented_for_this_arch
++#else
++	.long		__syscall_2_not_implemented_for_this_arch
++#endif
++	.section	.text
+ #endif
+ .size	syscall, . - syscall
+--- dietlibc-0.33~cvs20110710.orig/include/paths.h
++++ dietlibc-0.33~cvs20110710/include/paths.h
+@@ -2,7 +2,7 @@
+ #define _PATHS_H
+ 
+ #define _PATH_BSHELL "/bin/sh"
+-#define _PATH_DEFPATH "/bin:/usr/bin:"
++#define _PATH_DEFPATH "/bin:/usr/bin"
+ 
+ #define _PATH_DEVNULL "/dev/null"
+ 
+--- dietlibc-0.33~cvs20110710.orig/include/unistd.h
++++ dietlibc-0.33~cvs20110710/include/unistd.h
+@@ -39,6 +39,8 @@ loff_t lseek64(int fildes, loff_t offset
+ #if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64
+ #define lseek(fildes,offset,whence) lseek64(fildes,offset,whence)
+ #endif
++#else
++#define lseek64(fildes,offset,whence) lseek(fildes,offset,whence)
+ #endif
+ 
+ int chdir(const char *path) __THROW;
+--- dietlibc-0.33~cvs20110710.orig/include/setjmp.h
++++ dietlibc-0.33~cvs20110710/include/setjmp.h
+@@ -166,7 +166,7 @@ typedef int __jmp_buf[3];
+ #ifdef __arm__
+ #define __JMP_BUF_SP            8
+ #ifndef __ASSEMBLER__
+-typedef int __jmp_buf[24];
++typedef int __jmp_buf[10 + 16*2 + 16*2];
+ #endif
+ #endif
+ 
+--- dietlibc-0.33~cvs20110710.orig/include/endian.h
++++ dietlibc-0.33~cvs20110710/include/endian.h
+@@ -39,7 +39,7 @@
+ # define __LONG_LONG_PAIR(HI, LO) HI, LO
+ #endif
+ 
+-#if defined(__alpha__) || defined(__mips64__) || defined(__sparcv9) || defined(__x86_64__) || defined(__ia64__) || defined(__powerpc64__) || defined(__s390x__) || defined(__arch64__)
++#if defined(__alpha__) || defined(__mips64__) || defined(__sparc_v9__) || defined(__x86_64__) || defined(__ia64__) || defined(__powerpc64__) || defined(__s390x__) || defined(__arch64__)
+ #define __WORDSIZE 64
+ #endif
+ 
+--- dietlibc-0.33~cvs20110710.orig/include/stdlib.h
++++ dietlibc-0.33~cvs20110710/include/stdlib.h
+@@ -28,8 +28,12 @@ long double strtold(const char *nptr, ch
+ long int strtol(const char *nptr, char **endptr, int base) __THROW;
+ unsigned long int strtoul(const char *nptr, char **endptr, int base) __THROW;
+ 
++/* HACK: used flags in __dtostr
++     0x01 ... 'g'
++     0x02 ... uppercase
++   Define some constants somewhere... */
+ extern int __ltostr(char *s, unsigned int size, unsigned long i, unsigned int base, int UpCase) __THROW;
+-extern int __dtostr(double d,char *buf,unsigned int maxlen,unsigned int prec,unsigned int prec2,int g) __THROW;
++extern int __dtostr(double d,char *buf,unsigned int maxlen,unsigned int prec,unsigned int prec2,int flags) __THROW;
+ 
+ #if !defined(__STRICT_ANSI__) || __STDC_VERSION__ + 0 >= 199900L
+ __extension__ long long int strtoll(const char *nptr, char **endptr, int base) __THROW;
+@@ -43,7 +47,7 @@ double atof(const char *nptr) __THROW;
+ __extension__ long long int atoll(const char *nptr);
+ 
+ void exit(int status) __THROW __attribute__((__noreturn__));
+-void abort(void) __THROW;
++void abort(void) __THROW __attribute__((__noreturn__));
+ 
+ extern int rand(void) __THROW;
+ extern int rand_r(unsigned int *seed) __THROW;
+--- dietlibc-0.33~cvs20110710.orig/s390x/start.S
++++ dietlibc-0.33~cvs20110710/s390x/start.S
+@@ -26,6 +26,17 @@ _start:
+ 	larl	%r13,environ
+ 	stg	%r4,0(%r13)
+ 
++#ifdef WANT_ELFINFO
++#  warning "VERIFY ME!"
++1:	aghi	%r4, 8		# increment envp
++	lg	%r12, -8(0,%r4)	# load envp[-1] into %r12
++	ogr	%r12, %r12	# test %r12 for NULL
++	brc	1, 1b
++
++	aghi	%r13, 8
++	stg	%r4,0(%r13)
++#endif
++
+ /* call main or _dyn_start */
+ #ifdef WANT_DYNAMIC
+ 	brasl	%r14,_dyn_start
+--- dietlibc-0.33~cvs20110710.orig/s390x/setjmp.S
++++ dietlibc-0.33~cvs20110710/s390x/setjmp.S
+@@ -14,6 +14,7 @@ __setjmp:
+ 
+ .global _setjmp
+ .type	_setjmp,@function
++_setjmp:
+ 	lhi	%r3,0
+ .size	_setjmp,.-_setjmp
+ 
+--- dietlibc-0.33~cvs20110710.orig/parisc/start.S
++++ dietlibc-0.33~cvs20110710/parisc/start.S
+@@ -34,6 +34,16 @@ _start:
+ 	ldil LP%environ, %r19
+ 	ldo RP%environ(%r19), %r19
+ 
++#ifdef WANT_ELFINFO
++#  warning "MAKE ME PARISC CODE!"
++1:	add %r20, %r19, %r19		; envp += 4
++	ldw -4(0,%r19), %r21		; load envp[-4] into %r21
++	comibf =,0, 0,%r21,1b		; compare %r21 with 0 without nullification
++
++	ldil LP%__elfinfo, %r19
++	ldo RP%__elfinfo(%r19), %r19
++#endif
++
+ 	/* Expand the stack to store the 5th through 7th args */
+ 	ldo 64(%sp), %sp
+ 
+--- dietlibc-0.33~cvs20110710.orig/parisc/strcmp.S
++++ dietlibc-0.33~cvs20110710/parisc/strcmp.S
+@@ -1,6 +1,7 @@
+ .text
+ .globl strcmp
+-
++.weak strcoll
++strcoll:
+ strcmp:
+ 	.PROC
+ 	.CALLINFO
+--- dietlibc-0.33~cvs20110710.orig/mips/start.S
++++ dietlibc-0.33~cvs20110710/mips/start.S
+@@ -47,6 +47,15 @@ __start:
+ #endif
+ 	add	$a2, $a2, $a1
+ 	sw	$a2, environ
++#ifdef WANT_ELFINFO
++#  warning "MAKE ME MIPS CODE!"
++1:	addu	$a2, $a2, 4	/* increment envp */
++	lw	$4, -4($a2)     /* load envp[-1]; TODO: is $4 a proper
++				   temporary register? */
++	bnz	1b		/* ... until envp[-1]==NULL
++				   TODO: use proper 'bnz' operation */
++	sw	$a2, __elfinfo
++#endif
+ 	jalr	$25
+ 	la	$25, exit
+ 	move	$4,$2
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/test/math.c
+@@ -0,0 +1,29 @@
++#include <math.h>
++#include <float.h>
++#include <assert.h>
++
++int main()
++{
++  extern int __isinf(double d);
++  extern int __isnan(double d);
++
++#if (__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3))
++  assert(__isinf(__builtin_inff())  == +1);
++  assert(__isinf(-__builtin_inff()) == -1);
++
++  assert(__isinf(__builtin_inf())   == +1);
++  assert(__isinf(-__builtin_inf())  == -1);
++
++  assert(__isnan(__builtin_nan("")));
++#endif
++
++  assert(__isinf((DBL_MAX * DBL_MAX))  == +1);
++  assert(__isinf(-(DBL_MAX * DBL_MAX)) == -1);
++
++  assert(isinf((DBL_MAX * DBL_MAX)));
++  assert(isinf(-(DBL_MAX * DBL_MAX)));
++
++  //assert(isnan(nan("")));
++
++  return 0;
++}
+--- dietlibc-0.33~cvs20110710.orig/test/cycles.c
++++ dietlibc-0.33~cvs20110710/test/cycles.c
+@@ -12,8 +12,21 @@
+   asm volatile ("rdtsc" : "=a" (l), "=d" (h)); \
+   dst = (((uint64_t)h) << 32) | l;                             \
+ } while (0)
++#elif defined (__powerpc64__)
++#define RDTSC(dst) asm volatile ("mftb %0" : "=r" (dst))
++#elif defined (__powerpc__)
++#define RDTSC(dst) do { \
++  uint32_t chk, tbl, tbu; \
++  /* The code below is as suggested in Motorola reference manual for 32 bits PPCs. */ \
++  __asm__ __volatile__ ("1: mftbu %0; mftb %1; mftbu %2; cmpw %2,%0; bne 1b" \
++    : "=r" (tbu), "=r" (tbl), "=r" (chk) ); \
++  dst = ((uint64_t)tbu << 32) | tbl; \
++} while (0)
++#elif defined (__sparc_v9__)
++#define RDTSC(dst) asm volatile ("rd %%tick, %%0":"=r"(dst))
+ #else
+-#error "Unimplemented rdtsc"
++#warning "Unimplemented rdtsc"
++#define RDTSC(dst) dst = 0
+ #endif
+ 
+ extern char **environ;
+--- dietlibc-0.33~cvs20110710.orig/test/rand48.c
++++ dietlibc-0.33~cvs20110710/test/rand48.c
+@@ -6,16 +6,16 @@ main (void)
+ {
+   static unsigned short  data[7] = { 1, 2, 3, 4, 5, 6, 7 };
+ 
+-  printf ("one   %X\n", mrand48 ());
+-  printf ("two   %X\n", mrand48 ());
+-  printf ("three %X\n", mrand48 ());
++  printf ("one   %lX\n", mrand48 ());
++  printf ("two   %lX\n", mrand48 ());
++  printf ("three %lX\n", mrand48 ());
+ 
+   lcong48 (data);
+   printf ("after lcong48:\n");
+ 
+-  printf ("one   %X\n", mrand48 ());
+-  printf ("two   %X\n", mrand48 ());
+-  printf ("three %X\n", mrand48 ());
++  printf ("one   %lX\n", mrand48 ());
++  printf ("two   %lX\n", mrand48 ());
++  printf ("three %lX\n", mrand48 ());
+ 
+   return 0;
+ }
+--- dietlibc-0.33~cvs20110710.orig/test/mmap_test.c
++++ dietlibc-0.33~cvs20110710/test/mmap_test.c
+@@ -15,7 +15,7 @@ int main (int argc, char * argv[])
+    void *filememory_1;
+    void *filememory_2;
+    
+-   fd = open (FILENAME, O_RDWR | O_CREAT);
++   fd = open (FILENAME, O_RDWR | O_CREAT, 0600);
+    
+    if (fd < 0)
+    {
+--- dietlibc-0.33~cvs20110710.orig/test/getservbyname.c
++++ dietlibc-0.33~cvs20110710/test/getservbyname.c
+@@ -1,5 +1,6 @@
+ #include <stdio.h>
+ #include <netdb.h>
++#include <arpa/inet.h>
+ 
+ int main(int argc,char *argv[]) {
+   struct servent* se;
+--- dietlibc-0.33~cvs20110710.orig/test/printf.c
++++ dietlibc-0.33~cvs20110710/test/printf.c
+@@ -2,11 +2,26 @@
+ #include <string.h>
+ #include <stdlib.h>
+ #include <assert.h>
++#include <math.h>
++#include <float.h>
+ #include <sys/param.h>
+ #include <locale.h>
+ 
+ #define ALGN		5
+ 
++#ifndef INFINITY
++#  if (__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3))
++#    define INFINITY	(__builtin_inf())
++#  endif
++#endif
++
++#ifndef NAN
++#  if (__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3))
++#    define NAN		(__builtin_nan(""))
++#  endif
++#endif
++
++
+ // https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=112986
+ #if 0
+ #undef  assert
+@@ -60,7 +75,7 @@
+   TEST_SNPRINTF(EXP,  0,                __VA_ARGS__);		\
+   TEST_SNPRINTF(EXP,  sizeof(EXP)+ALGN, __VA_ARGS__);		\
+   TEST_SNPRINTF_NULL(EXP, __VA_ARGS__)
+-  
++
+ 
+ int main()
+ {
+@@ -101,7 +116,7 @@ int main()
+   TEST("42.23",   "%5.2f",  42.23);
+   TEST("42.23",   "%5.4g",  42.23);
+   TEST(" 42.2",   "%5.3g",  42.23);
+-  
++
+   TEST("   1",     "%*i",   4, 1);
+   TEST("   1",     "%4i",   1);
+   TEST("1   ",     "%-4i",  1);
+@@ -131,13 +146,32 @@ int main()
+   TEST("-01234",   "%6.5i", -1234);
+   TEST("  1234",   "%6.5s", "1234");
+ 
++#ifdef INFINITY
++  TEST("inf",	"%f", INFINITY);
++  TEST("-inf",	"%f", -INFINITY);
++  TEST("INF",	"%F", INFINITY);
++  TEST("-INF",	"%F", -INFINITY);
++
++  TEST("inf",	"%g", INFINITY);
++  TEST("-inf",	"%g", -INFINITY);
++  TEST("INF",	"%G", INFINITY);
++  TEST("-INF",	"%G", -INFINITY);
++#endif
++
++#ifdef NAN
++  TEST("nan",	"%f", NAN);
++  TEST("NAN",	"%F", NAN);
++  TEST("nan",	"%g", NAN);
++  TEST("NAN",	"%G", NAN);
++#endif
++
+ #ifdef XSI_TESTS
+   setlocale(LC_ALL, "de_DE");
+-  
++
+   TEST("1.234",    "%'u", 1234);
+   TEST("2 1",      "%2$u %1$u",  1, 2);
+ #endif
+-  
+-  
++
++
+   return EXIT_SUCCESS;
+ }
+--- dietlibc-0.33~cvs20110710.orig/test/if_nameindex.c
++++ dietlibc-0.33~cvs20110710/test/if_nameindex.c
+@@ -1,8 +1,12 @@
+ #include <stdio.h>
++#include <assert.h>
+ #include <net/if.h>
+ 
+ int main() {
+   struct if_nameindex* t=if_nameindex();
++
++  assert(t != NULL);
++
+   if (t) {
+     struct if_nameindex* t1=t;
+     while (t->if_index) {
+--- dietlibc-0.33~cvs20110710.orig/test/printftest.c
++++ dietlibc-0.33~cvs20110710/test/printftest.c
+@@ -101,8 +101,8 @@ int main()
+   printf("#%i#\n",18);
+   printf("#%d#\n",18);
+   printf("#%u#\n",18);
+-  printf("#%lu#\n",18);
+-  printf("#%li#\n",18);
++  printf("#%lu#\n",18l);
++  printf("#%li#\n",18l);
+   printf("#%-+#06d#\n", -123);
+   printf("#%-+#6d#\n", -123);
+   printf("#%+#06d#\n", -123);
+@@ -142,7 +142,7 @@ int main()
+ 	    buf);
+     memset(buf2,0,sizeof(buf));
+     i=snprintf(buf2, 256, "%.9999u", 10);
+-    printf("%i %i\n",i,strlen(buf2));
++    printf("%i %li\n",i,strlen(buf2));
+     
+     printf ("snprintf (\"%%.999999u\", 10) == %d\n",
+     	    snprintf(buf2, sizeof(buf2), "%.999999u", 10));
+--- dietlibc-0.33~cvs20110710.orig/test/adjtime.c
++++ dietlibc-0.33~cvs20110710/test/adjtime.c
+@@ -1,9 +1,25 @@
+ #include <stdio.h>
++#include <assert.h>
++#include <errno.h>
+ #include <sys/time.h>
+ 
+ int main() {
+   struct timeval a,b;
++  int rc;
+   a.tv_sec=0; a.tv_usec=0;
+-  printf("%d\n",adjtime(&a,&b));
++  rc = adjtime(&a,&b);
++  assert(!rc || errno == EPERM);
++
++  rc = adjtime(&a, NULL);
++  assert(!rc || errno == EPERM);
++
++  rc = adjtime(NULL,&b);
++  assert(!rc);
++  assert(b.tv_sec  < 30);	    /* 30 seconds delta is very unlikely... */
++  assert(b.tv_sec  > -30);	    /* 30 seconds delta is very unlikely... */
++  assert(b.tv_usec > -1000000);
++  assert(b.tv_usec < 1000000);
++
++  printf("%lu/%d\n", (unsigned long)b.tv_sec, (int)b.tv_usec);
+   return 0;
+ }
+--- dietlibc-0.33~cvs20110710.orig/test/speed.c
++++ dietlibc-0.33~cvs20110710/test/speed.c
+@@ -7,10 +7,10 @@ int main() {
+   int i;
+   time_t t;
+   
+-  printf("%d\n", time(0));
++  printf("%ld\n", (long)time(0));
+   for (i=0; i<10000000; ++i)
+     t=time(0);
+ 
+- printf("%d\n", time(0));
++  printf("%ld\n", (long)time(0));
+  return 0;   
+ }
+--- dietlibc-0.33~cvs20110710.orig/test/byteswap.c
++++ dietlibc-0.33~cvs20110710/test/byteswap.c
+@@ -9,12 +9,12 @@ int main() {
+   snprintf(buf,100,"%x %x", bswap_16(0x1234), bswap_16(0x5678));
+   assert(strcmp(buf, "3412 7856") == 0);
+   
+-  printf("%lx\n",bswap_32(0x12345678));
+-  snprintf(buf,100,"%lx", bswap_32(0x12345678));
++  printf("%x\n",(unsigned int)bswap_32(0x12345678));
++  snprintf(buf,100,"%x", (unsigned int)bswap_32(0x12345678));
+   assert(strcmp(buf, "78563412") == 0);
+ 
+-  printf("%qx\n",bswap_64(0x123456789ABCDEFull));
+-  snprintf(buf,100,"%qx", bswap_64(0x123456789ABCDEFull));
++  printf("%llx\n",(unsigned long long)bswap_64(0x123456789ABCDEFull));
++  snprintf(buf,100,"%llx", (unsigned long long)bswap_64(0x123456789ABCDEFull));
+   assert(strcmp(buf, "efcdab8967452301") == 0);
+   return 0; 
+ }
+--- dietlibc-0.33~cvs20110710.orig/test/sysenter.c
++++ dietlibc-0.33~cvs20110710/test/sysenter.c
+@@ -11,11 +11,11 @@ int main() {
+   int i;
+   for (i=0; environ[i]; ++i) ;
+   for (x=(struct elf_aux*)(environ+i+1); x->type; ++x) {
+-    printf("%d %x\n",x->type,x->value);
++    printf("%ld %lx\n",x->type,x->value);
+     if (x->type==AT_PAGESZ)
+-      printf("pagesize %d\n",x->value);
++      printf("pagesize %ld\n",x->value);
+     else if (x->type==AT_SYSINFO)
+-      printf("vsyscall %p\n",x->value);
++      printf("vsyscall %p\n",(void *)x->value);
+   }
+   return 0;
+ }
+--- dietlibc-0.33~cvs20110710.orig/test/asprintf.c
++++ dietlibc-0.33~cvs20110710/test/asprintf.c
+@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
+  assert(strlen(path) == asprintlen);
+ 	     
+  printf("%s\n", path);
+- asprintlen=asprintf(&path, "/proc" "/%d/stat", strlen(argv[1]));
++ asprintlen=asprintf(&path, "/proc" "/%zu/stat", strlen(argv[1]));
+  assert(strlen(path) == asprintlen);
+  printf("%s\n", path);
+ 
+--- dietlibc-0.33~cvs20110710.orig/test/sendfile.c
++++ dietlibc-0.33~cvs20110710/test/sendfile.c
+@@ -11,5 +11,5 @@ int main() {
+ 
+   printf("sendfile returned %d\n",ret);
+ 
+-return 0;    
++  return ret<0 ? 1 : 0;
+ }
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/test/sigsetjmp.c
+@@ -0,0 +1,206 @@
++#include <assert.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
++#include <signal.h>
++#include <setjmp.h>
++
++#define TEST_PATTERN	\
++	"0123456789abcdefghijklmnopqrstuv"	\
++	"ZYXWVUTSRQPONMLKJIHGFEDCBA987654"	\
++	"456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"	\
++	"vutsrqponmlkjihgfedcba9876543210"	\
++	"0123456789ABCDEFGHIJKLMNOPQRSTUV"	\
++	"zyxwvutsrqponmlkjihgfedcba987654"	\
++	"456789abcdefghijklmnopqrstuvwxyz"	\
++	"VUTSRQPONMLKJIHGFEDCBA987654321"	\
++
++static struct {
++	char volatile a[256];
++	sigjmp_buf env;
++	char volatile b[256];
++} sigenv = {
++	.a = TEST_PATTERN "<",
++	.b = TEST_PATTERN ">",
++};
++
++static double const volatile	FP_REF[] = {
++  0.4, 0.8, 1.5, 1.6, 2.3, 4.2
++};
++
++static int volatile sig_seen;
++
++#define VALIDATE_BUFFERS(_sig_exp) do {		\
++    assert(Xmemcmp(sigenv.a, TEST_PATTERN "<", sizeof sigenv.a) == 0);	\
++    assert(Xmemcmp(sigenv.b, TEST_PATTERN ">", sizeof sigenv.b) == 0);	\
++    assert(sig_seen == (_sig_exp));		\
++  } while (0)
++
++static int Xmemcmp(void const volatile *a, void const volatile *b, size_t l)
++{
++  return memcmp((void const *)a, (void const *)b, l);
++}
++
++static void do_test(int sig_num, int do_save, int block_sig)
++{
++  int		rc;
++  sigset_t	block_set;
++  sigset_t	cur_set;
++
++  printf("%s(%d,%d,%d)... ", __func__, sig_num, do_save, block_sig);
++  fflush(stdout);
++
++  VALIDATE_BUFFERS(0);
++
++  sigemptyset(&block_set);
++  assert(sigprocmask(SIG_SETMASK, NULL, &cur_set) == 0);
++
++  /* verify that tested signal is not blocked */
++  if (sig_num != 0)
++    assert(!sigismember(&cur_set, sig_num));
++
++  /* verify that blocked signal is not already blocked and fill signal set */
++  if (block_sig != 0) {
++    assert(!sigismember(&cur_set, block_sig));
++    sigaddset(&block_set, block_sig);
++  }
++
++  sig_seen = 0;
++  rc = sigsetjmp(sigenv.env, do_save);
++  if (rc == 0) {
++    char volatile somebuf[128];
++
++    memset((void *)somebuf, 0x42, sizeof somebuf);
++    VALIDATE_BUFFERS(0);
++
++    /* modify signal mask */
++    if (block_sig != 0)
++      assert(sigprocmask(SIG_BLOCK, &block_set, NULL) == 0);
++
++    /* raise a signal which triggers a siglongjmp */
++    if (sig_num != 0) {
++      raise(sig_num);
++      sigenv.a[0] = 'X';
++      sigenv.b[0] = 'X';
++      assert(0);
++    }
++  } else if (rc != sig_num)
++    /* sigsetjmp() returned with an unexpected value */
++    assert(0);
++
++  VALIDATE_BUFFERS(sig_num);
++  sig_seen = 0;
++
++  /* check whether current signal mask contains the blocked signal; it should
++     be there iff sigsetjmp() was triggered and sigmask was saved. */
++  if (block_sig != 0) {
++    sigset_t	cur_set;
++    assert(sigprocmask(SIG_SETMASK, NULL, &cur_set) == 0);
++
++    if (do_save && rc != 0)
++      assert(!sigismember(&cur_set, block_sig));
++    else {
++      assert( sigismember(&cur_set, block_sig));
++      sigprocmask(SIG_UNBLOCK, &block_set, NULL);
++    }
++  }
++
++  printf(" ok\n");
++};
++
++static void do_test_fp(int sig_num, int do_save)
++{
++  sigset_t	cur_set;
++  int		rc;
++  double	fp0, fp1, fp2, fp3;
++
++  printf("%s(%d,%d)... ", __func__, sig_num, do_save);
++  fflush(stdout);
++
++  VALIDATE_BUFFERS(0);
++
++  assert(sigprocmask(SIG_SETMASK, NULL, &cur_set) == 0);
++
++  /* verify that tested signal is not blocked */
++  if (sig_num != 0)
++    assert(!sigismember(&cur_set, sig_num));
++
++  fp0 = FP_REF[0];
++  fp1 = FP_REF[1];
++  fp2 = FP_REF[2];
++  fp3 = FP_REF[3];
++
++  sig_seen = 0;
++  rc = sigsetjmp(sigenv.env, do_save);
++
++  if (rc == 0) {
++    fp0 = FP_REF[4];
++    fp3 = FP_REF[5];
++
++    if (sig_num != 0) {
++      raise(sig_num);
++      assert(0);
++    }
++  } else if (rc != sig_num)
++    /* sigsetjmp() returned with an unexpected value */
++    assert(0);
++
++  if (sig_num == 0) {
++    /* "exception" was not triggered; we should see the new values */
++    assert(fp0 == FP_REF[4]);
++    assert(fp1 == FP_REF[1]);
++    assert(fp2 == FP_REF[2]);
++    assert(fp3 == FP_REF[5]);
++  } else {
++    /* "exception" was triggered; we should see the old values */
++    assert(fp0 == FP_REF[0]);
++    assert(fp1 == FP_REF[1]);
++    assert(fp2 == FP_REF[2]);
++    assert(fp3 == FP_REF[3]);
++  }
++
++  VALIDATE_BUFFERS(sig_num);
++  sig_seen = 0;
++
++  printf(" ok\n");
++}
++
++static void sig_handler(int num)
++{
++  assert(sig_seen == 0);
++  sig_seen = num;
++  siglongjmp(sigenv.env, num);
++}
++
++int main(void)
++{
++  struct sigaction sigact = {
++    .sa_handler	= sig_handler,
++    .sa_flags	= SA_NODEFER, /* raised signal will be in blocked mask else */
++  };
++
++  /* verify our assumptions about the memory layout */
++  assert(sizeof sigenv.a == 256);
++  assert(sizeof sigenv.b == 256);
++  assert(offsetof(__typeof__(sigenv), env) == sizeof sigenv.a);
++  assert(offsetof(__typeof__(sigenv), b)   == sizeof sigenv.a + sizeof sigenv.env);
++
++  sigaction(SIGBUS,  &sigact, NULL);
++  sigaction(SIGUSR1, &sigact, NULL);
++
++  do_test(0, 0, 0);
++  do_test(0, 0, SIGUSR1);
++  do_test(0, 1, 0);
++  do_test(0, 1, SIGUSR1);
++  do_test(SIGBUS, 0, 0);
++  do_test(SIGBUS, 0, SIGUSR1);
++  do_test(SIGBUS, 1, 0);
++  do_test(SIGBUS, 1, SIGUSR1);
++
++  do_test_fp(0, 0);
++  do_test_fp(0, 1);
++  do_test_fp(SIGBUS, 0);
++  do_test_fp(SIGBUS, 1);
++
++  return EXIT_SUCCESS;
++}
+--- dietlibc-0.33~cvs20110710.orig/test/mktime.c
++++ dietlibc-0.33~cvs20110710/test/mktime.c
+@@ -9,15 +9,15 @@ int main() {
+   t.tm_mday=29;
+   t.tm_mon=2;
+   t.tm_year=100;
+-  printf("%d\n",mktime(&t));
++  printf("%ld\n",(long)mktime(&t));
+   t.tm_mday=1;
+   t.tm_mon=3;
+   t.tm_year=102;
+-  printf("%d\n",mktime(&t));
++  printf("%ld\n",(long)mktime(&t));
+   t.tm_mday=1;
+   t.tm_mon=6;
+   t.tm_year=102;
+-  printf("%d\n",mktime(&t));
++  printf("%ld\n",(long)mktime(&t));
+   return 0;
+ }
+ 
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/test/sysconf.c
+@@ -0,0 +1,80 @@
++#include <unistd.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <assert.h>
++#include <sys/wait.h>
++
++#include "../dietpagesize.h"
++
++static long exec_getconf(char const *var)
++{
++  char	buf[128];
++  pid_t	pid;
++  int	fd[2];
++  int	status;
++  ssize_t	l;
++
++  if (pipe(fd)<0 || (pid = fork())<0)
++    abort();
++
++  if (pid==0) {
++    close(fd[0]);
++
++    if (fd[1]!=1) {
++      dup2(fd[1], 1);
++      close(fd[1]);
++    }
++
++    execlp("getconf", "getconf", var, NULL);
++    _exit(1);
++  }
++
++  close(fd[1]);
++  l = read(fd[0], buf, sizeof(buf)-1);
++  if (l<0) {
++    perror("read()");
++    goto err;
++  } else if (l==sizeof(buf)-1)
++    goto err;
++  close(fd[0]);
++
++  buf[l] = '\0';
++
++  if (waitpid(pid, &status, 0)<0)
++    goto err;
++
++  if (!WIFEXITED(status) || WEXITSTATUS(status)!=0)
++    goto err;
++
++  return strtol(buf, NULL, 10);
++
++ err:
++  kill(pid, SIGKILL);
++  abort();
++}
++
++static unsigned int do_check(char const *var, long exp)
++{
++  long	cur = exec_getconf(var);
++
++  if (cur!=exp) {
++    fprintf(stderr, "%s mismatch: got %ld, expected %ld\n",
++	    var, cur, exp);
++    return 1;
++  }
++
++  return 0;
++}
++
++int main(int argc, char *argv[])
++{
++  unsigned int	err = 0;
++
++  assert(sysconf(_SC_PAGESIZE) == __DIET_PAGE_SIZE);
++  assert(__DIET_PAGE_SIZE == (1<<__DIET_PAGE_SHIFT));
++
++  err += do_check("PAGE_SIZE", sysconf(_SC_PAGESIZE));
++  err += do_check("CLK_TCK",   sysconf(_SC_CLK_TCK));
++
++  return err;
++}
+--- dietlibc-0.33~cvs20110710.orig/test/runtests.sh
++++ dietlibc-0.33~cvs20110710/test/runtests.sh
+@@ -1,6 +1,6 @@
+ SUBDIRS="dirent inet stdio string stdlib time"
+ 
+-TESTPROGRAMS="adjtime alarm argv atexit bsearch byteswap calloc confstr empty fadvise flush fputc ffs fnmatch ftw fwrite getaddrinfo getenv getdelim getgrnam gethostbyaddr gethostbyname gethostbyname_r getmntent getopt getpwnam getservbyname getservbyport getusershell glob grent hasmntopt hello iconv if_nameindex ltostr malloc-debugger md5_testharness memccpy memchr memcmp memrchr memusage mktime mmap_test pipe printf printftest protoent prototypes putenv pwent rand48 readdir regex select sendfile servent siglist speed spent sprintf sscanf stdarg strcasecmp strcmp strncat strncpy strptime strrchr strstr strtol sysenter ungetc utime waitpid"
++TESTPROGRAMS="adjtime alarm argv atexit bsearch byteswap calloc confstr empty fadvise flush fputc ffs fnmatch ftruncate ftw fwrite getaddrinfo getenv getdelim getgrnam gethostbyaddr gethostbyname gethostbyname_r getmntent getopt getpwnam getservbyname getservbyport getusershell glob grent hasmntopt hello iconv if_nameindex ltostr malloc-debugger math md5_testharness memccpy memchr memcmp memrchr memusage mktime mmap_test pipe printf printftest protoent prototypes putenv pwent rand48 readdir regex select sendfile servent setjmp siglist sigsetjmp speed spent sprintf sscanf stdarg strcasecmp strcmp strncat strncpy strptime strrchr strstr strtol sysconf sysenter ungetc utime waitpid"
+ 
+ STDIN="read1"
+ PASS="getpass" 
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/test/setjmp.c
+@@ -0,0 +1,106 @@
++#include <assert.h>
++#include <stdlib.h>
++#include <string.h>
++#include <setjmp.h>
++
++static int Xmemcmp(void const volatile *a, void const volatile *b, size_t l)
++{
++  return memcmp((void const *)a, (void const *)b, l);
++}
++
++int main(void)
++{
++  char volatile a[8] = "testbufA";
++  jmp_buf env;
++  char volatile b[8] = "testbufB";
++
++  assert(Xmemcmp(a, "testbufA", 8) == 0);
++  assert(Xmemcmp(b, "testbufB", 8) == 0);
++
++
++  /* Test 1: not calling longjmp */
++  if (setjmp(env) == 0) {
++    char volatile somebuf[128];
++
++    memset((void *)somebuf, 0xde, sizeof somebuf);
++
++    assert(Xmemcmp(a, "testbufA", 8) == 0);
++    assert(Xmemcmp(b, "testbufB", 8) == 0);
++  } else
++    assert(0);
++
++  assert(Xmemcmp(a, "testbufA", 8) == 0);
++  assert(Xmemcmp(b, "testbufB", 8) == 0);
++
++
++  /* Test 2: calling longjmp */
++  switch (setjmp(env)) {
++  case 0: {
++    char volatile somebuf[128];
++
++    memset((void *)somebuf, 0xde, sizeof somebuf);
++
++    assert(Xmemcmp(a, "testbufA", 8) == 0);
++    assert(Xmemcmp(b, "testbufB", 8) == 0);
++
++    longjmp(env, 23);
++
++    a[0] = 'X';
++    b[0] = 'X';
++  }
++
++  case 23:
++    break;
++
++  default:
++    assert(0);
++  }
++
++  assert(Xmemcmp(a, "testbufA", 8) == 0);
++  assert(Xmemcmp(b, "testbufB", 8) == 0);
++
++
++  /* Test 3: calling longjmp again with dirty env */
++  switch (setjmp(env)) {
++  case 0: {
++    char volatile somebuf[128];
++
++    memset((void *)somebuf, 0xde, sizeof somebuf);
++
++    assert(Xmemcmp(a, "testbufA", 8) == 0);
++    assert(Xmemcmp(b, "testbufB", 8) == 0);
++
++    longjmp(env, 23);
++
++    a[0] = 'X';
++    b[0] = 'X';
++  }
++
++  case 23:
++    break;
++
++  default:
++    assert(0);
++  }
++
++  assert(Xmemcmp(a, "testbufA", 8) == 0);
++  assert(Xmemcmp(b, "testbufB", 8) == 0);
++
++
++ /* Test 4: not calling longjmp, but dirty env */
++  if (setjmp(env) == 0) {
++    char volatile somebuf[128];
++
++    memset((void *)somebuf, 0xde, sizeof somebuf);
++
++    assert(Xmemcmp(a, "testbufA", 8) == 0);
++    assert(Xmemcmp(b, "testbufB", 8) == 0);
++  } else
++    assert(0);
++
++  assert(Xmemcmp(a, "testbufA", 8) == 0);
++  assert(Xmemcmp(b, "testbufB", 8) == 0);
++
++
++  return EXIT_SUCCESS;
++}
+--- dietlibc-0.33~cvs20110710.orig/test/bsearch.c
++++ dietlibc-0.33~cvs20110710/test/bsearch.c
+@@ -35,7 +35,7 @@ int main() {
+ 	die("bsearch returned NULL\n");
+       }
+       if (k != array+i) die("bsearch found wrong element\n");
+-      printf("%d\n",k-array);
++      printf("%ld\n",k-array);
+     }
+   }
+   return 0;
+--- dietlibc-0.33~cvs20110710.orig/test/Makefile
++++ dietlibc-0.33~cvs20110710/test/Makefile
+@@ -8,13 +8,13 @@ CFLAGS=-nostdinc -Wall
+ LCOMPAT=-lcompat
+ 
+ TESTPROGRAMS=adjtime alarm argv asprintf atexit bsearch byteswap calloc confstr cycles empty fadvise flush fnmatch \
+-fputc ftw fwrite getaddrinfo getenv getgrnam gethostbyaddr gethostbyname \
++fputc ftruncate ftw fwrite getaddrinfo getenv getgrnam gethostbyaddr gethostbyname \
+ gethostbyname_r getmntent getopt getpass getpwnam getservbyname getservbyport getusershell \
+-glob grent hasmntopt hello iconv if_nameindex ltostr malloc-debugger md5_testharness \
++glob grent hasmntopt hello iconv if_nameindex ltostr malloc-debugger math md5_testharness \
+ memccpy memchr memcmp memrchr memusage mktime mmap_test pipe printf printftest \
+-protoent prototypes putenv pwent rand48 read1 readdir regex select sendfile servent siglist \
+-speed spent sprintf sscanf stdarg strcasecmp strcmp strncat strncpy strptime strrchr \
+-strstr strtol sysenter ungetc utime waitpid
++protoent prototypes putenv pwent rand48 read1 readdir regex select sendfile servent setjmp siglist \
++sigsetjmp speed spent sprintf sscanf stdarg strcasecmp strcmp strncat strncpy strptime strrchr \
++strstr strtol sysconf sysenter ungetc utime waitpid
+ 
+ test: $(TESTPROGRAMS)
+ 
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/test/ftruncate.c
+@@ -0,0 +1,54 @@
++#define _GNU_SOURCE
++#define _XOPEN_SOURCE 600
++#define _FILE_OFFSET_BITS 64
++
++#include <stdlib.h>
++#include <fcntl.h>
++#include <assert.h>
++#include <unistd.h>
++#include <sys/stat.h>
++
++#define CHECK(_sz)				\
++  assert(ftruncate(fd, (_sz)) == 0);		\
++  assert(fstat(fd, &st) == 0);			\
++  assert(st.st_size == (_sz));			\
++
++#define CHECK64(_sz)				\
++  assert(ftruncate64(fd, (_sz)) == 0);		\
++  assert(fstat64(fd, &st64) == 0);		\
++  assert(st64.st_size == (_sz));		\
++
++int main(void)
++{
++  char file[] = "/tmp/dietlibc-fadvise-test.XXXXXX";
++  int fd;
++  struct stat st;
++
++  fd = mkstemp(file);
++  unlink(file);
++
++  assert(ftruncate(fd, 500000) == 0);
++  assert(fstat(fd, &st) == 0);
++
++  if (st.st_blocks > 1) {
++    /* spare files not supported by filesystem :( */
++    return EXIT_SUCCESS;
++  }
++
++  CHECK(1);
++  CHECK(0x7fffffff);
++
++#if __WORDSIZE == 32
++  {
++    struct stat64 st64;
++    CHECK64(1);
++    CHECK64(0x7fffffff);
++    CHECK64(0x80000001ul);
++    CHECK64(0x17fffffffull);
++  }
++#else
++  CHECK(0x17fffffffull);
++#endif
++
++  return EXIT_SUCCESS;
++}
+--- dietlibc-0.33~cvs20110710.orig/test/pipe.c
++++ dietlibc-0.33~cvs20110710/test/pipe.c
+@@ -5,6 +5,9 @@ int
+ main (void)
+ {
+ 	int fd[2];
++	close(3);
++	close(4);
++
+ 	assert (!pipe (fd));
+ 	/* if for some reason the parent process has fd3 or fd4
+ 	   already open, then this will fail although there is
+--- dietlibc-0.33~cvs20110710.orig/test/stdlib/testsort.c
++++ dietlibc-0.33~cvs20110710/test/stdlib/testsort.c
+@@ -1,3 +1,5 @@
++#define _BSD_SOURCE
++
+ #include <stdlib.h>
+ #include <string.h>
+ #include <stdio.h>
+--- dietlibc-0.33~cvs20110710.orig/test/stdlib/tst-malloc.c
++++ dietlibc-0.33~cvs20110710/test/stdlib/tst-malloc.c
+@@ -21,13 +21,15 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ 
++#include "../../dietfeatures.h"
++
+ static int errors = 0;
+ 
+ static void
+ merror (const char *msg)
+ {
+   ++errors;
+-  printf ("Error: %s\n", msg);
++  fprintf (stderr, "Error: %s\n", msg);
+ }
+ 
+ int
+@@ -56,9 +58,11 @@ main (void)
+   if (p != NULL)
+     merror ("realloc (p, 0) failed.");
+ 
++#ifdef WANT_MALLOC_ZERO
+   p = malloc (0);
+   if (p == NULL)
+     merror ("malloc (0) failed.");
++#endif
+ 
+   p = realloc (p, 0);
+   if (p != NULL)
+--- dietlibc-0.33~cvs20110710.orig/test/stdlib/tst-calloc.c
++++ dietlibc-0.33~cvs20110710/test/stdlib/tst-calloc.c
+@@ -17,6 +17,8 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
++#define _BSD_SOURCE
++
+ #include <errno.h>
+ #include <limits.h>
+ #include <malloc.h>
+--- dietlibc-0.33~cvs20110710.orig/test/stdlib/tst-strtod.c
++++ dietlibc-0.33~cvs20110710/test/stdlib/tst-strtod.c
+@@ -149,10 +149,10 @@ main (int argc, char ** argv)
+     }
+ 
+   const char input2[] = "+1.000000000116415321826934814453125";
+-  if (strtold (input2, NULL) != +1.000000000116415321826934814453125)
++  if (strtold (input2, NULL) != +1.000000000116415321826934814453125L)
+     {
+       printf ("input2: %La != %La\n", strtold (input2, NULL),
+-	      +1.000000000116415321826934814453125);
++	      +1.000000000116415321826934814453125L);
+       status = 1;
+     }
+ 
+--- dietlibc-0.33~cvs20110710.orig/x86_64/start.S
++++ dietlibc-0.33~cvs20110710/x86_64/start.S
+@@ -12,12 +12,28 @@ _start:
+ 	
+ 	leaq	8(%rsi,%rdi,8),%rdx	/* %rdx = envp = (8*rdi)+%rsi+8 */
+ 
++
++#ifdef WANT_ELFINFO
++#ifdef __DYN_LIB
++	movq	environ@GOTPCREL(%rip), %rax
++#else
++	leaq	environ(%rip), %rax
++#endif
++	movq	%rdx, (%rax)	/* environ */
++
++1:	add	$8, %rdx	/* increment envp */
++	cmpq	$0, -8(%rdx)	/* load envp[-1] */
++	jne	1b		/* ... until envp[-1]==NULL */
++
++	movq	%rdx, 8(%rax)	/* __elfinfo */
++#else
+ #ifdef __DYN_LIB
+ 	movq	environ@GOTPCREL(%rip), %rax
+ 	movq	%rdx, (%rax)
+ #else
+ 	movq	%rdx, environ(%rip)
+ #endif
++#endif
+ 
+ #ifdef PROFILING
+ 	pushq	%rdi			/* save reg args */
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/x86_64/__time.S
+@@ -0,0 +1,11 @@
++/* implement time(2) via gettimeofday(2) on x86-64 because gettimeofday
++   is a vsyscall (i.e. no actual switch to kernel mode) */
++.text
++.global time
++.type time,@function
++time:
++	mov	$0xffffffffff600400,%rax
++	call	*%rax
++	ret
++.Lhere:
++	.size	 time,.Lhere-time
+--- dietlibc-0.33~cvs20110710.orig/syscalls.s/environ.S
++++ dietlibc-0.33~cvs20110710/syscalls.s/environ.S
+@@ -1,6 +1,7 @@
+ .section ".bss"
+ .align 8
+ #include <endian.h>
++#include <dietfeatures.h>
+ 
+ .type environ,object
+ .weak environ
+@@ -15,3 +16,18 @@ environ:
+ #endif
+ .size environ,.-environ
+ .size __environ,.-__environ
++
++/* __elfinfo will be initialized in start.S to point to the
++   terminating NULL of the environment. */
++
++#ifdef WANT_ELFINFO
++.type __elfinfo,object
++.weak __elfinfo
++__elfinfo:
++#if __WORDSIZE == 64
++	.quad 0
++#else
++	.long 0
++#endif
++.size __elfinfo,.-__elfinfo
++#endif
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/powerpc/select.S
+@@ -0,0 +1,3 @@
++#include "syscalls.h"
++
++syscall_weak(_newselect,select,__libc_select)
+--- dietlibc-0.33~cvs20110710.orig/ppc64/start.S
++++ dietlibc-0.33~cvs20110710/ppc64/start.S
+@@ -58,6 +58,15 @@ _start:
+ 	oris	14,14,environ@ha
+ 	std	5,environ@l(14)
+ 
++#ifdef WANT_ELFINFO
++1:	ldu	15,0(5)
++	addi	5, 5, 8
++	cmpdi	15,0
++	bne	1b
++
++	std	5,__elfinfo@l(14)
++#endif
++
+ #ifdef WANT_DYNAMIC
+ /* #warning dynamic */
+ 	mr	6,7
+--- dietlibc-0.33~cvs20110710.orig/libcruft/mkstemp.c
++++ dietlibc-0.33~cvs20110710/libcruft/mkstemp.c
+@@ -1,3 +1,4 @@
++#define _FILE_OFFSET_BITS 64
+ #include <unistd.h>
+ #include <fcntl.h>
+ #include <string.h>
+--- dietlibc-0.33~cvs20110710.orig/libcruft/getpagesize.c
++++ dietlibc-0.33~cvs20110710/libcruft/getpagesize.c
+@@ -4,21 +4,23 @@
+ /* for environ: */
+ #include <stdlib.h>
+ 
+-#ifndef PAGE_SIZE
+-#define PAGE_SIZE 4096
+-#endif
++#include "../dietelfinfo.h"
++#include "../dietpagesize.h"
+ 
+ size_t __libc_getpagesize(void);
+ size_t __libc_getpagesize(void) {
+-  long* x=(long*)environ;
+-  int fd;
+-  while (*x) ++x; ++x;	/* skip envp to get to auxvec */
+-  while (*x) {
+-    if (*x==6)
+-      return x[1];
+-    x+=2;
++#ifdef WANT_DYN_PAGESIZE
++  static size_t	pgsz;
++
++  if (__unlikely(pgsz==0)) {
++    __diet_elf_addr_t const	*v = __get_elf_aux_value(AT_PAGESZ);
++    pgsz = *v;	/* causes segfault when 'v==NULL' */
+   }
+-  return PAGE_SIZE;
++
++  return pgsz;
++#else
++  return __DIET_PAGE_SIZE_PREDEF;
++#endif
+ }
+ 
+ size_t getpagesize(void)       __attribute__((weak,alias("__libc_getpagesize")));
+--- dietlibc-0.33~cvs20110710.orig/libcruft/sysconf.c
++++ dietlibc-0.33~cvs20110710/libcruft/sysconf.c
+@@ -6,6 +6,9 @@
+ #define _GNU_SOURCE
+ #include <sched.h>
+ 
++#include "dietelfinfo.h"
++#include "dietpagesize.h"
++
+ extern int __sc_nr_cpus();
+ 
+ static long physpages() {
+@@ -42,6 +45,14 @@ long sysconf(int name)
+       return limit.rlim_cur;
+     }
+   case _SC_CLK_TCK:
++#ifdef WANT_ELFINFO
++    {
++      __diet_elf_addr_t const	*v = __get_elf_aux_value(AT_CLKTCK);
++      if (v)
++	return *v;
++    }
++#endif
++
+ #ifdef __alpha__
+     return 1024;
+ #else
+@@ -49,11 +60,7 @@ long sysconf(int name)
+ #endif
+ 
+   case _SC_PAGESIZE:
+-#if ( defined(__alpha__) || defined(__sparc__) )
+-    return 8192;
+-#else
+-    return 4096;
+-#endif
++    return __libc_getpagesize();
+ 
+   case _SC_PHYS_PAGES:
+     return physpages();
+--- dietlibc-0.33~cvs20110710.orig/lib/opendir.c
++++ dietlibc-0.33~cvs20110710/lib/opendir.c
+@@ -5,6 +5,8 @@
+ #include <stdlib.h>
+ #include <fcntl.h>
+ 
++#include "../dietpagesize.h"
++
+ DIR*  opendir ( const char* name ) {
+   int   fd = open (name, O_RDONLY | O_DIRECTORY);
+   DIR*  t  = NULL;
+@@ -12,7 +14,7 @@ DIR*  opendir ( const char* name ) {
+   if ( fd >= 0 ) {
+     if (fcntl (fd, F_SETFD, FD_CLOEXEC) < 0)
+       goto lose;
+-    t = (DIR *) mmap (NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, 
++    t = (DIR *) mmap (NULL, __DIET_PAGE_SIZE, PROT_READ | PROT_WRITE,
+ 		MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+     if (t == MAP_FAILED)
+ lose:
+--- dietlibc-0.33~cvs20110710.orig/lib/__utime.c
++++ dietlibc-0.33~cvs20110710/lib/__utime.c
+@@ -1,7 +1,10 @@
+-#include <utime.h>
+ #include <syscalls.h>
+ 
+ #ifndef __NR_utime
++#define _BSD_SOURCE
++#include <utime.h>
++#include <sys/time.h>
++
+ int utime(const char *filename, const struct utimbuf *times)
+ {
+   if (times == NULL)
+--- dietlibc-0.33~cvs20110710.orig/lib/alloc.c
++++ dietlibc-0.33~cvs20110710/lib/alloc.c
+@@ -18,8 +18,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
+-#include <sys/shm.h>	/* for PAGE_SIZE */
+-
++#include "../dietpagesize.h"
+ 
+ /* -- HELPER CODE --------------------------------------------------------- */
+ 
+@@ -39,7 +38,7 @@ typedef struct {
+ #define BLOCK_START(b)	(((void*)(b))-sizeof(__alloc_t))
+ #define BLOCK_RET(b)	(((void*)(b))+sizeof(__alloc_t))
+ 
+-#define MEM_BLOCK_SIZE	PAGE_SIZE
++#define MEM_BLOCK_SIZE	__DIET_PAGE_SIZE
+ #define PAGE_ALIGN(s)	(((s)+MEM_BLOCK_SIZE-1)&(unsigned long)(~(MEM_BLOCK_SIZE-1)))
+ 
+ /* a simple mmap :) */
+@@ -66,7 +65,9 @@ static __alloc_t* __small_mem[8];
+ 
+ #define FIRST_SMALL(p)		(((unsigned long)(p))&(~(MEM_BLOCK_SIZE-1)))
+ 
+-static inline int __ind_shift() { return (MEM_BLOCK_SIZE==4096)?4:5; }
++static inline int __ind_shift() {
++	return __DIET_PAGE_SHIFT - sizeof(__small_mem)/sizeof(__small_mem[0]);
++}
+ 
+ static size_t REGPARM(1) get_index(size_t _size) {
+   register size_t idx=0;
+--- dietlibc-0.33~cvs20110710.orig/lib/mmap64.c
++++ dietlibc-0.33~cvs20110710/lib/mmap64.c
+@@ -4,16 +4,18 @@
+ #include <syscalls.h>
+ #include <errno.h>
+ 
++#include "../dietpagesize.h"
++
+ #ifdef __NR_mmap2
+ void*__mmap2(void*start,size_t length,int prot,int flags,int fd,off_t pgoffset);
+ 
+ void*__libc_mmap64(void*addr,size_t len,int prot,int flags,int fd,off64_t offset);
+ void*__libc_mmap64(void*addr,size_t len,int prot,int flags,int fd,off64_t offset) {
+-  if (offset&(PAGE_SIZE-1)) {
++  if (offset&(__DIET_PAGE_SIZE)) {
+     errno=-EINVAL;
+     return MAP_FAILED;
+   }
+-  return __mmap2(addr,len,prot,flags,fd,offset>>PAGE_SHIFT);
++  return __mmap2(addr,len,prot,flags,fd,offset>>__DIET_PAGE_SHIFT);
+ }
+ 
+ void*mmap64(void*addr,size_t len,int prot,int flags,int fd,off64_t offset)
+--- dietlibc-0.33~cvs20110710.orig/lib/__dtostr.c
++++ dietlibc-0.33~cvs20110710/lib/__dtostr.c
+@@ -5,13 +5,15 @@
+ 
+ static int copystring(char* buf,int maxlen, const char* s) {
+   int i;
+-  for (i=0; i<3&&i<maxlen; ++i)
++  for (i=0; i<maxlen; ++i) {
+     buf[i]=s[i];
+-  if (i<maxlen) { buf[i]=0; ++i; }
++    if (!s[i])
++      break;
++  }
+   return i;
+ }
+ 
+-int __dtostr(double d,char *buf,unsigned int maxlen,unsigned int prec,unsigned int prec2,int g) {
++int __dtostr(double d,char *buf,unsigned int maxlen,unsigned int prec,unsigned int prec2,int flags) {
+ #if 1
+   union {
+     unsigned long long l;
+@@ -35,8 +37,12 @@ int __dtostr(double d,char *buf,unsigned
+   double tmp;
+   char *oldbuf=buf;
+ 
+-  if ((i=isinf(d))) return copystring(buf,maxlen,i>0?"inf":"-inf");
+-  if (isnan(d)) return copystring(buf,maxlen,"nan");
++  if (isinf(d))
++    return copystring(buf,maxlen,
++		      (d<0)?
++		      (flags&0x02?"-INF":"-inf"):
++		      (flags&0x02?"INF":"inf"));
++  if (isnan(d)) return copystring(buf,maxlen,flags&0x02?"NAN":"nan");
+   e10=1+(long)(e*0.30102999566398119802); /* log10(2) */
+   /* Wir iterieren von Links bis wir bei 0 sind oder maxlen erreicht
+    * ist.  Wenn maxlen erreicht ist, machen wir das nochmal in
+@@ -126,7 +132,7 @@ int __dtostr(double d,char *buf,unsigned
+   if (prec2 || prec>(unsigned int)(buf-oldbuf)+1) {	/* more digits wanted */
+     if (!maxlen) return 0; --maxlen;
+     *buf='.'; ++buf;
+-    if (g) {
++    if ((flags & 0x01)) {
+       if (prec2) prec=prec2;
+       prec-=buf-oldbuf-1;
+     } else {
+--- dietlibc-0.33~cvs20110710.orig/lib/stackgap.c
++++ dietlibc-0.33~cvs20110710/lib/stackgap.c
+@@ -16,6 +16,7 @@
+ #include <elf.h>
+ #include <stdlib.h>
+ #include "dietfeatures.h"
++#include "dietelfinfo.h"
+ 
+ #ifdef WANT_GNU_STARTUP_BLOAT
+ char* program_invocation_name;
+@@ -48,11 +49,12 @@ void* __tdataptr;
+ 
+ static void findtlsdata(long* auxvec) {
+ #if (__WORDSIZE == 64)
+-  Elf64_Phdr* x=0;
++  Elf64_Phdr const * x=0;
+ #else
+-  Elf32_Phdr* x=0;
++  Elf32_Phdr const * x=0;
+ #endif
+   size_t i,n=0;
++#ifndef WANT_ELFINFO
+   while (*auxvec) {
+     if (auxvec[0]==3) {	/* AT_PHDR */
+       x=(void*)auxvec[1];
+@@ -63,6 +65,18 @@ static void findtlsdata(long* auxvec) {
+     }
+     auxvec+=2;
+   } /* if we don't find the entry, the kernel let us down */
++#else
++  {
++    __diet_elf_addr_t const	*x_addr = __get_elf_aux_value(AT_PHDR);
++    __diet_elf_addr_t const	*n_addr = __get_elf_aux_value(AT_PHNUM);
++
++    (void)auxvec;
++    if (x_addr)
++      x = (__typeof__(x)) *x_addr;
++    if (n_addr)
++      n = *n_addr;
++  }
++#endif
+   if (!x || !n) return;	/* a kernel this old does not support thread local storage anyway */
+   for (i=0; i<n; ++i)
+     if (x[i].p_type==PT_TLS) {
+@@ -123,6 +137,7 @@ void __setup_tls(tcbhead_t* mainthread)
+ }
+ #endif
+ 
++#ifndef WANT_ELFINFO
+ static void* find_rand(long* x) {
+   while (*x) {
+     if (*x==25)
+@@ -131,20 +146,30 @@ static void* find_rand(long* x) {
+   }
+   return NULL;
+ }
++#endif
+ 
+ int stackgap(int argc,char* argv[],char* envp[]);
+ int stackgap(int argc,char* argv[],char* envp[]) {
+ #if defined(WANT_STACKGAP) || defined(WANT_SSP) || defined(WANT_TLS)
+-  long* auxvec=(long*)envp;
+   char* rand;
+   char* tlsdata;
++#ifndef WANT_ELFINFO
++  long* auxvec=(long*)envp;
+   while (*auxvec) ++auxvec; ++auxvec;	/* skip envp to get to auxvec */
++#endif
+ #ifdef WANT_STACKGAP
+   unsigned short s;
++  volatile char* gap;
+ #endif
+ #if defined(WANT_STACKGAP) || defined(WANT_SSP)
+-  volatile char* gap;
++#ifndef WANT_ELFINFO
+   rand=find_rand(auxvec);
++#else
++  {
++    __diet_elf_addr_t const	*rand_addr = __get_elf_aux_value(25);
++    rand = rand_addr ? (void *)*rand_addr : NULL;
++  }
++#endif
+   if (!rand) {
+     char myrand[10];
+     int fd=open("/dev/urandom",O_RDONLY);
+@@ -165,7 +190,11 @@ int stackgap(int argc,char* argv[],char*
+ #endif
+ 
+ #ifdef WANT_TLS
++#ifndef WANT_ELFINFO
+   findtlsdata(auxvec);
++#else
++  findtlsdata(NULL);
++#endif
+   if (__unlikely(__tmemsize+sizeof(tcbhead_t)<sizeof(tcbhead_t)) ||
+       __unlikely(__tmemsize>512*1024*1024) ||
+       __unlikely(__tmemsize<__tdatasize))
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/lib/__get_elf_aux_value.c
+@@ -0,0 +1,19 @@
++#include "dietfeatures.h"
++
++#ifdef WANT_ELFINFO
++#include <stdlib.h>
++#include "../dietelfinfo.h"
++
++__diet_elf_addr_t const *__get_elf_aux_value(unsigned int tag)
++{
++  extern __diet_elf_addr_t const * const	__elfinfo;
++  __diet_elf_addr_t const			*aux_ptr;
++
++  for (aux_ptr = __elfinfo; aux_ptr[0]!=AT_NULL; aux_ptr += 2)
++    if (aux_ptr[0]==tag)
++      return aux_ptr+1;
++
++  return NULL;
++}
++
++#endif
+--- dietlibc-0.33~cvs20110710.orig/lib/closedir.c
++++ dietlibc-0.33~cvs20110710/lib/closedir.c
+@@ -4,8 +4,10 @@
+ #include <dirent.h>
+ #include <stdlib.h>
+ 
++#include "../dietpagesize.h"
++
+ int closedir (DIR* d) {
+   int res=close(d->fd);
+-  munmap (d, PAGE_SIZE);
++  munmap (d, __DIET_PAGE_SIZE);
+   return res;
+ }
+--- dietlibc-0.33~cvs20110710.orig/lib/__v_printf.c
++++ dietlibc-0.33~cvs20110710/lib/__v_printf.c
+@@ -4,6 +4,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <errno.h>
++#include <math.h>
+ #include "dietstdio.h"
+ #include "dietwarning.h"
+ 
+@@ -346,45 +347,49 @@ num_printf:
+ #ifdef WANT_FLOATING_POINT_IN_PRINTF
+       /* print a floating point value */
+       case 'f':
++      case 'F':
+       case 'g':
++      case 'G':
+ 	{
+-	  int g=(ch=='g');
++	  int flags=(((ch&0x5f)=='G') ? 0x01 : 0x00) | ((ch&0x20) ? 0x00 : 0x02);
+ 	  double d=va_arg(arg_ptr,double);
+ 	  s=buf+1;
+ 	  if (width==0) width=1;
+ 	  if (!flag_dot) preci=6;
+ 	  if (flag_sign || d < +0.0) flag_in_sign=1;
+ 
+-	  sz=__dtostr(d,s,sizeof(buf)-1,width,preci,g);
++	  sz=__dtostr(d,s,sizeof(buf)-1,width,preci,flags);
+ 
+-	  if (flag_dot) {
+-	    char *tmp;
+-	    if ((tmp=strchr(s,'.'))) {
+-	      if (preci || flag_hash) ++tmp;
+-	      while (preci>0 && *++tmp) --preci;
+-	      *tmp=0;
+-	    } else if (flag_hash) {
+-	      s[sz]='.';
+-	      s[++sz]='\0';
++	  if (!isnan(d) && !isinf(d)) {		/* skip NaN + INF values */
++	    if (flag_dot) {
++	      char *tmp;
++	      if ((tmp=strchr(s,'.'))) {
++		if (preci || flag_hash) ++tmp;
++		while (preci>0 && *++tmp) --preci;
++		*tmp=0;
++	      } else if (flag_hash) {
++		s[sz]='.';
++		s[++sz]='\0';
++	      }
+ 	    }
+-	  }
+ 
+-	  if (g) {
+-	    char *tmp,*tmp1;	/* boy, is _this_ ugly! */
+-	    if ((tmp=strchr(s,'.'))) {
+-	      tmp1=strchr(tmp,'e');
+-	      while (*tmp) ++tmp;
+-	      if (tmp1) tmp=tmp1;
+-	      while (*--tmp=='0') ;
+-	      if (*tmp!='.') ++tmp;
+-	      *tmp=0;
+-	      if (tmp1) strcpy(tmp,tmp1);
++	    if ((flags&0x01)) {
++	      char *tmp,*tmp1;	/* boy, is _this_ ugly! */
++	      if ((tmp=strchr(s,'.'))) {
++		tmp1=strchr(tmp,'e');
++		while (*tmp) ++tmp;
++		if (tmp1) tmp=tmp1;
++		while (*--tmp=='0') ;
++		if (*tmp!='.') ++tmp;
++		*tmp=0;
++		if (tmp1) strcpy(tmp,tmp1);
++	      }
+ 	    }
+-	  }
+ 	  
+-	  if ((flag_sign || flag_space) && d>=0) {
+-	    *(--s)=(flag_sign)?'+':' ';
+-	    ++sz;
++	    if ((flag_sign || flag_space) && d>=0) {
++	      *(--s)=(flag_sign)?'+':' ';
++	      ++sz;
++	    }
+ 	  }
+ 	  
+ 	  sz=strlen(s);
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/ia64/__pause.c
+@@ -0,0 +1,10 @@
++#include <unistd.h>
++#include <signal.h>
++
++int pause(void)
++{
++  sigset_t set;
++  sigemptyset(&set);
++  sigprocmask(SIG_BLOCK, NULL, &set);
++  return sigsuspend(&set);
++}
+--- dietlibc-0.33~cvs20110710.orig/ia64/start.S
++++ dietlibc-0.33~cvs20110710/ia64/start.S
+@@ -40,6 +40,16 @@ _start:
+ 	;;
+ 	st8  [r14] = out2           /* store envp in environ */
+ 
++#ifdef WANT_ELFINFO
++#  warning "MAKE ME IE64 CODE!"
++1:	ld8	r9 = [out2], 8	    /* load *envp and increment it */
++	orr	r9 = r9, r9	    /* test for NULL */
++	bne	1b
++
++	adds r14 = 8, r14	    /* __elfinfo = environ + 8 */
++	st8  [r14] = out2           /* store envp in __elfinfo */
++#endif
++
+ #ifdef WANT_DYNAMIC
+ /* FIXME: dl_init parameter ??? */
+ 	br.call.sptk.few rp = _dyn_start
+--- dietlibc-0.33~cvs20110710.orig/ia64/clone.S
++++ dietlibc-0.33~cvs20110710/ia64/clone.S
+@@ -43,4 +43,5 @@ __clone:
+ 	br.call.dptk.few b0=__error_unified_syscall
+ 	br.ret.sptk.few b0
+ .endp __clone
++.endp __clone2
+ .size __clone, . - __clone
+--- dietlibc-0.33~cvs20110710.orig/ia64/unified.S
++++ dietlibc-0.33~cvs20110710/ia64/unified.S
+@@ -16,9 +16,7 @@
+ .text
+ 
+ .globl __unified_syscall
+-.proc  __unified_syscall
+ .globl __error_unified_syscall
+-.proc  __error_unified_syscall
+ .globl _exit
+ .proc  _exit
+ 
+@@ -27,11 +25,18 @@ _exit:
+ .endp _exit
+ .size _exit, . - _exit
+ 
++.proc  __unified_syscall
++
+ __unified_syscall:
+ 	break.i 0x100000
+ 	movl r2=errno
+ 	cmp.eq p6,p0=-1,r10
+ 	;;
++.endp __unified_syscall
++.size __unified_syscall, . - __unified_syscall
++
++.proc  __error_unified_syscall
++
+ __error_unified_syscall:
+ (p6)    st4 [r2]=r8
+ (p6)    mov r8=-1
+@@ -40,5 +45,5 @@ __error_unified_syscall:
+ 
+ 	br.ret.sptk.few rp
+ 
+-.size __unified_syscall, __error_unified_syscall - __unified_syscall
++.endp __error_unified_syscall
+ .size __error_unified_syscall, . - __error_unified_syscall
+--- dietlibc-0.33~cvs20110710.orig/ia64/Makefile.add
++++ dietlibc-0.33~cvs20110710/ia64/Makefile.add
+@@ -1,2 +1,2 @@
+ VPATH:=ia64:syscalls.s:$(VPATH)
+-LIBOBJ+=$(OBJDIR)/__time.o $(OBJDIR)/__waitpid.o $(OBJDIR)/__nice.o $(OBJDIR)/__alarm.o $(OBJDIR)/umount-wrapper.o
++LIBOBJ+=$(OBJDIR)/__time.o $(OBJDIR)/__waitpid.o $(OBJDIR)/__nice.o $(OBJDIR)/__alarm.o $(OBJDIR)/umount-wrapper.o $(OBJDIR)/__pause.o
+--- dietlibc-0.33~cvs20110710.orig/sparc64/start.S
++++ dietlibc-0.33~cvs20110710/sparc64/start.S
+@@ -25,6 +25,17 @@ _start:
+ 	or	%o3, %lo(environ), %o3
+ 	stx	%o2, [%o3]
+ 
++#ifdef WANT_ELFINFO
++#  warning "VERIFY ME!"
++1:	add	%o2, %o2, 8
++	ldx	[%o2-8], %o4
++	orcc	%o4, %o4, %o4
++	bne	1b
++
++	add	%o3, %o3, 8
++	stx	%o2, [%o3]
++#endif
++
+ /* When starting a binary via the dynamic linker, %g1 contains the
+    address of the shared library termination function, which will be
+    registered with atexit(). If we are statically linked, this will
+--- dietlibc-0.33~cvs20110710.orig/libugly/strftime.c
++++ dietlibc-0.33~cvs20110710/libugly/strftime.c
+@@ -55,6 +55,7 @@ again:
+ 	    case 'x': src = "%b %a %d";   			 goto _strf;
+ 	    case 'X': src = "%k:%M:%S";   			 goto _strf;
+ 	    case 'D': src = "%m/%d/%y";   			 goto _strf;
++	    case 'F': src = "%Y-%m-%d";				 goto _strf;
+ 	    case 'T': src = "%H:%M:%S";
+ 	       _strf: p  += strftime (p, (size_t)(dst+max-p), src, tm); 	 break;
+ 	    case 'a': src = sweekdays [tm->tm_wday]; 		 goto _str;
+--- /dev/null
++++ dietlibc-0.33~cvs20110710/powerpc64/select.S
+@@ -0,0 +1,3 @@
++#include "syscalls.h"
++
++syscall_weak(_newselect,select,__libc_select)
+--- dietlibc-0.33~cvs20110710.orig/librpc/clnt_raw.c
++++ dietlibc-0.33~cvs20110710/librpc/clnt_raw.c
+@@ -53,7 +53,10 @@ static struct clntraw_private {
+ 	CLIENT client_object;
+ 	XDR xdr_stream;
+ 	char _raw_buf[UDPMSGSIZE];
+-	char mashl_callmsg[MCALL_MSG_SIZE];
++	union {
++		struct rpc_msg	msg;
++		char buf[MCALL_MSG_SIZE];
++	} mashl_call;
+ 	unsigned int mcnt;
+ } *clntraw_private;
+ 
+@@ -101,7 +104,7 @@ unsigned long vers;
+ 	call_msg.rm_call.cb_rpcvers = RPC_MSG_VERSION;
+ 	call_msg.rm_call.cb_prog = prog;
+ 	call_msg.rm_call.cb_vers = vers;
+-	xdrmem_create(xdrs, clp->mashl_callmsg, MCALL_MSG_SIZE, XDR_ENCODE);
++	xdrmem_create(xdrs, clp->mashl_call.buf, MCALL_MSG_SIZE, XDR_ENCODE);
+ 	if (!xdr_callhdr(xdrs, &call_msg)) {
+ 		perror("clnt_raw.c - Fatal header serialization error.");
+ 	}
+@@ -145,8 +148,8 @@ struct timeval timeout;
+ 	 */
+ 	xdrs->x_op = XDR_ENCODE;
+ 	XDR_SETPOS(xdrs, 0);
+-	((struct rpc_msg *) clp->mashl_callmsg)->rm_xid++;
+-	if ((!XDR_PUTBYTES(xdrs, clp->mashl_callmsg, clp->mcnt)) ||
++	clp->mashl_call.msg.rm_xid++;
++	if ((!XDR_PUTBYTES(xdrs, clp->mashl_call.buf, clp->mcnt)) ||
+ 		(!XDR_PUTLONG(xdrs, (long *) &proc)) ||
+ 		(!AUTH_MARSHALL(h->cl_auth, xdrs)) || (!(*xargs) (xdrs, argsp))) {
+ 		return (RPC_CANTENCODEARGS);
+--- dietlibc-0.33~cvs20110710.orig/lib/readdir.c
++++ dietlibc-0.33~cvs20110710/lib/readdir.c
+@@ -5,7 +5,7 @@
+ 
+ struct dirent* readdir(DIR *d) {
+   if (!d->num || (d->cur += ((struct dirent*)(d->buf+d->cur))->d_reclen)>=d->num) {
+-    int res=getdents(d->fd,(struct dirent*)d->buf,sizeof (d->buf)-1);
++    int res=getdents(d->fd,(struct dirent*)d->buf,__DIRSTREAM_BUF_SIZE-1);
+     if (res<=0) return 0;
+     d->num=res; d->cur=0;
+   }
+--- dietlibc-0.33~cvs20110710.orig/lib/readdir64.c
++++ dietlibc-0.33~cvs20110710/lib/readdir64.c
+@@ -14,7 +14,7 @@
+ #ifndef WANT_LARGEFILE_BACKCOMPAT
+ struct dirent64* readdir64(DIR *d) {
+   if (!d->num || (d->cur += ((struct dirent64*)(d->buf+d->cur))->d_reclen)>=d->num) {
+-    int res=getdents64(d->fd,(struct dirent64*)d->buf, sizeof (d->buf)-1);
++    int res=getdents64(d->fd,(struct dirent64*)d->buf, __DIRSTREAM_BUF_SIZE-1);
+     if (res<=0) return 0;
+     d->num=res; d->cur=0;
+   }
+@@ -32,7 +32,7 @@ again:
+   if (!trygetdents64) {
+ #endif
+     if (!d->num || (d->cur += ((struct dirent*)(d->buf+d->cur))->d_reclen)>=d->num) {
+-      int res=getdents(d->fd,(struct dirent*)d->buf, sizeof (d->buf)-1);
++      int res=getdents(d->fd,(struct dirent*)d->buf, __DIRSTREAM_BUF_SIZE-1);
+       if (res<=0) return 0;
+       d->num=res; d->cur=0;
+     }
+@@ -46,7 +46,7 @@ again:
+ #ifdef __NR_getdents64
+   }
+   if (!d->num || (d->cur += ((struct dirent64*)(d->buf+d->cur))->d_reclen)>=d->num) {
+-    int res=getdents64(d->fd,(struct dirent64*)d->buf,sizeof (d->buf));
++    int res=getdents64(d->fd,(struct dirent64*)d->buf,__DIRSTREAM_BUF_SIZE);
+     if (res<=0) {
+       if (errno==ENOSYS) {
+ 	trygetdents64=0;

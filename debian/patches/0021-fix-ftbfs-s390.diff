@@ -25,9 +25,11 @@ Forwarded: <no|not-needed|url proving that it has been forwarded>
 Reviewed-By: <name and email of someone who approved the patch>
 Last-Update: <YYYY-MM-DD>
 
---- dietlibc-0.33~cvs20110710.orig/s390/setjmp.S
-+++ dietlibc-0.33~cvs20110710/s390/setjmp.S
-@@ -14,6 +14,7 @@ __setjmp:
+Index: dietlibc-0.33~cvs20110918/s390/setjmp.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/s390/setjmp.S	2011-09-18 13:56:11.000000000 +0200
++++ dietlibc-0.33~cvs20110918/s390/setjmp.S	2011-09-18 13:56:41.000000000 +0200
+@@ -14,6 +14,7 @@
  
  .global _setjmp
  .type	_setjmp,@function
@@ -35,14 +37,15 @@ Last-Update: <YYYY-MM-DD>
  	lhi	%r3,0
  .size	_setjmp,.-_setjmp
  
---- dietlibc-0.33~cvs20110710.orig/diet.c
-+++ dietlibc-0.33~cvs20110710/diet.c
-@@ -29,7 +29,7 @@ static const char* Os[] = {
- 	 "-falign-functions=1","-falign-jumps=1",
- 	 "-falign-loops=1","-fomit-frame-pointer",0,
-   "x86_64","-Os",0,
--  "sparc","-Os","-mcpu=v9",0,
-+  "sparc","-Os","-mcpu=supersparc",0,
-   "sparc64","-Os","-m64","-mhard-quad-float",0,
-   "alpha","-Os","-fomit-frame-pointer",0,
-   "arm","-Os","-fomit-frame-pointer",0,
+Index: dietlibc-0.33~cvs20110918/s390x/setjmp.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/s390x/setjmp.S	2011-09-18 13:56:26.000000000 +0200
++++ dietlibc-0.33~cvs20110918/s390x/setjmp.S	2011-09-18 13:57:04.000000000 +0200
+@@ -14,6 +14,7 @@
+ 
+ .global _setjmp
+ .type	_setjmp,@function
++_setjmp:
+ 	lhi	%r3,0
+ .size	_setjmp,.-_setjmp
+ 

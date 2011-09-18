@@ -1,17 +1,26 @@
+dietlibc (0.33~cvs20110918-1) experimental; urgency=low
+
+  [ Hector Oron ]
+  * Update to cvs20110918. 
+    - Fixes memchr('\0') (Closes: #582654)
+
+  [ Thorsten Glaser ]
+  * d/control: mention dynamic linking is currently disabled
+
+ -- Hector Oron <zumbi@debian.org>  Sun, 18 Sep 2011 10:33:12 +0200
+
 dietlibc (0.33~cvs20110710-2) experimental; urgency=low
 
   [ Hector Oron ]
   * Fix build for ARMv7 arches.
-  * Fix FTBFS on s390.
-  * Drop 0015-arm-soft-and-hard-support.diff
+  * Fix FTBFS on s390. 
+  * Drop 0015-arm-soft-and-hard-support.diff 
 
   [ Thorsten Glaser ]
   * d/diff/0017-disable-propolice: fix FTBFS on SSP-by-default gcc
   * d/diff/0018-manpage: fix manpage
-  * d/control, d/copyright: plug more lintian warnings
-  * d/control: mention dynamic linking is currently disabled
 
- -- Hector Oron <zumbi@debian.org>  Sat, 17 Sep 2011 19:41:53 +0100
+ -- Hector Oron <zumbi@debian.org>  Sat, 17 Sep 2011 13:09:44 +0100
 
 dietlibc (0.33~cvs20110710-1) experimental; urgency=low
 
