@@ -1,3 +1,12 @@
+dietlibc (0.33~cvs20110918-3) unstable; urgency=low
+
+  [ Thorsten Glaser ]
+  * d/control: do not Recommend or Suggest the dietlibc package
+    which is currently not built for any architecture
+  * d/control: move homepage link from Description into its header
+
+ -- Hector Oron <zumbi@debian.org>  Thu, 06 Oct 2011 13:51:39 +0100
+
 dietlibc (0.33~cvs20110918-2) unstable; urgency=low
 
   * d/patches/fix-ppc64-ftbfs.diff: Fix FTBFS (Closes: #644405)
