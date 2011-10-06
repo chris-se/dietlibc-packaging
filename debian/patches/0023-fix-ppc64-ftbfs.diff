@@ -1,0 +1,38 @@
+Description: Upstream changes introduced in version 0.33~cvs20110918-2
+ This patch has been created by dpkg-source during the package build.
+ Here's the last changelog entry, hopefully it gives details on why
+ those changes were made:
+ .
+ dietlibc (0.33~cvs20110918-2) unstable; urgency=low
+ .
+   * d/patches/fix-ppc64.patch: Fix FTBFS (Closes: #644405)
+     - Thanks Hiroyuki Yamamoto for the fix
+ .
+ The person named in the Author field signed this changelog entry.
+Author: Hector Oron <zumbi@debian.org>
+Bug-Debian: http://bugs.debian.org/644405
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: http://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- dietlibc-0.33~cvs20110918.orig/ppc64/start.S
++++ dietlibc-0.33~cvs20110918/ppc64/start.S
+@@ -78,7 +78,7 @@ _start:
+ 	.ascii "_start"
+ .LT_start_name_end:
+ 	.align 2
+-	.size _start,.-_start
++	.size ._start,.-._start
+ 
+ /* Define a symbol for the first piece of initialized data.  */
+ 	.section ".data"
