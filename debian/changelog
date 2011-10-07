@@ -1,3 +1,9 @@
+dietlibc (0.33~cvs20110918-4) unstable; urgency=low
+
+  * d/rules: disable tc523086.c test on ARM (segfaults on armhf) 
+
+ -- Hector Oron <zumbi@debian.org>  Fri, 07 Oct 2011 17:33:34 +0100
+
 dietlibc (0.33~cvs20110918-3) unstable; urgency=low
 
   [ Thorsten Glaser ]

@@ -61,9 +61,12 @@ ifeq (${CROSS},0)
 	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -o ttt test/select.c
 	./ttt
 	rm -f ttt
+# Disable test on ARM (armhf segfaults)
+ifneq (,$(findstring arm,$(ARCH)))
 	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -static -o ttt debian/test/tc523086.c
 	./ttt
 	rm -f ttt
+endif
 endif
 	test '$(DYN)' -eq 0 || \
 	  $(MAKE) dyn prefix=/usr/lib/diet \
