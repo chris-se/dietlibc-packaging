@@ -17,33 +17,27 @@ when linking. This can be seen in the ccontrol build log:
  create mode 100644 parisc/semget.S
  create mode 100644 parisc/semop.S
 
-diff --git a/parisc/semctl.S b/parisc/semctl.S
-new file mode 100644
-index 0000000..e215ed9
---- /dev/null
-+++ b/parisc/semctl.S
+Index: dietlibc-0.33~cvs20110918/parisc/semctl.S
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ dietlibc-0.33~cvs20110918/parisc/semctl.S	2011-11-03 21:51:56.000000000 +0100
 @@ -0,0 +1,3 @@
 +#include "syscalls.h"
 +
 +syscall(semctl,semctl)
-diff --git a/parisc/semget.S b/parisc/semget.S
-new file mode 100644
-index 0000000..67f4885
---- /dev/null
-+++ b/parisc/semget.S
+Index: dietlibc-0.33~cvs20110918/parisc/semget.S
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ dietlibc-0.33~cvs20110918/parisc/semget.S	2011-11-03 21:51:56.000000000 +0100
 @@ -0,0 +1,3 @@
 +#include "syscalls.h"
 +
 +syscall(semget,semget)
-diff --git a/parisc/semop.S b/parisc/semop.S
-new file mode 100644
-index 0000000..81b6fc6
---- /dev/null
-+++ b/parisc/semop.S
+Index: dietlibc-0.33~cvs20110918/parisc/semop.S
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ dietlibc-0.33~cvs20110918/parisc/semop.S	2011-11-03 21:51:56.000000000 +0100
 @@ -0,0 +1,3 @@
 +#include "syscalls.h"
 +
 +syscall(semop,semop)
--- 
-1.7.0.3
-

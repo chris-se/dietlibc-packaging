@@ -1,8 +1,10 @@
 Description: fix errors in the manpage
 Author: Thorsten Glaser
 
---- a/diet.1	Tue Mar  8 20:01:09 2011
-+++ b/diet.1	Fri Sep 16 18:33:22 2011
+Index: dietlibc-0.33~cvs20110918/diet.1
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/diet.1	2011-09-16 20:34:24.000000000 +0200
++++ dietlibc-0.33~cvs20110918/diet.1	2011-11-03 21:52:18.000000000 +0100
 @@ -4,7 +4,7 @@
  diet \- mangle gcc command line arguments
  .SH SYNOPSIS
@@ -12,7 +14,7 @@ Author: Thorsten Glaser
  [\fInormal gcc command line\fP]
  .SH DESCRIPTION
  .PP
-@@ -13,19 +13,19 @@ line you specify and try to mangle it so
+@@ -13,19 +13,19 @@
  the diet libc header files and link against the diet libc itself.
  
  diet tries to be smart for cross compiling.  If the first argument is

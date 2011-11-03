@@ -32,11 +32,11 @@ order to fix this. A patch to do so is attached.
  Makefile |    6 +++---
  1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index ddfd34b..e057168 100644
---- a/Makefile
-+++ b/Makefile
-@@ -86,7 +86,7 @@ endif
+Index: dietlibc-0.33~cvs20110918/Makefile
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/Makefile	2011-11-03 21:33:56.000000000 +0100
++++ dietlibc-0.33~cvs20110918/Makefile	2011-11-03 21:51:49.000000000 +0100
+@@ -86,7 +86,7 @@
  OBJDIR=bin-$(ARCH)
  ILIBDIR=$(LIBDIR)-$(ARCH)
  
@@ -45,7 +45,7 @@ index ddfd34b..e057168 100644
  
  WHAT=	$(OBJDIR) $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o $(OBJDIR)/dyn_stop.o \
  	$(OBJDIR)/dietlibc.a $(OBJDIR)/liblatin1.a \
-@@ -309,7 +309,7 @@ VERSION=dietlibc-$(shell head -n 1 CHANGES|sed 's/://')
+@@ -309,7 +309,7 @@
  CURNAME=$(notdir $(shell pwd))
  
  $(OBJDIR)/diet: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietlibc.a $(OBJDIR)/dyn_stop.o
@@ -54,7 +54,7 @@ index ddfd34b..e057168 100644
  	$(CROSS)strip -R .comment -R .note $@
  
  $(OBJDIR)/diet-i: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietlibc.a $(OBJDIR)/dyn_stop.o
-@@ -317,7 +317,7 @@ $(OBJDIR)/diet-i: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietl
+@@ -317,7 +317,7 @@
  	$(CROSS)strip -R .comment -R .note $@
  
  $(PICODIR)/diet-dyn: $(PICODIR)/start.o $(PICODIR)/dyn_start.o diet.c
@@ -63,6 +63,3 @@ index ddfd34b..e057168 100644
  	$(CROSS)strip -R .command -R .note $@
  
  $(PICODIR)/diet-dyn-i: $(PICODIR)/start.o $(PICODIR)/dyn_start.o diet.c
--- 
-1.7.0.3
-

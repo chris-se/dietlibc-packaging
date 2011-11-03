@@ -8,11 +8,11 @@ See http://bugs.debian.org/346437
  libstdio/fflush.c |    1 -
  1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/libstdio/fflush.c b/libstdio/fflush.c
-index 9d4f8e7..86739eb 100644
---- a/libstdio/fflush.c
-+++ b/libstdio/fflush.c
-@@ -17,7 +17,6 @@ int fflush_unlocked(FILE *stream) {
+Index: dietlibc-0.33~cvs20110918/libstdio/fflush.c
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/libstdio/fflush.c	2011-09-16 20:34:24.000000000 +0200
++++ dietlibc-0.33~cvs20110918/libstdio/fflush.c	2011-11-03 21:51:38.000000000 +0100
+@@ -17,7 +17,6 @@
    if (stream==0) {
      int res;
      FILE *f;
@@ -20,6 +20,3 @@ index 9d4f8e7..86739eb 100644
      __fflush_stdout();
      __fflush_stderr();
      for (res=0, f=__stdio_root; f; f=f->next)
--- 
-1.7.0.3
-

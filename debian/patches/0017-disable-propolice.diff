@@ -1,9 +1,11 @@
 Description: disable ProPolice SSP, which may be enabled by default
 Author: Thorsten Glaser
 
---- a/Makefile	Fri Sep 16 18:17:17 2011
-+++ b/Makefile	Fri Sep 16 18:18:14 2011
-@@ -141,6 +141,7 @@ CFLAGS = -g
+Index: dietlibc-0.33~cvs20110918/Makefile
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/Makefile	2011-11-03 21:51:49.000000000 +0100
++++ dietlibc-0.33~cvs20110918/Makefile	2011-11-03 21:52:16.000000000 +0100
+@@ -141,6 +141,7 @@
  COMMENT = :
  endif
  CFLAGS += -W -Wall -Wextra -Wchar-subscripts -Wmissing-prototypes -Wmissing-declarations -Wno-switch -Wno-unused -Wredundant-decls

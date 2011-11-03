@@ -32,8 +32,10 @@ Forwarded: <no|not-needed|url proving that it has been forwarded>
 Reviewed-By: <name and email of someone who approved the patch>
 Last-Update: <YYYY-MM-DD>
 
---- dietlibc-0.33~cvs20110710.orig/syscalls.s/fadvise64.S
-+++ dietlibc-0.33~cvs20110710/syscalls.s/fadvise64.S
+Index: dietlibc-0.33~cvs20110918/syscalls.s/fadvise64.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/syscalls.s/fadvise64.S	2011-11-03 21:33:57.000000000 +0100
++++ dietlibc-0.33~cvs20110918/syscalls.s/fadvise64.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,12 +1,11 @@
  #include "syscalls.h"
  
@@ -51,8 +53,10 @@ Last-Update: <YYYY-MM-DD>
 -syscall(fadvise64,fadvise64)
 -
  #endif
---- dietlibc-0.33~cvs20110710.orig/arm/__aeabi_unwind_cpp.S
-+++ dietlibc-0.33~cvs20110710/arm/__aeabi_unwind_cpp.S
+Index: dietlibc-0.33~cvs20110918/arm/__aeabi_unwind_cpp.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/__aeabi_unwind_cpp.S	2011-03-08 21:01:33.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/__aeabi_unwind_cpp.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,21 +1,14 @@
 -.text
 -.global __aeabi_unwind_cpp_pr0
@@ -84,8 +88,10 @@ Last-Update: <YYYY-MM-DD>
 +FUNC_END  __aeabi_unwind_cpp_pr2
 +FUNC_END  __aeabi_unwind_cpp_pr1
 +FUNC_END  __aeabi_unwind_cpp_pr0
---- dietlibc-0.33~cvs20110710.orig/arm/__fadvise.c
-+++ dietlibc-0.33~cvs20110710/arm/__fadvise.c
+Index: dietlibc-0.33~cvs20110918/arm/__fadvise.c
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/__fadvise.c	2011-11-03 21:33:56.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/__fadvise.c	2011-11-03 21:52:21.000000000 +0100
 @@ -1,7 +1,10 @@
 -#include <fcntl.h>
  #include "syscalls.h"
@@ -98,22 +104,26 @@ Last-Update: <YYYY-MM-DD>
  long fadvise64_64(int fd, off64_t offset, off64_t len, int advice)
  {
    extern long __arm_fadvise64_64(int fd, int advice, off64_t offset, off64_t len);
---- dietlibc-0.33~cvs20110710.orig/arm/__guard.S
-+++ dietlibc-0.33~cvs20110710/arm/__guard.S
+Index: dietlibc-0.33~cvs20110918/arm/__guard.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/__guard.S	2011-03-08 21:01:33.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/__guard.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,4 +1,5 @@
  .data
 +.align 2
  .type __guard,#object
  .global __guard
  .type __stack_chk_guard,#object
-@@ -7,3 +8,5 @@ __guard:
+@@ -7,3 +8,5 @@
  __stack_chk_guard:
  .long 0xaff00
  
 +.size __guard, . - __guard
 +.size __stack_chk_guard, . - __stack_chk_guard
---- dietlibc-0.33~cvs20110710.orig/arm/__longjmp.S
-+++ dietlibc-0.33~cvs20110710/arm/__longjmp.S
+Index: dietlibc-0.33~cvs20110918/arm/__longjmp.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/__longjmp.S	2011-09-16 20:34:24.000000000 +0200
++++ dietlibc-0.33~cvs20110918/arm/__longjmp.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,11 +1,24 @@
 -.text
 -.global __longjmp
@@ -146,8 +156,10 @@ Last-Update: <YYYY-MM-DD>
 +
 +	ldmia   ip!, {r4-r11, sp, pc}
 +FUNC_END	__longjmp
---- dietlibc-0.33~cvs20110710.orig/arm/__testandset.S
-+++ dietlibc-0.33~cvs20110710/arm/__testandset.S
+Index: dietlibc-0.33~cvs20110918/arm/__testandset.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/__testandset.S	2011-03-08 21:01:33.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/__testandset.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,7 +1,15 @@
 -.text
 -.global __testandset
@@ -168,8 +180,10 @@ Last-Update: <YYYY-MM-DD>
 +# endif
 +	RET
 +FUNC_END	__testandset
---- /dev/null
-+++ dietlibc-0.33~cvs20110710/arm/arm-features.h
+Index: dietlibc-0.33~cvs20110918/arm/arm-features.h
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ dietlibc-0.33~cvs20110918/arm/arm-features.h	2011-11-03 21:52:21.000000000 +0100
 @@ -0,0 +1,110 @@
 +/* --*- asm -*-- */
 +
@@ -281,8 +295,10 @@ Last-Update: <YYYY-MM-DD>
 +#endif	/* __ASSEMBLER__ */
 +
 +#endif	/* H_DIETLIBC_ARM_FEATURES_H */
---- dietlibc-0.33~cvs20110710.orig/arm/clone.S
-+++ dietlibc-0.33~cvs20110710/arm/clone.S
+Index: dietlibc-0.33~cvs20110918/arm/clone.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/clone.S	2011-03-08 21:01:33.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/clone.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,11 +1,8 @@
  
  #include <errno.h>
@@ -308,7 +324,7 @@ Last-Update: <YYYY-MM-DD>
  	@ ; start with a sanity check
  	cmp	r0, #0
  	cmpne	r1, #0
-@@ -51,7 +47,8 @@ __clone:
+@@ -51,7 +47,8 @@
  	beq	1f
  	ldmfd	sp!, {r4, r7}	
  	blt	__unified_syscall	@ (return code < 0): handle as an error
@@ -318,7 +334,7 @@ Last-Update: <YYYY-MM-DD>
  1:	
  #ifdef RESET_PID		
  	tst	ip, #CLONE_THREAD
-@@ -76,12 +73,13 @@ __clone:
+@@ -76,12 +73,13 @@
  	
  	@ ; and we're done, passing return value through r0
  	b	_exit			@ branch to _exit (PIC safe)
@@ -335,7 +351,7 @@ Last-Update: <YYYY-MM-DD>
  	movs	r12, r0			@ check function pointer
  	cmpne	r1, #0			@ if function check for stack pointer
  	moveq	r0, #-EINVAL		@ if one is not available set errno value
-@@ -101,5 +99,7 @@ __clone:
+@@ -101,5 +99,7 @@
  	ldmia	sp!, { r0, pc } 	@ load function param and jump to thread function
  
  1:	b	_exit			@ branch to _exit (PIC safe)
@@ -343,8 +359,10 @@ Last-Update: <YYYY-MM-DD>
 +FUNC_END	clone
  
  #endif
---- dietlibc-0.33~cvs20110710.orig/arm/dyn_syscalls.S
-+++ dietlibc-0.33~cvs20110710/arm/dyn_syscalls.S
+Index: dietlibc-0.33~cvs20110918/arm/dyn_syscalls.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/dyn_syscalls.S	2011-11-03 21:33:56.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/dyn_syscalls.S	2011-11-03 21:52:21.000000000 +0100
 @@ -8,11 +8,15 @@
  
  #include <dietfeatures.h>
@@ -364,7 +382,7 @@ Last-Update: <YYYY-MM-DD>
  	cmn	r0, #4096
  	movcc	pc, lr
  	rsb	r1, r0, #0
-@@ -25,7 +29,9 @@ __unified_syscall:
+@@ -25,7 +29,9 @@
  
  	mvn	r0, #0
  #include "dietuglyweaks.h"
@@ -375,7 +393,7 @@ Last-Update: <YYYY-MM-DD>
  
  /* ok now include all syscalls.s (*.S) and sysdep *.S */
  #include "mmap.S"
-@@ -104,7 +110,6 @@ __unified_syscall:
+@@ -104,7 +110,6 @@
  #include "../syscalls.s/n_sigprocmask.S"
  #include "../syscalls.s/n_sigsuspend.S"
  #include "../syscalls.s/nanosleep.S"
@@ -383,7 +401,7 @@ Last-Update: <YYYY-MM-DD>
  #include "../syscalls.s/open.S"
  #include "../syscalls.s/pause.S"
  #include "../syscalls.s/personality.S"
-@@ -280,9 +285,11 @@ __unified_syscall:
+@@ -280,9 +285,11 @@
  #include "../syscalls.s/fgetxattr.S"
  
  /* other asm-files w.o. changes ... */
@@ -396,8 +414,10 @@ Last-Update: <YYYY-MM-DD>
  #define _exit __exit
  #include "clone.S"
  #undef _exit
---- dietlibc-0.33~cvs20110710.orig/arm/mcount.S
-+++ dietlibc-0.33~cvs20110710/arm/mcount.S
+Index: dietlibc-0.33~cvs20110918/arm/mcount.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/mcount.S	2011-03-08 21:01:33.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/mcount.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,4 +1,4 @@
 -
 +#include "arm-features.h"
@@ -417,14 +437,16 @@ Last-Update: <YYYY-MM-DD>
      mov     ip,  sp
      stmdb   sp!, { r0 - r3, fp, ip, lr, pc }    @ build stack frame
      sub     fp,  ip, #4                         @ setup new fp
-@@ -43,4 +39,4 @@ mcount:
+@@ -43,4 +39,4 @@
      bl      __mcount                            @ call __mcount
  
      ldmdb   fp,  { r0 - r3, fp, sp, pc }        @ restore context from stack frame and return.
 -
 +FUNC_END	mcount
---- dietlibc-0.33~cvs20110710.orig/arm/md5asm.S
-+++ dietlibc-0.33~cvs20110710/arm/md5asm.S
+Index: dietlibc-0.33~cvs20110918/arm/md5asm.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/md5asm.S	2011-03-08 21:01:33.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/md5asm.S	2011-11-03 21:52:21.000000000 +0100
 @@ -50,45 +50,35 @@
  *****************************************************************************/
  
@@ -477,7 +499,7 @@ Last-Update: <YYYY-MM-DD>
      stmdb   sp!, { r4 - r8, lr }
      add     r4, r0, #(6 * 4)                @ r4 = &context->buffer[0]
      ldmdb   r4, { r0, r3 }                  @ r0 = count[0], r3 = count[1]
-@@ -122,12 +112,13 @@ MD5Update:
+@@ -122,12 +112,13 @@
      sub     r2, r8, r2
  2:  ldmia   sp!, { r4 - r8, lr }
      b       memcpy                          @ classic tail-call optimisation...
@@ -492,7 +514,7 @@ Last-Update: <YYYY-MM-DD>
  MD5MagicData:
  
  1: .word     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee
-@@ -148,6 +139,7 @@ MD5MagicData:
+@@ -148,6 +139,7 @@
     .word     0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391, (17f-19f-4)
     .word     0x6e4120A9, 0x20657264, 0x7543634d, 0x00796472, (19f-19f-4)
  
@@ -500,8 +522,10 @@ Last-Update: <YYYY-MM-DD>
  __MD5Transform:
  
      cmp     r2, #0
---- dietlibc-0.33~cvs20110710.orig/arm/setjmp.S
-+++ dietlibc-0.33~cvs20110710/arm/setjmp.S
+Index: dietlibc-0.33~cvs20110918/arm/setjmp.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/setjmp.S	2011-09-16 20:34:24.000000000 +0200
++++ dietlibc-0.33~cvs20110918/arm/setjmp.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,17 +1,40 @@
 -.text
 -.weak setjmp
@@ -556,8 +580,10 @@ Last-Update: <YYYY-MM-DD>
 +	b	__sigjmp_save
 +FUNC_END	__sigsetjmp
 +FUNC_END	sigsetjmp
---- dietlibc-0.33~cvs20110710.orig/arm/start.S
-+++ dietlibc-0.33~cvs20110710/arm/start.S
+Index: dietlibc-0.33~cvs20110918/arm/start.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/start.S	2011-11-03 21:33:56.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/start.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,23 +1,11 @@
  
  #include "dietfeatures.h"
@@ -584,7 +610,7 @@ Last-Update: <YYYY-MM-DD>
  	mov	fp, #0			@ clear the frame pointer
  	ldr	a1, [sp]		@ argc
  	add	a2, sp, #4		@ argv
-@@ -25,6 +13,17 @@ _start:
+@@ -25,6 +13,17 @@
  	add	a3, a2, a1, lsl #2	@ &argv[argc]
  	add	a3, a3, #4		@ envp	
  	str	a3, [ip, #0]		@ environ = envp
@@ -602,7 +628,7 @@ Last-Update: <YYYY-MM-DD>
  	bl	main
  		
  @
-@@ -32,21 +31,22 @@ _start:
+@@ -32,21 +31,22 @@
  @ We need to branch to 'exit' in case we have linked with 'atexit'.
  @
  	bl	exit
@@ -631,7 +657,7 @@ Last-Update: <YYYY-MM-DD>
  #ifdef WANT_DYNAMIC
  	mov	a4, a1			@ save dynamic ld.so _fini
  #endif
-@@ -59,11 +59,25 @@ _start:
+@@ -59,11 +59,25 @@
  #ifdef __DYN_LIB
  	ldr	sl, .L4
  1:	add	sl, pc, sl
@@ -658,7 +684,7 @@ Last-Update: <YYYY-MM-DD>
  #ifdef PROFILING
  	stmdb	sp!, { r0 - r3 }
  	ldr	r0, .L5
-@@ -83,18 +97,21 @@ _start:
+@@ -83,18 +97,21 @@
  @ We need to branch to 'exit' in case we have linked with 'atexit'.
  @
  	bl	exit
@@ -683,8 +709,10 @@ Last-Update: <YYYY-MM-DD>
  #ifdef __DYN_LIB
  .L3:	.word 	environ(GOT)
  .L4:	.word 	_GLOBAL_OFFSET_TABLE_-(1b+8)
---- dietlibc-0.33~cvs20110710.orig/arm/strcpy.S
-+++ dietlibc-0.33~cvs20110710/arm/strcpy.S
+Index: dietlibc-0.33~cvs20110918/arm/strcpy.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/strcpy.S	2011-03-08 21:01:33.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/strcpy.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,10 +1,7 @@
  #include "dietfeatures.h"
 +#include "arm-features.h"
@@ -698,7 +726,7 @@ Last-Update: <YYYY-MM-DD>
  #ifndef WANT_SMALL_STRING_ROUTINES
  	mov	ip, r0
  	ands	r2, r1, #3
-@@ -61,6 +58,5 @@ strcpy:
+@@ -61,6 +58,5 @@
  	ldrneb	r2, [r1], #1
  #endif
  	bne	.Lloop
@@ -707,8 +735,10 @@ Last-Update: <YYYY-MM-DD>
 -	.size	 strcpy,.Lfe1-strcpy
 +	RET
 +FUNC_END	strcpy
---- dietlibc-0.33~cvs20110710.orig/arm/strlen.S
-+++ dietlibc-0.33~cvs20110710/arm/strlen.S
+Index: dietlibc-0.33~cvs20110918/arm/strlen.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/strlen.S	2011-03-08 21:01:33.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/strlen.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,12 +1,7 @@
  #include "dietfeatures.h"
 +#include "arm-features.h"
@@ -724,7 +754,7 @@ Last-Update: <YYYY-MM-DD>
  #if 0
  	teq	a1, #0			@ is string pointer NULL ??
  	moveq	pc, lr			@ if so, return 0
-@@ -61,12 +56,10 @@ strlen:
+@@ -61,12 +56,10 @@
  	sub	a1, a1, a2
  #endif
  
@@ -739,8 +769,10 @@ Last-Update: <YYYY-MM-DD>
 -.Lstrlen:
 -	.size	strlen,.Lstrlen-strlen
 +FUNC_END	strlen
---- dietlibc-0.33~cvs20110710.orig/arm/syscalls.h
-+++ dietlibc-0.33~cvs20110710/arm/syscalls.h
+Index: dietlibc-0.33~cvs20110918/arm/syscalls.h
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/syscalls.h	2011-11-03 21:33:56.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/syscalls.h	2011-11-03 21:52:21.000000000 +0100
 @@ -700,9 +700,9 @@
  #define __ARGS_getpeername		0
  #define __ARGS_socketpair		0
@@ -842,8 +874,10 @@ Last-Update: <YYYY-MM-DD>
  .endm
  
  #endif
---- dietlibc-0.33~cvs20110710.orig/arm/unified.S
-+++ dietlibc-0.33~cvs20110710/arm/unified.S
+Index: dietlibc-0.33~cvs20110918/arm/unified.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/unified.S	2011-11-03 21:33:56.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/unified.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,21 +1,28 @@
  
  #include <dietfeatures.h>
@@ -886,7 +920,7 @@ Last-Update: <YYYY-MM-DD>
          cmn     r0, #4096
          rsbcs   r2, r0, #0
          ldrcs   r3, 1f
-@@ -25,17 +32,18 @@ __unified_syscall:
+@@ -25,17 +32,18 @@
  	.balign 4
  1:
          .word   errno
@@ -909,7 +943,7 @@ Last-Update: <YYYY-MM-DD>
  	cmn	r0, #4096
  	movcc	pc, lr			@ return value comes direct from kernel.
  
-@@ -53,10 +61,13 @@ __unified_syscall:
+@@ -53,10 +61,13 @@
  /* here we go and "reuse" the return for weak-void functions */
  #include "dietuglyweaks.h"
  
@@ -924,8 +958,10 @@ Last-Update: <YYYY-MM-DD>
 +FUNC_END	__unified_syscall4
  
  #endif
---- dietlibc-0.33~cvs20110710.orig/arm/waitpid.S
-+++ dietlibc-0.33~cvs20110710/arm/waitpid.S
+Index: dietlibc-0.33~cvs20110918/arm/waitpid.S
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/arm/waitpid.S	2011-03-08 21:01:33.000000000 +0100
++++ dietlibc-0.33~cvs20110918/arm/waitpid.S	2011-11-03 21:52:21.000000000 +0100
 @@ -1,15 +1,8 @@
 -.text
 -#ifdef __ARM_EABI__

@@ -1,6 +1,7 @@
 dietlibc (0.33~cvs20110918-5) UNRELEASED; urgency=low
 
   * Remove more mentions of the gone dynamic linking support
+  * quilt refresh all patches
 
  -- Thorsten Glaser <tg@mirbsd.de>  Thu, 03 Nov 2011 20:58:05 +0000
 
