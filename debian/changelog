@@ -1,6 +1,12 @@
+dietlibc (0.33~cvs20110918-5) UNRELEASED; urgency=low
+
+  * Remove more mentions of the gone dynamic linking support
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Thu, 03 Nov 2011 20:58:05 +0000
+
 dietlibc (0.33~cvs20110918-4) unstable; urgency=low
 
-  * d/rules: disable tc523086.c test on ARM (segfaults on armhf) 
+  * d/rules: disable tc523086.c test on ARM (segfaults on armhf)
 
  -- Hector Oron <zumbi@debian.org>  Fri, 07 Oct 2011 17:33:34 +0100
 
@@ -23,7 +29,7 @@ dietlibc (0.33~cvs20110918-2) unstable; urgency=low
 dietlibc (0.33~cvs20110918-1) experimental; urgency=low
 
   [ Hector Oron ]
-  * Update to cvs20110918. 
+  * Update to cvs20110918.
     - Fixes memchr('\0') (Closes: #582654)
 
   [ Thorsten Glaser ]
@@ -35,8 +41,8 @@ dietlibc (0.33~cvs20110710-2) experimental; urgency=low
 
   [ Hector Oron ]
   * Fix build for ARMv7 arches.
-  * Fix FTBFS on s390. 
-  * Drop 0015-arm-soft-and-hard-support.diff 
+  * Fix FTBFS on s390.
+  * Drop 0015-arm-soft-and-hard-support.diff
 
   [ Thorsten Glaser ]
   * d/diff/0017-disable-propolice: fix FTBFS on SSP-by-default gcc
@@ -48,11 +54,11 @@ dietlibc (0.33~cvs20110710-1) experimental; urgency=low
 
   * New upstream pre-release
   * Bump Standards-Version
-  * Use DEP5 as copyright format 
+  * Use DEP5 as copyright format
   * Don't build arm* with DEBUG flag
   * Use debian source format 3.0 (quilt)
-  * Move tc523086.c into debian/test directory 
-  * Add local-options file 
+  * Move tc523086.c into debian/test directory
+  * Add local-options file
   * Refresh debian patchset
   * parisc/strstr.S: remove local removal
   * strip elftrunc and dnsd resulting binaries
@@ -75,7 +81,7 @@ dietlibc (0.32-5.2exp1) experimental; urgency=low
 dietlibc (0.32-5.2) unstable; urgency=low
 
   * Non-maintainer upload.
-  * Add ARM (armel and armhf) support. (Closes: #459482) 
+  * Add ARM (armel and armhf) support. (Closes: #459482)
 
  -- Hector Oron <zumbi@debian.org>  Fri, 25 Feb 2011 00:35:53 +0000
 
@@ -148,7 +154,7 @@ dietlibc (0.31-1.2) unstable; urgency=medium
   * debian/diff/0012-Add-an-implementation-of-umount-3-for-ia64.diff:
     supply a 1-argument version of umount on ia64
   * Verified to pass MNT_DETACH to the kernel in the expected way on ia64
-  * Verified with strace to do the same thing as glibc on architectures 
+  * Verified with strace to do the same thing as glibc on architectures
     representing the other three families mentioned in 0011-*.diff
     (i386, x86_64 and alpha)
 
@@ -157,7 +163,7 @@ dietlibc (0.31-1.2) unstable; urgency=medium
 dietlibc (0.31-1.1) unstable; urgency=high
 
   * Non-maintainer upload.
-  * debian/diff/0011-undefined-symbol-umount2-alpha-ia64.diff: 
+  * debian/diff/0011-undefined-symbol-umount2-alpha-ia64.diff:
     new; util-vserver: fails to compile on alpha and ia64 due to
     unresolved umount2 symbols, thanks to Daniel Hokka Zakrisson and
     Herbert Poetzel, closes: #508397)
