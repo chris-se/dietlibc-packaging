@@ -2,6 +2,9 @@ dietlibc (0.33~cvs20110918-5) UNRELEASED; urgency=low
 
   * Remove more mentions of the gone dynamic linking support
   * quilt refresh all patches
+  * Pass -fno-stack-protector from diet to gcc when dietlibc is
+    compiled without SSP support because otherwise programs will
+    segfault, as dietlibc does not set up the registers needed
 
  -- Thorsten Glaser <tg@mirbsd.de>  Thu, 03 Nov 2011 20:58:05 +0000
 

@@ -1,0 +1,33 @@
+From 30fd50935d87cffee75b21ef87792723286f8c66 Mon Sep 17 00:00:00 2001
+From: Thorsten Glaser <tg@mirbsd.org>
+Date: Thu, 3 Nov 2011 20:45:47 +0000
+Subject: [PATCH] Explicitly disable SSP if dietlibc is defined without support for it
+
+dietfeatures.h says that the code will segfault; *buntu adds this to
+their gcc unconditionally (and diet eats -fno-stack-protector up when
+passed manually!), plus some code probes for -fstack-protector{,-all}
+and uses it if it compiles. So passing -fno-stack-protector from diet
+as last argument is probably the proper fix.
+
+Signed-off-by: Thorsten Glaser <tg@mirbsd.org>
+---
+ diet.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+Index: dietlibc-0.33~cvs20110918/diet.c
+===================================================================
+--- dietlibc-0.33~cvs20110918.orig/diet.c	2011-11-03 22:04:44.000000000 +0100
++++ dietlibc-0.33~cvs20110918/diet.c	2011-11-03 22:04:44.000000000 +0100
+@@ -410,6 +410,12 @@
+ 	*dest++=f;
+       }
+ #endif
++#ifndef WANT_SSP
++      /* dietfeatures.h says: If you compile dietlibc without WANT_SSP
++       * and then try to link code compiled with -fstack-protector
++       * against it, the binary will segfault when calling that code. */
++      *dest++=(char*)"-fno-stack-protector";
++#endif
+       *dest=0;
+       if (verbose) {
+ 	int i;

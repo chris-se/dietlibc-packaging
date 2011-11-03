@@ -20,3 +20,4 @@
 0021-fix-ftbfs-s390.diff
 #0022-ensc-tree.diff
 0023-fix-ppc64-ftbfs.diff
+0024-fno-stack-protector.diff
