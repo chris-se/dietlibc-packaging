@@ -103,8 +103,10 @@ install-stamp: build-stamp
 	install -d -m0755 '$(DIR)'-dev/usr/bin
 	mv '$(DIR)'-dev/usr/lib/diet/bin/diet* '$(DIR)'-dev/usr/bin/
 	ln -s ../../../bin/diet '$(DIR)'-dev/usr/lib/diet/bin/
-	strip '$(DIR)'-dev/usr/lib/diet/bin/dnsd
-	strip '$(DIR)'-dev/usr/lib/diet/bin/elftrunc
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	strip -s -R .comment '$(DIR)'-dev/usr/lib/diet/bin/dnsd
+	strip -s -R .comment '$(DIR)'-dev/usr/lib/diet/bin/elftrunc
+endif
 	if test '$(DYN)' -eq 1; then \
 	  ln -s ../../../bin/diet-dyn '$(DIR)'-dev/usr/lib/diet/bin/ && \
 	  chmod 0644 '$(DIR)'/usr/lib/diet/lib/*.so && \

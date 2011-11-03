@@ -1,3 +1,5 @@
+From Ivan Jager (#604717)
+
 Index: dietlibc-0.33~cvs20110918/include/endian.h
 ===================================================================
 --- dietlibc-0.33~cvs20110918.orig/include/endian.h	2011-09-16 20:34:24.000000000 +0200

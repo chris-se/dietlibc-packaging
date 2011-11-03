@@ -1,4 +1,4 @@
-dietlibc (0.33~cvs20110918-5) UNRELEASED; urgency=low
+dietlibc (0.33~cvs20110918-5) experimental; urgency=low
 
   * Remove more mentions of the gone dynamic linking support
   * quilt refresh all patches
@@ -7,8 +7,13 @@ dietlibc (0.33~cvs20110918-5) UNRELEASED; urgency=low
     segfault, as dietlibc does not set up the registers needed
   * Re-enable tc523086, as I believe the testcase is right, and
     if an armhf buildd fails, the buildd is bad (Closes: #644646)
+  * Fix all lintian warnings except CVS in orig.tar.gz
+    - debian/copyright Format URI, fix format (spurious newline)
+    - add comment to d/patches/0014-sparc_v9-does-not-imply-arch64
+    - remove the .comment section when stripping binaries
+  * Honour DEB_BUILD_OPTIONS=nostrip as well
 
- -- Thorsten Glaser <tg@mirbsd.de>  Thu, 03 Nov 2011 20:58:05 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Thu, 03 Nov 2011 21:33:39 +0000
 
 dietlibc (0.33~cvs20110918-4) unstable; urgency=low
 

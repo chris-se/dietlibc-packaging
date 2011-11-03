@@ -1,11 +1,10 @@
-Format: http://anonscm.debian.org/viewvc/dep?view=revision&revision=174
+Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?rev=174
 Upstream-Name: dietlibc
 Upstream-Contact: dietlibc@fefe.de
 Upstream-Author: Felix von Leitner <felix-dietlibc@fefe.de>
 Source: http://www.kernel.org/pub/linux/libs/dietlibc/
 
 Files: *
-
 Copyright: Copyright 2011 Felix von Leitner <felix-dietlibc@fefe.de>
 License: GPL-2+
  This program is free software; you can redistribute it
