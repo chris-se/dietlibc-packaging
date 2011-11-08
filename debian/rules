@@ -108,6 +108,10 @@ install-stamp: build-stamp
 	mv '$(DIR)'-dev/usr/lib/diet/bin/diet* '$(DIR)'-dev/usr/bin/
 	ln -s ../../../bin/diet '$(DIR)'-dev/usr/lib/diet/bin/
 ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	strip -s -R .comment '$(DIR)'-dev/usr/bin/diet
+	if test '$(DYN)' -eq 1; then \
+	  strip -s -R .comment '$(DIR)'-dev/usr/bin/diet-dyn; \
+	fi
 	strip -s -R .comment '$(DIR)'-dev/usr/lib/diet/bin/dnsd
 	strip -s -R .comment '$(DIR)'-dev/usr/lib/diet/bin/elftrunc
 endif
