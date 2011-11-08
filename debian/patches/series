@@ -17,3 +17,4 @@
 0021-fix-ftbfs-s390.diff
 0023-fix-ppc64-ftbfs.diff
 0024-fno-stack-protector.diff
+0025-fix-alpha-as-syntax.diff

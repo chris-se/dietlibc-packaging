@@ -1,0 +1,31 @@
+From: Thorsten Glaser <tg@mirbsd.org>
+Date: Tue, 8 Nov 2011 21:19:59 +0000
+Subject: [PATCH] fix alpha as syntax
+
+.set cannot be used there, but .equ, which is an alias for it, can
+
+Index: dietlibc-0.33~cvs20111108/syscalls.s/fadvise64.S
+===================================================================
+--- dietlibc-0.33~cvs20111108.orig/syscalls.s/fadvise64.S	2011-11-08 21:24:07.000000000 +0000
++++ dietlibc-0.33~cvs20111108/syscalls.s/fadvise64.S	2011-11-08 21:24:08.000000000 +0000
+@@ -4,7 +4,7 @@
+ syscall(fadvise64,fadvise64)
+ 
+ #ifndef __NR_fadvise64_64
+-.set   posix_fadvise, fadvise64
++.equ   posix_fadvise, fadvise64
+ .globl posix_fadvise
+ #endif
+ 
+Index: dietlibc-0.33~cvs20111108/syscalls.s/fadvise64_64.S
+===================================================================
+--- dietlibc-0.33~cvs20111108.orig/syscalls.s/fadvise64_64.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/syscalls.s/fadvise64_64.S	2011-11-08 21:24:08.000000000 +0000
+@@ -3,6 +3,6 @@
+ #ifdef __NR_fadvise64_64
+ syscall(fadvise64_64,fadvise64_64)
+ 
+-.set   posix_fadvise, fadvise64_64
++.equ   posix_fadvise, fadvise64_64
+ .globl posix_fadvise
+ #endif
