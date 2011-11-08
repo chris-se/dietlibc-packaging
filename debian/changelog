@@ -3,8 +3,9 @@ dietlibc (0.33~cvs20111108-1) experimental; urgency=low
   * debian/rules: New target "get-orig-source" to automate the
     process of exporting a CVS snapshot, without the CVS dirs,
     replace CR-LF line endings with LF ones, and tar it up
+  * Update to cvs20111108
 
- -- Thorsten Glaser <tg@mirbsd.de>  Tue, 08 Nov 2011 21:07:30 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Tue, 08 Nov 2011 21:28:54 +0000
 
 dietlibc (0.33~cvs20110918-5) experimental; urgency=low
 
