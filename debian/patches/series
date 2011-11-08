@@ -1,4 +1,3 @@
-#0001-cvs-snapshot-20100320.diff
 0002-fflush-NULL-don-t-flush-input-streams-stdin.diff
 0003-Avoid-fno-pic-on-mips-mipsel-libgcc.a-is-compiled-wit.diff
 0004-nice-set-errno-EPERM-on-error.diff
@@ -12,12 +11,9 @@
 0012-Add-an-implementation-of-umount-3-for-ia64.diff
 0013-sparc-use-mcpu-v9-instead-of-mcpu-supersparc.diff
 0014-sparc_v9-does-not-imply-arch64.diff
-#0015-arm-soft-and-hard-support.diff
 0017-disable-propolice.diff
 0018-manpage.diff
-#0019-fix-memchr-BR-582654.diff
 0020-fixes-for-ARMv7.diff
 0021-fix-ftbfs-s390.diff
-#0022-ensc-tree.diff
 0023-fix-ppc64-ftbfs.diff
 0024-fno-stack-protector.diff
