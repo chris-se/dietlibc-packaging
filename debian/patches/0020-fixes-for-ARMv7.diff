@@ -20,22 +20,11 @@ Description: Upstream changes introduced in version 0.33~cvs20110710-1
 Author: Hector Oron <zumbi@debian.org>
 
 ---
-The information above should follow the Patch Tagging Guidelines, please
-checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
-are templates for supplementary fields that you might want to add:
 
-Origin: <vendor|upstream|other>, <url of original patch>
-Bug: <url in upstream bugtracker>
-Bug-Debian: http://bugs.debian.org/<bugnumber>
-Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
-Forwarded: <no|not-needed|url proving that it has been forwarded>
-Reviewed-By: <name and email of someone who approved the patch>
-Last-Update: <YYYY-MM-DD>
-
-Index: dietlibc-0.33~cvs20110918/syscalls.s/fadvise64.S
+Index: dietlibc-0.33~cvs20111108/syscalls.s/fadvise64.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/syscalls.s/fadvise64.S	2011-11-03 21:33:57.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/syscalls.s/fadvise64.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/syscalls.s/fadvise64.S	2011-11-08 21:23:40.000000000 +0000
++++ dietlibc-0.33~cvs20111108/syscalls.s/fadvise64.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,12 +1,11 @@
  #include "syscalls.h"
  
@@ -53,10 +42,10 @@ Index: dietlibc-0.33~cvs20110918/syscalls.s/fadvise64.S
 -syscall(fadvise64,fadvise64)
 -
  #endif
-Index: dietlibc-0.33~cvs20110918/arm/__aeabi_unwind_cpp.S
+Index: dietlibc-0.33~cvs20111108/arm/__aeabi_unwind_cpp.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/__aeabi_unwind_cpp.S	2011-03-08 21:01:33.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/__aeabi_unwind_cpp.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/__aeabi_unwind_cpp.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/__aeabi_unwind_cpp.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,21 +1,14 @@
 -.text
 -.global __aeabi_unwind_cpp_pr0
@@ -88,10 +77,10 @@ Index: dietlibc-0.33~cvs20110918/arm/__aeabi_unwind_cpp.S
 +FUNC_END  __aeabi_unwind_cpp_pr2
 +FUNC_END  __aeabi_unwind_cpp_pr1
 +FUNC_END  __aeabi_unwind_cpp_pr0
-Index: dietlibc-0.33~cvs20110918/arm/__fadvise.c
+Index: dietlibc-0.33~cvs20111108/arm/__fadvise.c
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/__fadvise.c	2011-11-03 21:33:56.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/__fadvise.c	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/__fadvise.c	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/__fadvise.c	2011-11-08 21:24:07.000000000 +0000
 @@ -1,7 +1,10 @@
 -#include <fcntl.h>
  #include "syscalls.h"
@@ -104,10 +93,10 @@ Index: dietlibc-0.33~cvs20110918/arm/__fadvise.c
  long fadvise64_64(int fd, off64_t offset, off64_t len, int advice)
  {
    extern long __arm_fadvise64_64(int fd, int advice, off64_t offset, off64_t len);
-Index: dietlibc-0.33~cvs20110918/arm/__guard.S
+Index: dietlibc-0.33~cvs20111108/arm/__guard.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/__guard.S	2011-03-08 21:01:33.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/__guard.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/__guard.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/__guard.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,4 +1,5 @@
  .data
 +.align 2
@@ -120,10 +109,10 @@ Index: dietlibc-0.33~cvs20110918/arm/__guard.S
  
 +.size __guard, . - __guard
 +.size __stack_chk_guard, . - __stack_chk_guard
-Index: dietlibc-0.33~cvs20110918/arm/__longjmp.S
+Index: dietlibc-0.33~cvs20111108/arm/__longjmp.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/__longjmp.S	2011-09-16 20:34:24.000000000 +0200
-+++ dietlibc-0.33~cvs20110918/arm/__longjmp.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/__longjmp.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/__longjmp.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,11 +1,24 @@
 -.text
 -.global __longjmp
@@ -156,10 +145,10 @@ Index: dietlibc-0.33~cvs20110918/arm/__longjmp.S
 +
 +	ldmia   ip!, {r4-r11, sp, pc}
 +FUNC_END	__longjmp
-Index: dietlibc-0.33~cvs20110918/arm/__testandset.S
+Index: dietlibc-0.33~cvs20111108/arm/__testandset.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/__testandset.S	2011-03-08 21:01:33.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/__testandset.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/__testandset.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/__testandset.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,7 +1,15 @@
 -.text
 -.global __testandset
@@ -180,10 +169,10 @@ Index: dietlibc-0.33~cvs20110918/arm/__testandset.S
 +# endif
 +	RET
 +FUNC_END	__testandset
-Index: dietlibc-0.33~cvs20110918/arm/arm-features.h
+Index: dietlibc-0.33~cvs20111108/arm/arm-features.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ dietlibc-0.33~cvs20110918/arm/arm-features.h	2011-11-03 21:52:21.000000000 +0100
++++ dietlibc-0.33~cvs20111108/arm/arm-features.h	2011-11-08 21:24:07.000000000 +0000
 @@ -0,0 +1,110 @@
 +/* --*- asm -*-- */
 +
@@ -295,10 +284,10 @@ Index: dietlibc-0.33~cvs20110918/arm/arm-features.h
 +#endif	/* __ASSEMBLER__ */
 +
 +#endif	/* H_DIETLIBC_ARM_FEATURES_H */
-Index: dietlibc-0.33~cvs20110918/arm/clone.S
+Index: dietlibc-0.33~cvs20111108/arm/clone.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/clone.S	2011-03-08 21:01:33.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/clone.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/clone.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/clone.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,11 +1,8 @@
  
  #include <errno.h>
@@ -359,10 +348,10 @@ Index: dietlibc-0.33~cvs20110918/arm/clone.S
 +FUNC_END	clone
  
  #endif
-Index: dietlibc-0.33~cvs20110918/arm/dyn_syscalls.S
+Index: dietlibc-0.33~cvs20111108/arm/dyn_syscalls.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/dyn_syscalls.S	2011-11-03 21:33:56.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/dyn_syscalls.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/dyn_syscalls.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/dyn_syscalls.S	2011-11-08 21:24:07.000000000 +0000
 @@ -8,11 +8,15 @@
  
  #include <dietfeatures.h>
@@ -414,10 +403,10 @@ Index: dietlibc-0.33~cvs20110918/arm/dyn_syscalls.S
  #define _exit __exit
  #include "clone.S"
  #undef _exit
-Index: dietlibc-0.33~cvs20110918/arm/mcount.S
+Index: dietlibc-0.33~cvs20111108/arm/mcount.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/mcount.S	2011-03-08 21:01:33.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/mcount.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/mcount.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/mcount.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,4 +1,4 @@
 -
 +#include "arm-features.h"
@@ -443,10 +432,10 @@ Index: dietlibc-0.33~cvs20110918/arm/mcount.S
      ldmdb   fp,  { r0 - r3, fp, sp, pc }        @ restore context from stack frame and return.
 -
 +FUNC_END	mcount
-Index: dietlibc-0.33~cvs20110918/arm/md5asm.S
+Index: dietlibc-0.33~cvs20111108/arm/md5asm.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/md5asm.S	2011-03-08 21:01:33.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/md5asm.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/md5asm.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/md5asm.S	2011-11-08 21:24:07.000000000 +0000
 @@ -50,45 +50,35 @@
  *****************************************************************************/
  
@@ -522,10 +511,10 @@ Index: dietlibc-0.33~cvs20110918/arm/md5asm.S
  __MD5Transform:
  
      cmp     r2, #0
-Index: dietlibc-0.33~cvs20110918/arm/setjmp.S
+Index: dietlibc-0.33~cvs20111108/arm/setjmp.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/setjmp.S	2011-09-16 20:34:24.000000000 +0200
-+++ dietlibc-0.33~cvs20110918/arm/setjmp.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/setjmp.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/setjmp.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,17 +1,40 @@
 -.text
 -.weak setjmp
@@ -580,10 +569,10 @@ Index: dietlibc-0.33~cvs20110918/arm/setjmp.S
 +	b	__sigjmp_save
 +FUNC_END	__sigsetjmp
 +FUNC_END	sigsetjmp
-Index: dietlibc-0.33~cvs20110918/arm/start.S
+Index: dietlibc-0.33~cvs20111108/arm/start.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/start.S	2011-11-03 21:33:56.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/start.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/start.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/start.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,23 +1,11 @@
  
  #include "dietfeatures.h"
@@ -709,10 +698,10 @@ Index: dietlibc-0.33~cvs20110918/arm/start.S
  #ifdef __DYN_LIB
  .L3:	.word 	environ(GOT)
  .L4:	.word 	_GLOBAL_OFFSET_TABLE_-(1b+8)
-Index: dietlibc-0.33~cvs20110918/arm/strcpy.S
+Index: dietlibc-0.33~cvs20111108/arm/strcpy.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/strcpy.S	2011-03-08 21:01:33.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/strcpy.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/strcpy.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/strcpy.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,10 +1,7 @@
  #include "dietfeatures.h"
 +#include "arm-features.h"
@@ -735,10 +724,10 @@ Index: dietlibc-0.33~cvs20110918/arm/strcpy.S
 -	.size	 strcpy,.Lfe1-strcpy
 +	RET
 +FUNC_END	strcpy
-Index: dietlibc-0.33~cvs20110918/arm/strlen.S
+Index: dietlibc-0.33~cvs20111108/arm/strlen.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/strlen.S	2011-03-08 21:01:33.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/strlen.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/strlen.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/strlen.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,12 +1,7 @@
  #include "dietfeatures.h"
 +#include "arm-features.h"
@@ -769,10 +758,10 @@ Index: dietlibc-0.33~cvs20110918/arm/strlen.S
 -.Lstrlen:
 -	.size	strlen,.Lstrlen-strlen
 +FUNC_END	strlen
-Index: dietlibc-0.33~cvs20110918/arm/syscalls.h
+Index: dietlibc-0.33~cvs20111108/arm/syscalls.h
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/syscalls.h	2011-11-03 21:33:56.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/syscalls.h	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/syscalls.h	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/syscalls.h	2011-11-08 21:24:07.000000000 +0000
 @@ -700,9 +700,9 @@
  #define __ARGS_getpeername		0
  #define __ARGS_socketpair		0
@@ -874,10 +863,10 @@ Index: dietlibc-0.33~cvs20110918/arm/syscalls.h
  .endm
  
  #endif
-Index: dietlibc-0.33~cvs20110918/arm/unified.S
+Index: dietlibc-0.33~cvs20111108/arm/unified.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/unified.S	2011-11-03 21:33:56.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/unified.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/unified.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/unified.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,21 +1,28 @@
  
  #include <dietfeatures.h>
@@ -958,10 +947,10 @@ Index: dietlibc-0.33~cvs20110918/arm/unified.S
 +FUNC_END	__unified_syscall4
  
  #endif
-Index: dietlibc-0.33~cvs20110918/arm/waitpid.S
+Index: dietlibc-0.33~cvs20111108/arm/waitpid.S
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/arm/waitpid.S	2011-03-08 21:01:33.000000000 +0100
-+++ dietlibc-0.33~cvs20110918/arm/waitpid.S	2011-11-03 21:52:21.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/arm/waitpid.S	2011-11-08 21:23:39.000000000 +0000
++++ dietlibc-0.33~cvs20111108/arm/waitpid.S	2011-11-08 21:24:07.000000000 +0000
 @@ -1,15 +1,8 @@
 -.text
 -#ifdef __ARM_EABI__

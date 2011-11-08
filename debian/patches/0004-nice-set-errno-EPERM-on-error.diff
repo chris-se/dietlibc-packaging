@@ -8,10 +8,10 @@ See http://bugs.debian.org/286825
  lib/__nice.c |    7 ++++++-
  1 files changed, 6 insertions(+), 1 deletions(-)
 
-Index: dietlibc-0.33~cvs20110918/lib/__nice.c
+Index: dietlibc-0.33~cvs20111108/lib/__nice.c
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/lib/__nice.c	2011-09-16 20:34:24.000000000 +0200
-+++ dietlibc-0.33~cvs20110918/lib/__nice.c	2011-11-03 21:51:47.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/lib/__nice.c	2011-11-08 21:23:41.000000000 +0000
++++ dietlibc-0.33~cvs20111108/lib/__nice.c	2011-11-08 21:24:04.000000000 +0000
 @@ -1,9 +1,14 @@
  #include "syscalls.h"
  #include <sys/time.h>

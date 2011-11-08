@@ -12,18 +12,18 @@ I don't know ia64 assembler, so this one is in C.
  2 files changed, 6 insertions(+), 1 deletions(-)
  create mode 100644 ia64/umount-wrapper.c
 
-Index: dietlibc-0.33~cvs20110918/ia64/Makefile.add
+Index: dietlibc-0.33~cvs20111108/ia64/Makefile.add
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/ia64/Makefile.add	2011-09-16 20:34:24.000000000 +0200
-+++ dietlibc-0.33~cvs20110918/ia64/Makefile.add	2011-11-03 21:52:08.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/ia64/Makefile.add	2011-11-08 21:23:40.000000000 +0000
++++ dietlibc-0.33~cvs20111108/ia64/Makefile.add	2011-11-08 21:24:06.000000000 +0000
 @@ -1,2 +1,2 @@
  VPATH:=ia64:syscalls.s:$(VPATH)
 -LIBOBJ+=$(OBJDIR)/__time.o $(OBJDIR)/__waitpid.o $(OBJDIR)/__nice.o $(OBJDIR)/__alarm.o
 +LIBOBJ+=$(OBJDIR)/__time.o $(OBJDIR)/__waitpid.o $(OBJDIR)/__nice.o $(OBJDIR)/__alarm.o $(OBJDIR)/umount-wrapper.o
-Index: dietlibc-0.33~cvs20110918/ia64/umount-wrapper.c
+Index: dietlibc-0.33~cvs20111108/ia64/umount-wrapper.c
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ dietlibc-0.33~cvs20110918/ia64/umount-wrapper.c	2011-11-03 21:52:08.000000000 +0100
++++ dietlibc-0.33~cvs20111108/ia64/umount-wrapper.c	2011-11-08 21:24:06.000000000 +0000
 @@ -0,0 +1,5 @@
 +#include <sys/mount.h>
 +

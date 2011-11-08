@@ -1,9 +1,9 @@
 From Ivan Jager (#604717)
 
-Index: dietlibc-0.33~cvs20110918/include/endian.h
+Index: dietlibc-0.33~cvs20111108/include/endian.h
 ===================================================================
---- dietlibc-0.33~cvs20110918.orig/include/endian.h	2011-09-16 20:34:24.000000000 +0200
-+++ dietlibc-0.33~cvs20110918/include/endian.h	2011-11-03 21:52:13.000000000 +0100
+--- dietlibc-0.33~cvs20111108.orig/include/endian.h	2011-11-08 21:23:40.000000000 +0000
++++ dietlibc-0.33~cvs20111108/include/endian.h	2011-11-08 21:24:07.000000000 +0000
 @@ -39,7 +39,7 @@
  # define __LONG_LONG_PAIR(HI, LO) HI, LO
  #endif
