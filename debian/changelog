@@ -6,8 +6,11 @@ dietlibc (0.33~cvs20111108-1) experimental; urgency=low
   * Update to cvs20111108
   * Use .equ instead of .set so it compiles on alpha
   * Honour nostrip for the diet* binaries, too (Closes: #436767)
+  * Fix "debian/rules clean" not removing a ttt (test) binary
+  * Make "lintian -vIiE --pedantic" clean
+  * Repair ARM mmap syscall (Paul Brook, Timo Juhani Lindfors)
 
- -- Thorsten Glaser <tg@mirbsd.de>  Tue, 08 Nov 2011 21:37:35 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Tue, 08 Nov 2011 22:36:48 +0000
 
 dietlibc (0.33~cvs20110918-5) experimental; urgency=low
 

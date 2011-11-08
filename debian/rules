@@ -78,7 +78,7 @@ clean: deb-checkdir deb-checkuid
 	$(MAKE) clean MYARCH='$(ARCH)'
 	test ! -e patch-stamp || \
 	  for i in `ls -1r debian/diff/*.diff || :`; do patch -p1 -R <$$i; done
-	rm -f build-stamp install-stamp patch-stamp
+	rm -f build-stamp install-stamp patch-stamp ttt
 	rm -f dynlinker.README libdl.README libpthread.CHANGES \
 	  libpthread.README profiling.PORTING profiling.README \
 	  sparc64.README ia64.README changelog

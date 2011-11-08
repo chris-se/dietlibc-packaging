@@ -19,3 +19,4 @@
 0024-fno-stack-protector.diff
 0025-fix-alpha-as-syntax.diff
 0026-dont-strip-bins.diff
+0027-fix-arm-mmap.diff
