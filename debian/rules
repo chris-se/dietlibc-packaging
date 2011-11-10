@@ -58,7 +58,7 @@ patch-stamp:
 
 build: deb-checkdir build-stamp
 build-stamp: patch-stamp
-	#rm -f parisc/strstr.S
+	rm -f parisc/strstr.S
 	$(MAKE) prefix=/usr/lib/diet \
 	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
 ifeq (${CROSS},0)
