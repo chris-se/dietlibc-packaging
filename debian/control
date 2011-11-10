@@ -3,7 +3,7 @@ Section: devel
 Priority: optional
 Homepage: http://www.fefe.de/dietlibc/
 Maintainer: Hector Oron <zumbi@debian.org>
-Uploaders: Gerrit Pape <pape@smarden.org>, Thorsten Glaser <tg@mirbsd.de>
+Uploaders: Thorsten Glaser <tg@mirbsd.de>
 Standards-Version: 3.9.2
 
 Package: dietlibc-dev
