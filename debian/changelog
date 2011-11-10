@@ -1,8 +1,9 @@
 dietlibc (0.33~cvs20111108-2) experimental; urgency=low
 
   * Remove parisc/strstr.S again (Closes: #523086)
+  * Next attempt: use = instead of .equ or .set
 
- -- Thorsten Glaser <tg@mirbsd.de>  Thu, 10 Nov 2011 18:00:06 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Thu, 10 Nov 2011 18:06:15 +0000
 
 dietlibc (0.33~cvs20111108-1) experimental; urgency=low
 
