@@ -2,7 +2,7 @@ From: Thorsten Glaser <tg@mirbsd.org>
 Date: Thu, 10 Nov 2011 18:04:24 +0000
 Subject: [PATCH] fix alpha as syntax
 
-.set cannot be used on alpha, .equ cannot be used on hppa, *sigh(
+.set cannot be used on alpha, .equ cannot be used on hppa, *sigh*
 
 Index: dietlibc-0.33~cvs20111108/syscalls.s/fadvise64.S
 ===================================================================
