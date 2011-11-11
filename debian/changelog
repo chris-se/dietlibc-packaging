@@ -1,13 +1,12 @@
-dietlibc (0.33~cvs20111108-3) UNRELEASED; urgency=low
+dietlibc (0.33~cvs20111108-3) unstable; urgency=low
 
-  [ Thorsten Glaser ]
   * The team of Héctor and me seems to have taken over well enough
     to close the ITA and drop Gerrit from Uploaders (Closes: #544060)
   * Upload to unstable
   * Enable s390x and sparc64 architectures, which are supported
     upstream, and see what happens
 
- -- Thorsten Glaser <tg@mirbsd.de>  Thu, 10 Nov 2011 18:09:18 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Fri, 11 Nov 2011 18:06:11 +0000
 
 dietlibc (0.33~cvs20111108-2) experimental; urgency=low
 
