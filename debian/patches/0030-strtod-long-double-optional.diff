@@ -1,0 +1,92 @@
+From: Thorsten Glaser <tg@mirbsd.org>
+Date: Sat, 19 Nov 2011 19:23:37 +0000
+Subject: [PATCH] avoid use of 'long double' in strtod
+
+Use of 'long double' on alpha and sparc is now no longer
+possible in Debian since they switched to 128 bits, which
+needs supporting functions that weirdly enough are not in
+libgcc. Use 'double' on these platforms, since that's what
+'long double' was on them before (no change) and allows us
+to link code calling strtod() again.
+
+http://thread.gmane.org/gmane.linux.lib.dietlibc/1166
+
+Keep strtold() as-is; users must ensure the supporting code
+is there. (Or submit it to dietlibc inclusion.)
+
+Other functions may or may not need patching, unsure.
+
+Index: pkg-dietlibc/alpha/Makefile.add
+===================================================================
+--- pkg-dietlibc.orig/alpha/Makefile.add	2011-11-19 17:35:47.000000000 +0000
++++ pkg-dietlibc/alpha/Makefile.add	2011-11-19 19:22:41.000000000 +0000
+@@ -1,5 +1,6 @@
+ 
+ CFLAGS+=-Os -Iinclude -fomit-frame-pointer -fstrict-aliasing
++CFLAGS+=-DWANT_STRTOD_WITHOUT_LONG_DOUBLE
+ VPATH:=alpha:syscalls.s:$(VPATH)
+ 
+ LIBOBJ+=$(patsubst %,$(OBJDIR)/%,divq.o divl.o remq.o reml.o __time.o __alarm.o)
+Index: pkg-dietlibc/lib/strtod.c
+===================================================================
+--- pkg-dietlibc.orig/lib/strtod.c	2011-11-19 17:35:47.000000000 +0000
++++ pkg-dietlibc/lib/strtod.c	2011-11-19 19:21:07.000000000 +0000
+@@ -2,11 +2,17 @@
+ #include <stdlib.h>
+ #include <ctype.h>
+ 
++#ifndef WANT_STRTOD_WITHOUT_LONG_DOUBLE
++#define ldbltype long double
++#else
++#define ldbltype double
++#endif
++
+ double strtod(const char* s, char** endptr) {
+     register const char*  p     = s;
+-    register long double  value = 0.L;
++    register ldbltype     value = 0.;
+     int                   sign  = +1;
+-    long double           factor;
++    ldbltype              factor;
+     unsigned int          expo;
+ 
+     while ( isspace(*p) )
+@@ -33,7 +39,7 @@
+ 
+     if ( (*p | 32) == 'e' ) {
+         expo   = 0;
+-        factor = 10.L;
++        factor = 10.;
+ 
+         switch (*++p) {                 // ja hier weiﬂ ich nicht, was mindestens nach einem 'E' folgenden MUSS.
+         case '-': factor = 0.1;
+@@ -41,7 +47,7 @@
+                   break;
+         case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+                   break;
+-        default : value = 0.L;
++        default : value = 0.;
+                   p     = s;
+                   goto done;
+         }
+Index: pkg-dietlibc/sparc/Makefile.add
+===================================================================
+--- pkg-dietlibc.orig/sparc/Makefile.add	2011-11-19 19:16:08.000000000 +0000
++++ pkg-dietlibc/sparc/Makefile.add	2011-11-19 19:22:52.000000000 +0000
+@@ -1,5 +1,6 @@
+ 
+ CFLAGS+=-mcpu=v9 -Os
++CFLAGS+=-DWANT_STRTOD_WITHOUT_LONG_DOUBLE
+ VPATH:=sparc:syscalls.s:$(VPATH)
+ LIBOBJ+=$(OBJDIR)/udiv.o $(OBJDIR)/umul.o $(OBJDIR)/urem.o
+ LIBOBJ+=$(OBJDIR)/rem.o $(OBJDIR)/sdiv.o
+Index: pkg-dietlibc/sparc64/Makefile.add
+===================================================================
+--- pkg-dietlibc.orig/sparc64/Makefile.add	2011-11-19 17:35:47.000000000 +0000
++++ pkg-dietlibc/sparc64/Makefile.add	2011-11-19 19:23:24.000000000 +0000
+@@ -1,3 +1,5 @@
+ CFLAGS+=-m64 -Os
++#XXX unclear whether this is needed here but very probable
++CFLAGS+=-DWANT_STRTOD_WITHOUT_LONG_DOUBLE
+ VPATH:=sparc64:syscalls.s:$(VPATH)
+ LIBOBJ+=$(patsubst %,$(OBJDIR)/%,__time.o)

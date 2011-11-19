@@ -22,3 +22,4 @@
 0027-fix-arm-mmap.diff
 0028-fix-ssize_t.diff
 0029-secure-string-functions.diff
+0030-strtod-long-double-optional.diff
