@@ -1,17 +1,18 @@
-dietlibc (0.33~cvs20111108-4) UNRELEASED; urgency=low
+dietlibc (0.33~cvs20111108-4) unstable; urgency=low
 
   [ Thorsten Glaser ]
-  * New patch to fix the ssize_t definition, for -Wformat benefit
-  * New testcase to catch a specifically aligned strlen bug, from
+  * “Schlösser Alt” upload
+  * Patch to fix the ssize_t definition, for -Wformat benefit
+  * Testcase to catch a specifically aligned strlen bug, from
     mtest-ascii1 of the Debian mksh package
-  * New patch for string functions to not read past end of memory
-  * New patch to make strtod not use 'long double' on alpha, sparc
+  * Patch for string functions to not read past end of allocation
+  * Patch to make strtod not use 'long double' on alpha, sparc
     (and sparc64) to make it link again (Closes: #547404)
 
   [ Bastian Blank ]
-  * New patch to fix sigsetjmp on s390 (Closes: #523110)
+  * Patch to fix sigsetjmp on s390 (Closes: #523110)
 
- -- Thorsten Glaser <tg@mirbsd.de>  Sat, 19 Nov 2011 20:41:09 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Sat, 19 Nov 2011 21:15:46 +0000
 
 dietlibc (0.33~cvs20111108-3) unstable; urgency=low
 
