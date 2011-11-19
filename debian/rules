@@ -49,15 +49,8 @@ endif
 DIR =$(shell pwd)/debian/dietlibc
 VERSION =$(shell head -n1 debian/changelog |sed -e 's/.*(\(.*\)).*/\1/')
 
-patch: deb-checkdir patch-stamp
-patch-stamp:
-	for i in `ls -1 debian/diff/*.diff || :`; do \
-	  patch -p1 <$$i || exit 1; \
-	done
-	touch patch-stamp
-
 build: deb-checkdir build-stamp
-build-stamp: patch-stamp
+build-stamp:
 	rm -f parisc/strstr.S
 	$(MAKE) prefix=/usr/lib/diet \
 	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
@@ -79,9 +72,7 @@ endif
 
 clean: deb-checkdir deb-checkuid
 	$(MAKE) clean MYARCH='$(ARCH)'
-	test ! -e patch-stamp || \
-	  for i in `ls -1r debian/diff/*.diff || :`; do patch -p1 -R <$$i; done
-	rm -f build-stamp install-stamp patch-stamp ttt
+	rm -f build-stamp install-stamp ttt
 	rm -f dynlinker.README libdl.README libpthread.CHANGES \
 	  libpthread.README profiling.PORTING profiling.README \
 	  sparc64.README ia64.README changelog
@@ -165,7 +156,7 @@ binary-arch: deb-checkdir deb-checkuid install dietlibc-dev.deb dietlibc.deb
 	fi
 
 binary: binary-indep binary-arch
-.PHONY: patch build clean install binary-indep binary-arch binary
+.PHONY: build clean install binary-indep binary-arch binary
 
 include debian/implicit
 
