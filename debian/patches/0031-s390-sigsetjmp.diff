@@ -1,0 +1,56 @@
+From: Bastian Blank <waldi@debian.org>
+Date: Sat, 19 Nov 2011 19:23:37 +0000
+Subject: [PATCH] fix sigsetjmp on s390
+
+(via IRC, thanks); integrated by tg
+
+Index: pkg-dietlibc/s390/setjmp.S
+===================================================================
+--- pkg-dietlibc.orig/s390/setjmp.S	2011-11-19 20:36:38.000000000 +0000
++++ pkg-dietlibc/s390/setjmp.S	2011-11-19 20:38:10.000000000 +0000
+@@ -27,15 +27,18 @@
+ 	std	%f6,48(%r2)
+ 
+ 	/* Make a tail call to __sigjmp_save; it takes the same args.  */
+-	basr	%r1,%r0
+ #ifdef	PIC
++#warnning untested, probably broken
++	basr	%r1,%r0
+ .L0:	la	%r1,.L1-.L0(0,%r1)
+ 	l	%r1,__sigjmp_save@GOT12(0,%r1)
+ 	br	%r1
+ .L1:	.long	_GLOBAL_OFFSET_TABLE_-.L0
+ #else
+-	l	%r1,.L1(0,%r1)
++	basr	%r1,0
++.L0:	l	%r1,.L1-.L0(%r1)
+ 	br	%r1
++	.p2align 3
+ .L1:	.long	__sigjmp_save
+ #endif
+ .size __sigsetjmp,.-__sigsetjmp;
+Index: pkg-dietlibc/s390x/setjmp.S
+===================================================================
+--- pkg-dietlibc.orig/s390x/setjmp.S	2011-11-19 20:36:38.000000000 +0000
++++ pkg-dietlibc/s390x/setjmp.S	2011-11-19 20:38:10.000000000 +0000
+@@ -27,15 +27,18 @@
+ 	std	%f6,48(%r2)
+ 
+ 	/* Make a tail call to __sigjmp_save; it takes the same args.  */
+-	basr	%r1,%r0
+ #ifdef	PIC
++#warnning untested, probably broken
++	basr	%r1,%r0
+ .L0:	la	%r1,.L1-.L0(0,%r1)
+ 	l	%r1,__sigjmp_save@GOT12(0,%r1)
+ 	br	%r1
+ .L1:	.long	_GLOBAL_OFFSET_TABLE_-.L0
+ #else
+-	l	%r1,.L1(0,%r1)
++	basr	%r1,0
++.L0:	l	%r1,.L1-.L0(%r1)
+ 	br	%r1
++	.p2align 3
+ .L1:	.long	__sigjmp_save
+ #endif
+ .size __sigsetjmp,.-__sigsetjmp;

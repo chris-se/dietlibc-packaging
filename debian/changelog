@@ -1,5 +1,6 @@
 dietlibc (0.33~cvs20111108-4) UNRELEASED; urgency=low
 
+  [ Thorsten Glaser ]
   * New patch to fix the ssize_t definition, for -Wformat benefit
   * New testcase to catch a specifically aligned strlen bug, from
     mtest-ascii1 of the Debian mksh package
@@ -7,7 +8,10 @@ dietlibc (0.33~cvs20111108-4) UNRELEASED; urgency=low
   * New patch to make strtod not use 'long double' on alpha, sparc
     (and sparc64) to make it link again (Closes: #547404)
 
- -- Thorsten Glaser <tg@mirbsd.de>  Sat, 19 Nov 2011 19:26:31 +0000
+  [ Bastian Blank ]
+  * New patch to fix sigsetjmp on s390 (Closes: #523110)
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Sat, 19 Nov 2011 20:41:09 +0000
 
 dietlibc (0.33~cvs20111108-3) unstable; urgency=low
 
