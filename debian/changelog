@@ -3,8 +3,9 @@ dietlibc (0.33~cvs20111108-4) UNRELEASED; urgency=low
   * New patch to fix the ssize_t definition, for -Wformat benefit
   * New testcase to catch a specifically aligned strlen bug, from
     mtest-ascii1 of the Debian mksh package
+  * New patch for string functions to not read past end of memory
 
- -- Thorsten Glaser <tg@mirbsd.de>  Sat, 19 Nov 2011 17:45:51 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Sat, 19 Nov 2011 18:56:34 +0000
 
 dietlibc (0.33~cvs20111108-3) unstable; urgency=low
 

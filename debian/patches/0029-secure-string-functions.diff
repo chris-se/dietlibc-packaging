@@ -1,0 +1,335 @@
+From: Thorsten Glaser <tg@mirbsd.org>
+Date: Sat, 19 Nov 2011 17:43:18 +0000
+Subject: [PATCH] make string functions OOB secure
+
+Several !defined(WANT_SMALL_STRING_ROUTINES) string function
+implementations read up to 7 chars past the end of the string.
+This is forbidden, enforced by several memory allocators (such
+as omalloc) and valgrind, and causes trouble in general (e.g.
+t-ascii1.c to fail).
+
+This patch *removes* the faster string functions where they
+are unsafe, i.e. do not operate either on an explicit length
+argument (such as memcpy, strncpy) or merely are "faster" by
+loop unrolling (such as strncat).
+
+Sorry, guys. There is no way to speed up these functions if
+you need to avoid reading past the end of the allocated memory.
+
+Index: pkg-dietlibc/arm/strcpy.S
+===================================================================
+--- pkg-dietlibc.orig/arm/strcpy.S	2011-11-19 18:49:16.000000000 +0000
++++ pkg-dietlibc/arm/strcpy.S	2011-11-19 18:50:19.000000000 +0000
+@@ -2,61 +2,12 @@
+ #include "arm-features.h"
+ 
+ FUNC_START	strcpy
+-#ifndef WANT_SMALL_STRING_ROUTINES
+-	mov	ip, r0
+-	ands	r2, r1, #3
+-	ldr	r3, [r1, -r2]!
+-	movne	r2, r2, lsl #3
+-#ifdef __ARMEB__
+-	movne	r3, r3, lsl r2
+-#else
+-	movne	r3, r3, lsr r2
+-#endif
+-	addne	pc, pc, r2, lsl #1
+-	mov	r0, r0			@ nop
+-.Lloop:
+-#ifdef __ARMEB__
+-	mov	r3, r3, ror #24
+-	tst	r3, #255
+-	strb	r3, [ip], #1
+-	moveq	pc, lr
+-	mov	r3, r3, ror #24
+-	tst	r3, #255
+-	strb	r3, [ip], #1
+-	moveq	pc, lr
+-	mov	r3, r3, ror #24
+-	tst	r3, #255
+-	strb	r3, [ip], #1
+-	moveq	pc, lr
+-	mov	r3, r3, ror #24
+-	tst	r3, #255
+-	strb	r3, [ip], #1
+-	ldrne	r3, [r1, #4]!
+-#else
+-	tst	r3, #255
+-	strb	r3, [ip], #1
+-	moveq	pc, lr
+-	mov	r3, r3, lsr #8
+-	tst	r3, #255
+-	strb	r3, [ip], #1
+-	moveq	pc, lr
+-	mov	r3, r3, lsr #8
+-	tst	r3, #255
+-	strb	r3, [ip], #1
+-	moveq	pc, lr
+-	mov	r3, r3, lsr #8
+-	tst	r3, #255
+-	strb	r3, [ip], #1
+-	ldrne	r3, [r1, #4]!
+-#endif
+-#else
+ 	ldrb	r2, [r1], #1
+ 	mov	r3, r0
+ .Lloop:
+ 	strb	r2, [r3], #1
+ 	tst	r2, #255
+ 	ldrneb	r2, [r1], #1
+-#endif
+ 	bne	.Lloop
+ 	RET
+ FUNC_END	strcpy
+Index: pkg-dietlibc/arm/strlen.S
+===================================================================
+--- pkg-dietlibc.orig/arm/strlen.S	2011-11-19 18:49:16.000000000 +0000
++++ pkg-dietlibc/arm/strlen.S	2011-11-19 18:50:38.000000000 +0000
+@@ -7,46 +7,6 @@
+ 	moveq	pc, lr			@ if so, return 0
+ #endif
+ 
+-#ifndef WANT_SMALL_STRING_ROUTINES
+-	ands	a3, a1, #3
+-	ldr	ip, .Lmagic
+-	mov	a2, a1
+-	ldr	a4, [a1, -a3]!
+-
+-	/* ensure junk bytes aren't nulls */
+-
+-	rsbne	a3, a3, #4
+-	movne	a3, a3, lsl #3
+-#ifdef __ARMEB__
+-	orrne	a4, a4, ip, lsl a3
+-#else
+-	orrne	a4, a4, ip, lsr a3
+-#endif
+-
+-.Lloop:
+-	sub	a3, a4, ip
+-	bic	a3, a3, a4
+-	ands	a3, a3, ip, lsl #7
+-	ldreq	a4, [a1, #4]!
+-	beq	.Lloop
+-
+-	/* a3 & 0x80808080 == a3 */
+-
+-#ifdef __ARMEB__
+-	tst	a3, ip, lsl #16 + 7
+-	moveq	a3, a3, lsl #16
+-	addeq	a1, a1, #2
+-	tst	a3, #0x80000000
+-	addeq	a1, a1, #1
+-#else
+-	tst	a3, ip, lsr #16 - 7
+-	moveq	a3, a3, lsr #16
+-	addeq	a1, a1, #2
+-	tst	a3, #0x80
+-	addeq	a1, a1, #1
+-#endif
+-	sub	a1, a1, a2
+-#else
+ 	ldrb	a3, [a1], #1
+ 	mov	a2, a1
+ .Lloop:
+@@ -54,12 +14,7 @@
+ 	ldrneb	a3, [a1], #1
+ 	bne	.Lloop
+ 	sub	a1, a1, a2
+-#endif
+ 
+ 	RET
+ 
+-#ifndef WANT_SMALL_STRING_ROUTINES
+-.Lmagic:
+-	.word	0x01010101
+-#endif
+ FUNC_END	strlen
+Index: pkg-dietlibc/lib/strcmp.c
+===================================================================
+--- pkg-dietlibc.orig/lib/strcmp.c	2011-11-19 17:35:47.000000000 +0000
++++ pkg-dietlibc/lib/strcmp.c	2011-11-19 18:51:59.000000000 +0000
+@@ -6,45 +6,9 @@
+ int
+ strcmp (const char *s1, const char *s2)
+ {
+-#ifdef WANT_SMALL_STRING_ROUTINES
+     while (*s1 && *s1 == *s2)
+         s1++, s2++;
+     return (*s1 - *s2);
+-#else
+-    const unsigned long *lx1, *lx2;
+-    unsigned long   l1, l2;
+-    int             tmp;
+-
+-    if (UNALIGNED(s1, s2)) {
+-        while (*s1 && *s1 == *s2) s1++, s2++;
+-        return (*s1 - *s2);
+-    }
+-
+-    if ((tmp = STRALIGN(s1)))
+-        for (; tmp--; s1++, s2++)
+-            if (!*s1 || *s1 != *s2)
+-                return (*s1 - *s2);
+-
+-    lx1 = (unsigned long *) s1;
+-    lx2 = (unsigned long *) s2;
+-
+-    while (1) {
+-        l1 = *lx1++;
+-        l2 = *lx2++;
+-        if ((((l1 - MKW(0x1ul)) & ~l1) & MKW(0x80ul)) ||
+-            ((((l2 - MKW(0x1ul)) & ~l2) & MKW(0x80ul))) || l1 != l2) {
+-            unsigned char c1, c2;
+-            while (1) {
+-		c1 = GFC(l1);
+-                c2 = GFC(l2);
+-                if (!c1 || c1 != c2)
+-                    return (c1 - c2);
+-                INCSTR(l1);
+-                INCSTR(l2);
+-            }
+-        }
+-    }
+-#endif
+ }
+ 
+ int strcoll(const char *s,const char* t)       __attribute__((weak,alias("strcmp")));
+Index: pkg-dietlibc/lib/strcpy.c
+===================================================================
+--- pkg-dietlibc.orig/lib/strcpy.c	2011-11-19 17:35:47.000000000 +0000
++++ pkg-dietlibc/lib/strcpy.c	2011-11-19 18:52:26.000000000 +0000
+@@ -7,31 +7,6 @@
+ strcpy (char *s1, const char *s2)
+ {
+     char           *res = s1;
+-#ifdef WANT_SMALL_STRING_ROUTINES
+     while ((*s1++ = *s2++));
+     return (res);
+-#else
+-    int             tmp;
+-    unsigned long   l;
+-
+-    if (UNALIGNED(s1, s2)) {
+-	while ((*s1++ = *s2++));
+-	return (res);
+-    }
+-    if ((tmp = STRALIGN(s1))) {
+-	while (tmp-- && (*s1++ = *s2++));
+-	if (tmp != -1) return (res);
+-    }
+-
+-    while (1) {
+-	l = *(const unsigned long *) s2;
+-	if (((l - MKW(0x1ul)) & ~l) & MKW(0x80ul)) {
+-	    while ((*s1++ = GFC(l))) INCSTR(l);
+-	    return (res);
+-	}
+-	*(unsigned long *) s1 = l;
+-	s2 += sizeof(unsigned long);
+-	s1 += sizeof(unsigned long);
+-    }
+-#endif
+ }
+Index: pkg-dietlibc/lib/strlen.c
+===================================================================
+--- pkg-dietlibc.orig/lib/strlen.c	2011-11-19 17:35:47.000000000 +0000
++++ pkg-dietlibc/lib/strlen.c	2011-11-19 18:52:34.000000000 +0000
+@@ -3,96 +3,9 @@
+ #include <string.h>
+ #include <stdint.h>
+ 
+-#ifdef WANT_SMALL_STRING_ROUTINES
+ size_t strlen(const char *s) {
+   register size_t i;
+   if (__unlikely(!s)) return 0;
+   for (i=0; __likely(*s); ++s) ++i;
+   return i;
+ }
+-#else
+-
+-#if __WORDSIZE == 64
+-typedef uint64_t	word_t;
+-#elif __WORDSIZE == 32
+-typedef uint32_t	word_t;
+-#else
+-#error unsupported __WORDSIZE
+-#endif
+-
+-static word_t const	magic = (word_t)(0x0101010101010101ull);
+-
+-size_t strlen(const char *s)
+-{
+-  const char *t = s;
+-  word_t	word;
+-  word_t	mask;
+-
+-  if (__unlikely(!s)) return 0;
+-
+-  /* Byte compare up until word boundary */
+-  for (; ((unsigned long) t & (sizeof(magic)-1)); t++)
+-    if (!*t) return t - s;
+-
+-  /* Word compare */
+-  do {
+-    word = *((word_t const *) t); t += sizeof word;
+-    word = (word - magic) &~ word;
+-    word &= (magic << 7);
+-  } while (__likely(word == 0));
+-
+-#if __BYTE_ORDER == __LITTLE_ENDIAN
+-  (void)mask;
+-  switch (sizeof(word)) {
+-  case 8:
+-    /* word & 0x8080808080808080 == word */
+-    word = (word - 1) & (magic << 8);
+-    word += (word << 32);
+-    word += (word << 16);
+-    word += (word << 8);
+-    t += word >> 56;
+-    break;
+-
+-  case 4:
+-    /* word & 0x80808080 == word */
+-    word = (word - 1) & (magic << 10);
+-    word += (word << 8) + (word << 16);
+-    t += word >> 26;
+-    break;
+-
+-  default: { char exc[sizeof(word)==8]; (void)exc; }
+-  }
+-#else
+-  mask = (magic << 7);
+-
+-  switch (sizeof(word)) {
+-  case 8:
+-    mask <<= 4*8;
+-    if ((word & mask) == 0) {
+-      t     += 4;
+-      word <<= 4*8;
+-    }
+-    /* fallthrough */
+-
+-  case 4:
+-    mask <<= 2*8;
+-    if ((word & mask) == 0) {
+-      t     += 2;
+-      word <<= 2*8;
+-    }
+-    /* fallthrough */
+-
+-  case 2:
+-    mask <<= 1*8;
+-    if ((word & mask) == 0) {
+-      t     += 1;
+-      word <<= 1*8;
+-    }
+-    break;
+-
+-  default: { char exc[sizeof(word)==8]; (void)exc; }
+-  }
+-#endif
+-  return t - sizeof(word) - s;
+-}
+-#endif
