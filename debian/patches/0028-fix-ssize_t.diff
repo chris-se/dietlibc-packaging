@@ -1,0 +1,41 @@
+From: Thorsten Glaser <tg@mirbsd.org>
+Date: Sat, 19 Nov 2011 17:43:18 +0000
+Subject: [PATCH] fix ssize_t definition
+
+gcc -Wformat likes to warn if '%zd' is used and ssize_t is not
+a signed size_t (several architectures have 'unsigned int' as
+their __SIZE_TYPE__ definition); use __SIZE_TYPE__ in the same
+way for defining ssize_t as size_t uses (in stddef.h), except
+it must, of course, be signed; this actual kludge comes from
+$MirOS: src/sys/sys/types.h,v 1.8 2007/05/18 00:47:58 tg Exp $
+and is incorporated here with permission of its creator
+
+example build log (mipsel, too) exhibiting this warning:
+https://buildd.debian.org/status/fetch.php?pkg=mksh&arch=powerpc&ver=40.2-4&stamp=1321055433
+
+Index: pkg-dietlibc/include/sys/types.h
+===================================================================
+--- pkg-dietlibc.orig/include/sys/types.h	2011-11-19 17:35:47.000000000 +0000
++++ pkg-dietlibc/include/sys/types.h	2011-11-19 17:38:54.000000000 +0000
+@@ -82,11 +82,20 @@
+ typedef unsigned long ino_t;		/* Used for file serial numbers. */
+ typedef int32_t key_t;			/* Used for interprocess communication. */
+ typedef int32_t pid_t;			/* Used for process IDs and process group IDs. */
+-typedef signed long ssize_t;		/* Used for a count of bytes or an error indication. */
+ typedef signed long suseconds_t;	/* Used for time in microseconds. */
+ typedef signed long time_t;		/* Used for time in seconds. */
+ typedef signed long useconds_t;		/* Used for time in microseconds. */
+ 
++/* make this match size_t definition from stddef.h */
++#ifdef __GNUC__
++/* e-eeeevil kludge, but apparently works */
++#define unsigned signed
++typedef __SIZE_TYPE__ ssize_t;		/* Used for a count of bytes or an error indication. */
++#undef unsigned
++#else
++typedef signed long ssize_t;		/* Used for a count of bytes or an error indication. */
++#endif
++
+ /* non-susv2 types: */
+ __extension__ typedef signed long long loff_t;	/* 64-bit offset */
+ 

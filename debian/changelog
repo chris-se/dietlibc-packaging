@@ -1,3 +1,9 @@
+dietlibc (0.33~cvs20111108-4) UNRELEASED; urgency=low
+
+  * New patch to fix the ssize_t definition, for -Wformat benefit
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Sat, 19 Nov 2011 17:45:51 +0000
+
 dietlibc (0.33~cvs20111108-3) unstable; urgency=low
 
   * The team of Héctor and me seems to have taken over well enough
