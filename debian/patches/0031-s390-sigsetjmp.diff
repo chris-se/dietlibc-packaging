@@ -3,21 +3,24 @@ Date: Sat, 19 Nov 2011 19:23:37 +0000
 Subject: [PATCH] fix sigsetjmp on s390
 
 (via IRC, thanks); integrated by tg
+Update 20.11.2011: align more closely with eglibc
 
 Index: pkg-dietlibc/s390/setjmp.S
 ===================================================================
---- pkg-dietlibc.orig/s390/setjmp.S	2011-11-19 20:56:27.000000000 +0000
-+++ pkg-dietlibc/s390/setjmp.S	2011-11-19 21:01:54.000000000 +0000
-@@ -27,15 +27,16 @@
+--- pkg-dietlibc.orig/s390/setjmp.S	2011-11-20 16:43:30.000000000 +0000
++++ pkg-dietlibc/s390/setjmp.S	2011-11-20 16:44:51.000000000 +0000
+@@ -27,15 +27,18 @@
  	std	%f6,48(%r2)
  
  	/* Make a tail call to __sigjmp_save; it takes the same args.  */
 -	basr	%r1,%r0
 +	basr	%r1,0
-+.L0:	la	%r1,.L1-.L0(%r1)
  #ifdef	PIC
 -.L0:	la	%r1,.L1-.L0(0,%r1)
++.L0:	al	%r1,.L1-.L0(0,%r1)
  	l	%r1,__sigjmp_save@GOT12(0,%r1)
++#else
++.L0:	l	%r1,.L1-.L0(0,%r1)
 +#endif
  	br	%r1
 +	.p2align 3
@@ -31,18 +34,20 @@ Index: pkg-dietlibc/s390/setjmp.S
  .size __sigsetjmp,.-__sigsetjmp;
 Index: pkg-dietlibc/s390x/setjmp.S
 ===================================================================
---- pkg-dietlibc.orig/s390x/setjmp.S	2011-11-19 20:56:27.000000000 +0000
-+++ pkg-dietlibc/s390x/setjmp.S	2011-11-19 21:01:54.000000000 +0000
-@@ -27,15 +27,16 @@
+--- pkg-dietlibc.orig/s390x/setjmp.S	2011-11-20 16:43:30.000000000 +0000
++++ pkg-dietlibc/s390x/setjmp.S	2011-11-20 16:44:51.000000000 +0000
+@@ -27,15 +27,18 @@
  	std	%f6,48(%r2)
  
  	/* Make a tail call to __sigjmp_save; it takes the same args.  */
 -	basr	%r1,%r0
 +	basr	%r1,0
-+.L0:	la	%r1,.L1-.L0(%r1)
  #ifdef	PIC
 -.L0:	la	%r1,.L1-.L0(0,%r1)
++.L0:	al	%r1,.L1-.L0(0,%r1)
  	l	%r1,__sigjmp_save@GOT12(0,%r1)
++#else
++.L0:	l	%r1,.L1-.L0(0,%r1)
 +#endif
  	br	%r1
 +	.p2align 3

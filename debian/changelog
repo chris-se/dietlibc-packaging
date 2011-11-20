@@ -1,3 +1,9 @@
+dietlibc (0.33~cvs20111108-5) unstable; urgency=low
+
+  * Really fix s390 (Probably Closes: #523110)
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Sun, 20 Nov 2011 16:52:41 +0000
+
 dietlibc (0.33~cvs20111108-4) unstable; urgency=low
 
   [ Thorsten Glaser ]
