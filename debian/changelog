@@ -1,3 +1,9 @@
+dietlibc (0.33~cvs20111108-6) UNRELEASED; urgency=low
+
+  * Fix compile time warning (utimes undeclared) on armel, armhf, ia64
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Sat, 28 Jan 2012 16:15:23 +0000
+
 dietlibc (0.33~cvs20111108-5) unstable; urgency=low
 
   * Really fix s390 (Probably Closes: #523110)

@@ -24,3 +24,4 @@
 0029-secure-string-functions.diff
 0030-strtod-long-double-optional.diff
 0031-s390-sigsetjmp.diff
+0032-utimes-warning.diff

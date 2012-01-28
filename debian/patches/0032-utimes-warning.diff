@@ -1,0 +1,21 @@
+From: Thorsten Glaser <tg@mirbsd.org>
+Date: Sat, 28 Jan 2012 16:14:18 +0000
+Subject: fix compile time warning on armel, armhf, ia64
+
+utimes is defined in <sys/time.h> only if Fefe’s variant
+of _BSD_SOURCE is set, which we don’t do in dietlibc it‐
+self, so pull in the declaration
+
+Index: pkg-dietlibc/lib/__utime.c
+===================================================================
+--- pkg-dietlibc.orig/lib/__utime.c	2011-11-19 17:35:47.000000000 +0000
++++ pkg-dietlibc/lib/__utime.c	2012-01-28 16:11:05.000000000 +0000
+@@ -2,6 +2,8 @@
+ #include <syscalls.h>
+ 
+ #ifndef __NR_utime
++extern int utimes(const char *, struct timeval *);
++
+ int utime(const char *filename, const struct utimbuf *times)
+ {
+   if (times == NULL)
