@@ -1,8 +1,8 @@
 .text
-.global gettimeofday
-.type gettimeofday,@function
-gettimeofday:
-	movq gtod(%rip), %rax
+.global clock_gettime
+.type clock_gettime,@function
+clock_gettime:
+	movq cgt(%rip), %rax
 	test %rax,%rax
 	jz .L1
 .L2:
@@ -19,10 +19,10 @@ gettimeofday:
 	jmp .L2
 
 .Lhere:
-	.size	 gettimeofday,.Lhere-gettimeofday
-.local gtod
-.comm gtod,8,8
+	.size	 clock_gettime,.Lhere-clock_gettime
+.local cgt
+.comm cgt,8,8
 .section .rodata.str1.1,"aMS",@progbits,1
 .local funcname
 funcname:
-	.string "__vdso_gettimeofday"
+	.string "__vdso_clock_gettime"
