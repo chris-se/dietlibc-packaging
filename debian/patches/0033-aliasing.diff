@@ -1,0 +1,43 @@
+From: Thorsten Glaser <tg@debian.org>
+Date: Sun, 25 Mar 2012 15:50:09 +0000
+Subject: add -fno-strict-aliasing to some files abusing pointer casts
+
+Fixing the whole mess is non-trivial, e.g. making DIR->buf into a
+union of the char buffer and the dirent struct, for seekdir.c, is
+not sufficient since other code does pointer arithmetics and cast
+afterwards. This must be fixed upstream.
+
+Index: pkg-dietlibc/Makefile
+===================================================================
+--- pkg-dietlibc.orig/Makefile	2012-03-25 15:44:59.000000000 +0000
++++ pkg-dietlibc/Makefile	2012-03-25 15:49:43.000000000 +0000
+@@ -528,3 +528,29 @@
+ 
+ # WANT_MALLOC_ZERO
+ $(OBJDIR)/strndup.o: dietfeatures.h
++
++# work around aliasing rules abuse; fixing the code is nontrivial
++
++$(OBJDIR)/seekdir.o: lib/seekdir.c
++	$(CROSS)$(CC) $(INC) $(CFLAGS) -c $< -o $@ -D__dietlibc__ -fno-strict-aliasing
++	$(COMMENT) -$(CROSS)strip -x -R .comment -R .note $@
++
++$(OBJDIR)/clnt_raw.o: librpc/clnt_raw.c
++	$(CROSS)$(CC) $(INC) $(CFLAGS) -c $< -o $@ -D__dietlibc__ -fno-strict-aliasing
++	$(COMMENT) -$(CROSS)strip -x -R .comment -R .note $@
++
++$(OBJDIR)/clnt_udp.o: librpc/clnt_udp.c
++	$(CROSS)$(CC) $(INC) $(CFLAGS) -c $< -o $@ -D__dietlibc__ -fno-strict-aliasing
++	$(COMMENT) -$(CROSS)strip -x -R .comment -R .note $@
++
++$(PICODIR)/seekdir.o: lib/seekdir.c
++	$(CROSS)$(CC) $(INC) $(CFLAGS) -fPIC -D__DYN_LIB -c $< -o $@ -fno-strict-aliasing
++	$(COMMENT) $(CROSS)strip -x -R .comment -R .note $@
++
++$(PICODIR)/clnt_raw.o: librpc/clnt_raw.c
++	$(CROSS)$(CC) $(INC) $(CFLAGS) -fPIC -D__DYN_LIB -c $< -o $@ -fno-strict-aliasing
++	$(COMMENT) $(CROSS)strip -x -R .comment -R .note $@
++
++$(PICODIR)/clnt_udp.o: librpc/clnt_udp.c
++	$(CROSS)$(CC) $(INC) $(CFLAGS) -fPIC -D__DYN_LIB -c $< -o $@ -fno-strict-aliasing
++	$(COMMENT) $(CROSS)strip -x -R .comment -R .note $@
