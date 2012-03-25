@@ -9,11 +9,11 @@ http://bug.debian.org/374349
  dietfeatures.h |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-Index: dietlibc-0.33~cvs20111108/dietfeatures.h
+Index: pkg-dietlibc/dietfeatures.h
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/dietfeatures.h	2011-11-08 21:23:41.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/dietfeatures.h	2011-11-08 21:24:05.000000000 +0000
-@@ -135,7 +135,7 @@
+--- pkg-dietlibc.orig/dietfeatures.h	2012-03-25 15:11:10.000000000 +0000
++++ pkg-dietlibc/dietfeatures.h	2012-03-25 15:12:24.000000000 +0000
+@@ -139,7 +139,7 @@
   * compiled with -fstack-protector against it, the binary will segfault
   * when calling that code. */
  #if (__GNUC__>4) || ((__GNUC__==4) && (__GNUC_MINOR__>=1))

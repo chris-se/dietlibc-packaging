@@ -1,10 +1,11 @@
-dietlibc (0.33~cvs20111108-6) UNRELEASED; urgency=low
+dietlibc (0.33~cvs20120325-1) UNRELEASED; urgency=low
 
   * Fix compile time warning (utimes undeclared) on armel, armhf, ia64
   * Policy 3.9.3 (no relevant changes)
   * Add VCS-* fields to debian/control
+  * Take new upstream CVS snapshot (CVE-2012-1577)
 
- -- Thorsten Glaser <tg@mirbsd.de>  Sun, 25 Mar 2012 14:16:44 +0000
+ -- Thorsten Glaser <tg@mirbsd.de>  Sun, 25 Mar 2012 15:14:58 +0000
 
 dietlibc (0.33~cvs20111108-5) unstable; urgency=low
 

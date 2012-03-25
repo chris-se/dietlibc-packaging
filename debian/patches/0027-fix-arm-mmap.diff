@@ -9,10 +9,10 @@ on #debian-arm with pbrook (Paul Brook) and lindi- (Timo Juhani Lindfors)
 - "This is ARM code. But you've not maked mmap as a function symbol."
 => use the arm-features.h macros
 
-Index: dietlibc-0.33~cvs20111108/arm/mmap.S
+Index: pkg-dietlibc/arm/mmap.S
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/arm/mmap.S	2011-11-08 21:06:20.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/arm/mmap.S	2011-11-08 22:32:56.000000000 +0000
+--- pkg-dietlibc.orig/arm/mmap.S	2012-03-25 15:07:28.000000000 +0000
++++ pkg-dietlibc/arm/mmap.S	2012-03-25 15:14:00.000000000 +0000
 @@ -1,22 +1,13 @@
  #include <errno.h>
  #include "syscalls.h"

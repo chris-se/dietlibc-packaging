@@ -7,8 +7,8 @@ Update 20.11.2011: align more closely with eglibc
 
 Index: pkg-dietlibc/s390/setjmp.S
 ===================================================================
---- pkg-dietlibc.orig/s390/setjmp.S	2011-11-20 16:43:30.000000000 +0000
-+++ pkg-dietlibc/s390/setjmp.S	2011-11-20 16:44:51.000000000 +0000
+--- pkg-dietlibc.orig/s390/setjmp.S	2012-03-25 15:12:59.000000000 +0000
++++ pkg-dietlibc/s390/setjmp.S	2012-03-25 15:14:13.000000000 +0000
 @@ -27,15 +27,18 @@
  	std	%f6,48(%r2)
  
@@ -34,8 +34,8 @@ Index: pkg-dietlibc/s390/setjmp.S
  .size __sigsetjmp,.-__sigsetjmp;
 Index: pkg-dietlibc/s390x/setjmp.S
 ===================================================================
---- pkg-dietlibc.orig/s390x/setjmp.S	2011-11-20 16:43:30.000000000 +0000
-+++ pkg-dietlibc/s390x/setjmp.S	2011-11-20 16:44:51.000000000 +0000
+--- pkg-dietlibc.orig/s390x/setjmp.S	2012-03-25 15:12:59.000000000 +0000
++++ pkg-dietlibc/s390x/setjmp.S	2012-03-25 15:14:13.000000000 +0000
 @@ -27,15 +27,18 @@
  	std	%f6,48(%r2)
  

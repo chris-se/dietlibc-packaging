@@ -1,10 +1,10 @@
 Description: disable ProPolice SSP, which may be enabled by default
 Author: Thorsten Glaser
 
-Index: dietlibc-0.33~cvs20111108/Makefile
+Index: pkg-dietlibc/Makefile
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/Makefile	2011-11-08 21:24:04.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/Makefile	2011-11-08 21:24:07.000000000 +0000
+--- pkg-dietlibc.orig/Makefile	2012-03-25 15:12:21.000000000 +0000
++++ pkg-dietlibc/Makefile	2012-03-25 15:12:50.000000000 +0000
 @@ -141,6 +141,7 @@
  COMMENT = :
  endif

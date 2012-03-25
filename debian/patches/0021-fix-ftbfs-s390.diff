@@ -14,10 +14,10 @@ Author: Hector Oron <zumbi@debian.org>
 
 ---
 
-Index: dietlibc-0.33~cvs20111108/s390/setjmp.S
+Index: pkg-dietlibc/s390/setjmp.S
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/s390/setjmp.S	2011-11-08 21:23:39.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/s390/setjmp.S	2011-11-08 21:24:08.000000000 +0000
+--- pkg-dietlibc.orig/s390/setjmp.S	2012-03-25 15:07:46.000000000 +0000
++++ pkg-dietlibc/s390/setjmp.S	2012-03-25 15:12:59.000000000 +0000
 @@ -14,6 +14,7 @@
  
  .global _setjmp
@@ -26,10 +26,10 @@ Index: dietlibc-0.33~cvs20111108/s390/setjmp.S
  	lhi	%r3,0
  .size	_setjmp,.-_setjmp
  
-Index: dietlibc-0.33~cvs20111108/s390x/setjmp.S
+Index: pkg-dietlibc/s390x/setjmp.S
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/s390x/setjmp.S	2011-11-08 21:23:39.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/s390x/setjmp.S	2011-11-08 21:24:08.000000000 +0000
+--- pkg-dietlibc.orig/s390x/setjmp.S	2012-03-25 15:07:46.000000000 +0000
++++ pkg-dietlibc/s390x/setjmp.S	2012-03-25 15:12:59.000000000 +0000
 @@ -14,6 +14,7 @@
  
  .global _setjmp

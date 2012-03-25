@@ -1,8 +1,8 @@
 #!/usr/bin/make -f
 
 # for "debian/rules get-orig-source"
-ORIGTGZ_SOURCE:=	-D'2011/11/08 20:00'
-ORIGTGZ_DESTINATION:=	0.33~cvs20111108
+ORIGTGZ_SOURCE:=	-D'2012/03/25 15:00'
+ORIGTGZ_DESTINATION:=	0.33~cvs20120325
 
 # determine whether we are cross-compiling
 DEB_BUILD_GNU_TYPE:=$(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)

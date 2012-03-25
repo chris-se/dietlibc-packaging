@@ -14,11 +14,11 @@ Signed-off-by: Thorsten Glaser <tg@mirbsd.org>
  diet.c |    6 ++++++
  1 files changed, 6 insertions(+), 0 deletions(-)
 
-Index: dietlibc-0.33~cvs20111108/diet.c
+Index: pkg-dietlibc/diet.c
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/diet.c	2011-11-08 21:24:06.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/diet.c	2011-11-08 21:24:08.000000000 +0000
-@@ -410,6 +410,12 @@
+--- pkg-dietlibc.orig/diet.c	2012-03-25 15:12:44.000000000 +0000
++++ pkg-dietlibc/diet.c	2012-03-25 15:13:49.000000000 +0000
+@@ -413,6 +413,12 @@
  	*dest++=f;
        }
  #endif

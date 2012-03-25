@@ -31,10 +31,10 @@ Daniel Hokka Zakrisson
  dietdirent.h |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-Index: dietlibc-0.33~cvs20111108/dietdirent.h
+Index: pkg-dietlibc/dietdirent.h
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/dietdirent.h	2011-11-08 21:23:40.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/dietdirent.h	2011-11-08 21:24:06.000000000 +0000
+--- pkg-dietlibc.orig/dietdirent.h	2012-03-25 15:07:28.000000000 +0000
++++ pkg-dietlibc/dietdirent.h	2012-03-25 15:12:36.000000000 +0000
 @@ -1,8 +1,8 @@
  #include <sys/shm.h>
  

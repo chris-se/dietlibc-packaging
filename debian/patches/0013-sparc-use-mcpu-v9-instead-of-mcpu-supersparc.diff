@@ -24,10 +24,10 @@ are v9.
  sparc/Makefile.add |    2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-Index: dietlibc-0.33~cvs20111108/diet.c
+Index: pkg-dietlibc/diet.c
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/diet.c	2011-11-08 21:24:04.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/diet.c	2011-11-08 21:24:06.000000000 +0000
+--- pkg-dietlibc.orig/diet.c	2012-03-25 15:11:10.000000000 +0000
++++ pkg-dietlibc/diet.c	2012-03-25 15:12:44.000000000 +0000
 @@ -29,7 +29,7 @@
  	 "-falign-functions=1","-falign-jumps=1",
  	 "-falign-loops=1","-fomit-frame-pointer",0,
@@ -37,10 +37,10 @@ Index: dietlibc-0.33~cvs20111108/diet.c
    "sparc64","-Os","-m64","-mhard-quad-float",0,
    "alpha","-Os","-fomit-frame-pointer",0,
    "arm","-Os","-fomit-frame-pointer",0,
-Index: dietlibc-0.33~cvs20111108/sparc/Makefile.add
+Index: pkg-dietlibc/sparc/Makefile.add
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/sparc/Makefile.add	2011-11-08 21:23:40.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/sparc/Makefile.add	2011-11-08 21:24:06.000000000 +0000
+--- pkg-dietlibc.orig/sparc/Makefile.add	2012-03-25 15:07:46.000000000 +0000
++++ pkg-dietlibc/sparc/Makefile.add	2012-03-25 15:12:44.000000000 +0000
 @@ -1,5 +1,5 @@
  
 -CFLAGS+=-mcpu=supersparc -Os

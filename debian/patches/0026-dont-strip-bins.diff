@@ -4,10 +4,10 @@ Subject: [PATCH] do not strip binaries
 
 leave that to the debian/rules code
 
-Index: dietlibc-0.33~cvs20111108/Makefile
+Index: pkg-dietlibc/Makefile
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/Makefile	2011-11-08 21:35:00.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/Makefile	2011-11-08 21:35:27.000000000 +0000
+--- pkg-dietlibc.orig/Makefile	2012-03-25 15:12:50.000000000 +0000
++++ pkg-dietlibc/Makefile	2012-03-25 15:13:58.000000000 +0000
 @@ -311,19 +311,15 @@
  
  $(OBJDIR)/diet: $(OBJDIR)/start.o $(OBJDIR)/dyn_start.o diet.c $(OBJDIR)/dietlibc.a $(OBJDIR)/dyn_stop.o

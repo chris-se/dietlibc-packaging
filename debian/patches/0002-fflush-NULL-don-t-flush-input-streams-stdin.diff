@@ -8,10 +8,10 @@ See http://bugs.debian.org/346437
  libstdio/fflush.c |    1 -
  1 files changed, 0 insertions(+), 1 deletions(-)
 
-Index: dietlibc-0.33~cvs20111108/libstdio/fflush.c
+Index: pkg-dietlibc/libstdio/fflush.c
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/libstdio/fflush.c	2011-11-08 21:23:41.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/libstdio/fflush.c	2011-11-08 21:24:04.000000000 +0000
+--- pkg-dietlibc.orig/libstdio/fflush.c	2012-03-25 15:07:36.000000000 +0000
++++ pkg-dietlibc/libstdio/fflush.c	2012-03-25 15:12:13.000000000 +0000
 @@ -17,7 +17,6 @@
    if (stream==0) {
      int res;

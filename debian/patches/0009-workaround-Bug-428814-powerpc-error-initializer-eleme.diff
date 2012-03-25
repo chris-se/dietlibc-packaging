@@ -30,10 +30,10 @@ On Sat, Jun 30, 2007 at 11:24:15AM +0200, Matthias Klose wrote:
  libm/gamma.c |   17 +++++++++++++++++
  1 files changed, 17 insertions(+), 0 deletions(-)
 
-Index: dietlibc-0.33~cvs20111108/libm/gamma.c
+Index: pkg-dietlibc/libm/gamma.c
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/libm/gamma.c	2011-11-08 21:23:40.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/libm/gamma.c	2011-11-08 21:24:05.000000000 +0000
+--- pkg-dietlibc.orig/libm/gamma.c	2012-03-25 15:07:33.000000000 +0000
++++ pkg-dietlibc/libm/gamma.c	2012-03-25 15:12:33.000000000 +0000
 @@ -33,6 +33,22 @@
  #include <stdlib.h>
  #include <math.h>

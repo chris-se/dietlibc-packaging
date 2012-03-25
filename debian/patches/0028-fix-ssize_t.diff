@@ -15,8 +15,8 @@ https://buildd.debian.org/status/fetch.php?pkg=mksh&arch=powerpc&ver=40.2-4&stam
 
 Index: pkg-dietlibc/include/sys/types.h
 ===================================================================
---- pkg-dietlibc.orig/include/sys/types.h	2011-11-19 17:35:47.000000000 +0000
-+++ pkg-dietlibc/include/sys/types.h	2011-11-19 17:38:54.000000000 +0000
+--- pkg-dietlibc.orig/include/sys/types.h	2012-03-25 15:07:33.000000000 +0000
++++ pkg-dietlibc/include/sys/types.h	2012-03-25 15:14:03.000000000 +0000
 @@ -82,11 +82,20 @@
  typedef unsigned long ino_t;		/* Used for file serial numbers. */
  typedef int32_t key_t;			/* Used for interprocess communication. */

@@ -1,10 +1,10 @@
 Description: fix errors in the manpage
 Author: Thorsten Glaser
 
-Index: dietlibc-0.33~cvs20111108/diet.1
+Index: pkg-dietlibc/diet.1
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/diet.1	2011-11-08 21:23:40.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/diet.1	2011-11-08 21:24:07.000000000 +0000
+--- pkg-dietlibc.orig/diet.1	2012-03-25 15:07:28.000000000 +0000
++++ pkg-dietlibc/diet.1	2012-03-25 15:12:52.000000000 +0000
 @@ -4,7 +4,7 @@
  diet \- mangle gcc command line arguments
  .SH SYNOPSIS

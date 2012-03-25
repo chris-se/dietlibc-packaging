@@ -24,10 +24,10 @@ In the currently-supported architectures there are four families:
  syscalls.s/umount2.S |    4 +++-
  4 files changed, 11 insertions(+), 1 deletions(-)
 
-Index: dietlibc-0.33~cvs20111108/alpha/syscalls.h
+Index: pkg-dietlibc/alpha/syscalls.h
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/alpha/syscalls.h	2011-11-08 21:23:40.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/alpha/syscalls.h	2011-11-08 21:24:06.000000000 +0000
+--- pkg-dietlibc.orig/alpha/syscalls.h	2012-03-25 15:07:28.000000000 +0000
++++ pkg-dietlibc/alpha/syscalls.h	2012-03-25 15:12:38.000000000 +0000
 @@ -413,6 +413,8 @@
  #define __NR_timerfd			477
  #define __NR_eventfd			478
@@ -37,10 +37,10 @@ Index: dietlibc-0.33~cvs20111108/alpha/syscalls.h
  
  #define syscall_weak(name,wsym,sym) \
  .text ; \
-Index: dietlibc-0.33~cvs20111108/ia64/syscalls.h
+Index: pkg-dietlibc/ia64/syscalls.h
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/ia64/syscalls.h	2011-11-08 21:23:40.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/ia64/syscalls.h	2011-11-08 21:24:06.000000000 +0000
+--- pkg-dietlibc.orig/ia64/syscalls.h	2012-03-25 15:07:28.000000000 +0000
++++ pkg-dietlibc/ia64/syscalls.h	2012-03-25 15:12:38.000000000 +0000
 @@ -290,6 +290,8 @@
  #define __NR_timerfd_settime		1311
  #define __NR_timerfd_gettime		1312
@@ -50,10 +50,10 @@ Index: dietlibc-0.33~cvs20111108/ia64/syscalls.h
  #define syscall(name, sym) \
  .text; \
  .globl sym; \
-Index: dietlibc-0.33~cvs20111108/syscalls.s/umount.S
+Index: pkg-dietlibc/syscalls.s/umount.S
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/syscalls.s/umount.S	2011-11-08 21:23:40.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/syscalls.s/umount.S	2011-11-08 21:24:06.000000000 +0000
+--- pkg-dietlibc.orig/syscalls.s/umount.S	2012-03-25 15:07:46.000000000 +0000
++++ pkg-dietlibc/syscalls.s/umount.S	2012-03-25 15:12:38.000000000 +0000
 @@ -1,5 +1,9 @@
  #include "syscalls.h"
  
@@ -64,10 +64,10 @@ Index: dietlibc-0.33~cvs20111108/syscalls.s/umount.S
  syscall(umount,umount)
  #endif
 +#endif
-Index: dietlibc-0.33~cvs20111108/syscalls.s/umount2.S
+Index: pkg-dietlibc/syscalls.s/umount2.S
 ===================================================================
---- dietlibc-0.33~cvs20111108.orig/syscalls.s/umount2.S	2011-11-08 21:23:40.000000000 +0000
-+++ dietlibc-0.33~cvs20111108/syscalls.s/umount2.S	2011-11-08 21:24:06.000000000 +0000
+--- pkg-dietlibc.orig/syscalls.s/umount2.S	2012-03-25 15:07:46.000000000 +0000
++++ pkg-dietlibc/syscalls.s/umount2.S	2012-03-25 15:12:38.000000000 +0000
 @@ -1,5 +1,7 @@
  #include "syscalls.h"
  

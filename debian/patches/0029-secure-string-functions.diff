@@ -18,8 +18,8 @@ you need to avoid reading past the end of the allocated memory.
 
 Index: pkg-dietlibc/arm/strcpy.S
 ===================================================================
---- pkg-dietlibc.orig/arm/strcpy.S	2011-11-19 18:49:16.000000000 +0000
-+++ pkg-dietlibc/arm/strcpy.S	2011-11-19 18:50:19.000000000 +0000
+--- pkg-dietlibc.orig/arm/strcpy.S	2012-03-25 15:12:55.000000000 +0000
++++ pkg-dietlibc/arm/strcpy.S	2012-03-25 15:14:06.000000000 +0000
 @@ -2,61 +2,12 @@
  #include "arm-features.h"
  
@@ -84,8 +84,8 @@ Index: pkg-dietlibc/arm/strcpy.S
  FUNC_END	strcpy
 Index: pkg-dietlibc/arm/strlen.S
 ===================================================================
---- pkg-dietlibc.orig/arm/strlen.S	2011-11-19 18:49:16.000000000 +0000
-+++ pkg-dietlibc/arm/strlen.S	2011-11-19 18:50:38.000000000 +0000
+--- pkg-dietlibc.orig/arm/strlen.S	2012-03-25 15:12:55.000000000 +0000
++++ pkg-dietlibc/arm/strlen.S	2012-03-25 15:14:06.000000000 +0000
 @@ -7,46 +7,6 @@
  	moveq	pc, lr			@ if so, return 0
  #endif
@@ -148,8 +148,8 @@ Index: pkg-dietlibc/arm/strlen.S
  FUNC_END	strlen
 Index: pkg-dietlibc/lib/strcmp.c
 ===================================================================
---- pkg-dietlibc.orig/lib/strcmp.c	2011-11-19 17:35:47.000000000 +0000
-+++ pkg-dietlibc/lib/strcmp.c	2011-11-19 18:51:59.000000000 +0000
+--- pkg-dietlibc.orig/lib/strcmp.c	2012-03-25 15:07:33.000000000 +0000
++++ pkg-dietlibc/lib/strcmp.c	2012-03-25 15:14:06.000000000 +0000
 @@ -6,45 +6,9 @@
  int
  strcmp (const char *s1, const char *s2)
@@ -198,8 +198,8 @@ Index: pkg-dietlibc/lib/strcmp.c
  int strcoll(const char *s,const char* t)       __attribute__((weak,alias("strcmp")));
 Index: pkg-dietlibc/lib/strcpy.c
 ===================================================================
---- pkg-dietlibc.orig/lib/strcpy.c	2011-11-19 17:35:47.000000000 +0000
-+++ pkg-dietlibc/lib/strcpy.c	2011-11-19 18:52:26.000000000 +0000
+--- pkg-dietlibc.orig/lib/strcpy.c	2012-03-25 15:07:33.000000000 +0000
++++ pkg-dietlibc/lib/strcpy.c	2012-03-25 15:14:06.000000000 +0000
 @@ -7,31 +7,6 @@
  strcpy (char *s1, const char *s2)
  {
@@ -234,8 +234,8 @@ Index: pkg-dietlibc/lib/strcpy.c
  }
 Index: pkg-dietlibc/lib/strlen.c
 ===================================================================
---- pkg-dietlibc.orig/lib/strlen.c	2011-11-19 17:35:47.000000000 +0000
-+++ pkg-dietlibc/lib/strlen.c	2011-11-19 18:52:34.000000000 +0000
+--- pkg-dietlibc.orig/lib/strlen.c	2012-03-25 15:07:33.000000000 +0000
++++ pkg-dietlibc/lib/strlen.c	2012-03-25 15:14:06.000000000 +0000
 @@ -3,96 +3,9 @@
  #include <string.h>
  #include <stdint.h>
