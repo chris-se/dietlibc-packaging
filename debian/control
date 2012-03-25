@@ -4,7 +4,9 @@ Priority: optional
 Homepage: http://www.fefe.de/dietlibc/
 Maintainer: Hector Oron <zumbi@debian.org>
 Uploaders: Thorsten Glaser <tg@mirbsd.de>
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
+Vcs-git: git://git.debian.org/collab-maint/dietlibc.git
+Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/dietlibc.git
 
 Package: dietlibc-dev
 Section: libdevel
