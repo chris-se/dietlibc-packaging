@@ -162,12 +162,8 @@ include debian/implicit
 
 _ANONCVSROOT:=		:pserver:cvs@cvs.fefe.de:/cvs
 _CVSEXPORT:=		env CVS_RSH=ssh TZ=UTC cvs -qd ${_ANONCVSROOT} -z9 export
-ifneq (,$(wildcard /usr/bin/mircpio))
 _PACK:=			find dietlibc-${ORIGTGZ_DESTINATION} -type f | sort | \
-			    mircpio -oC512 -Hustar -Mdist
-else
-_PACK:=			tar -cf - dietlibc-${ORIGTGZ_DESTINATION}
-endif
+			    paxcpio -oC512 -Hustar -Mdist
 
 get-orig-source:
 	rm -rf $@.tmp
