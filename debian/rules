@@ -29,13 +29,9 @@ else
 ifeq ($(ARCH),hppa)
   ARCH =parisc
 else
-ifeq ($(ARCH),mipsel)
-  ARCH =mips
-else
 ifneq (,$(findstring arm,$(ARCH)))
   ARCH =arm
 # DEBUG =DEBUG=1
-endif
 endif
 endif
 endif

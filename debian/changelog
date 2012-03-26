@@ -1,3 +1,9 @@
+dietlibc (0.33~cvs20120325-2) unstable; urgency=low
+
+  * Upstream added a real mipsel port, use it instead of saying mips
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Mon, 26 Mar 2012 19:01:10 +0000
+
 dietlibc (0.33~cvs20120325-1) unstable; urgency=low
 
   * Fix compile time warning (utimes undeclared) on armel, armhf, ia64
