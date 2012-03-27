@@ -1,3 +1,10 @@
+dietlibc (0.33~cvs20120325-3) unstable; urgency=low
+
+  * Make the select testcase we run at build-time actually useful
+  * Fix #394928 on ppc64, too (same patch, different directory)
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Tue, 27 Mar 2012 20:18:03 +0000
+
 dietlibc (0.33~cvs20120325-2) unstable; urgency=low
 
   * Upstream added a real mipsel port, use it instead of saying mips

@@ -24,3 +24,5 @@
 0031-s390-sigsetjmp.diff
 0032-utimes-warning.diff
 0033-aliasing.diff
+0034-make-select-testcase-useful.diff
+0035-Use-syscall-_newselect-instead-of-select-on-ppc64.diff
