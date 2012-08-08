@@ -131,7 +131,7 @@ Index: pkg-dietlibc/arm/__longjmp.S
 -	lfm	f4, 4, [ip], #48
 +
 +#ifndef __SOFTFP__
-+# if __ARM_ARCH__ == 7
++# if __ARM_ARCH__ >= 6
 +	vldm	ip!, {d0-d15}
 +#   ifdef __ARM_NEON__
 +	vldm	ip!, {d16-d31}
@@ -547,7 +547,7 @@ Index: pkg-dietlibc/arm/setjmp.S
  #endif
 +
 +#ifndef __SOFTFP__
-+# if __ARM_ARCH__ >= 7
++# if __ARM_ARCH__ >= 6
 +	vstmia	ip!, {d0-d15}
 +#   ifdef __ARM_NEON__
 +	vstmia	ip!, {d16-d31}

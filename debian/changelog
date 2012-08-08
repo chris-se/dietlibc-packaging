@@ -1,3 +1,9 @@
+dietlibc (0.33~cvs20120325-3+rpi1) wheezy; urgency=low
+
+  * Tweak arm assembler patch so it works with armv6 vfp too.
+
+ -- Peter Michael Green <plugwash@p10link.net>  Thu, 12 Jul 2012 20:08:26 +0000
+
 dietlibc (0.33~cvs20120325-3) unstable; urgency=low
 
   * Make the select testcase we run at build-time actually useful
