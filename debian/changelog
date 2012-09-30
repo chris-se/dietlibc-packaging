@@ -1,8 +1,12 @@
-dietlibc (0.33~cvs20120325-3+rpi1) wheezy; urgency=low
+dietlibc (0.33~cvs20120325-4) unstable; urgency=low
 
+  [ Peter Michael Green ]
   * Tweak arm assembler patch so it works with armv6 vfp too.
 
- -- Peter Michael Green <plugwash@p10link.net>  Thu, 12 Jul 2012 20:08:26 +0000
+  [ Thorsten Glaser ]
+  * Fix jmp_buf size for armhf (Closes: #689222)
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Sun, 30 Sep 2012 14:15:34 +0000
 
 dietlibc (0.33~cvs20120325-3) unstable; urgency=low
 
