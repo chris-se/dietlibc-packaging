@@ -1,11 +1,12 @@
-Description: <short summary of the patch>
+Description: add support for the powerpcspe architecture
+ This differs from PowerPC and Cell! More information at
+ https://wiki.debian.org/PowerPCSPEPort
 Author: Roland Stigge <stigge@antcom.de>
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=694366
 
-Index: dietlibc-0.33~cvs20120325/ppc/__longjmp.S
-===================================================================
---- dietlibc-0.33~cvs20120325.orig/ppc/__longjmp.S	2012-11-24 16:41:22.772562338 +0100
-+++ dietlibc-0.33~cvs20120325/ppc/__longjmp.S	2012-11-24 16:41:47.404568458 +0100
-@@ -14,6 +14,7 @@
+--- a/ppc/__longjmp.S
++++ b/ppc/__longjmp.S
+@@ -14,6 +14,7 @@ __longjmp:
  	lwz 1,(JB_GPR1*4)(3)
  	lwz 2,(JB_GPR2*4)(3)
  	lwz 0,(JB_LR*4)(3)
@@ -13,7 +14,7 @@ Index: dietlibc-0.33~cvs20120325/ppc/__longjmp.S
  	lwz 14,((JB_GPRS+0)*4)(3)
  	lfd 14,((JB_FPRS+0*2)*4)(3)
  	lwz 15,((JB_GPRS+1)*4)(3)
-@@ -53,6 +54,11 @@
+@@ -53,6 +54,11 @@ __longjmp:
  	lfd 30,((JB_FPRS+16*2)*4)(3)
  	lwz 31,((JB_GPRS+17)*4)(3)
  	lfd 31,((JB_FPRS+17*2)*4)(3)
@@ -25,11 +26,9 @@ Index: dietlibc-0.33~cvs20120325/ppc/__longjmp.S
  	mr 3,4
  	blr
  .size __longjmp,.-__longjmp
-Index: dietlibc-0.33~cvs20120325/ppc/setjmp.S
-===================================================================
---- dietlibc-0.33~cvs20120325.orig/ppc/setjmp.S	2012-03-25 17:07:46.000000000 +0200
-+++ dietlibc-0.33~cvs20120325/ppc/setjmp.S	2012-11-24 16:47:32.068654110 +0100
-@@ -13,6 +13,7 @@
+--- a/ppc/setjmp.S
++++ b/ppc/setjmp.S
+@@ -13,6 +13,7 @@ __sigsetjmp:
          stw  1,(JB_GPR1*4)(3)
          mflr 0
          stw  2,(JB_GPR2*4)(3)
@@ -37,7 +36,7 @@ Index: dietlibc-0.33~cvs20120325/ppc/setjmp.S
          stw  14,((JB_GPRS+0)*4)(3)
          stfd 14,((JB_FPRS+0*2)*4)(3)
          stw  0,(JB_LR*4)(3)
-@@ -52,5 +53,10 @@
+@@ -52,5 +53,10 @@ __sigsetjmp:
          stfd 30,((JB_FPRS+16*2)*4)(3)
          stw  31,((JB_GPRS+17)*4)(3)
          stfd 31,((JB_FPRS+17*2)*4)(3)

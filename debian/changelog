@@ -1,3 +1,11 @@
+dietlibc (0.33~cvs20120325-5) experimental; urgency=low
+
+  [ Roland Stigge ]
+  * Add support for the https://wiki.debian.org/PowerPCSPEPort
+    (Closes: #694366)
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Sun, 25 Nov 2012 21:41:02 +0000
+
 dietlibc (0.33~cvs20120325-4) unstable; urgency=low
 
   [ Peter Michael Green ]
