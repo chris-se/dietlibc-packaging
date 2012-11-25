@@ -26,12 +26,16 @@ else
 ifeq ($(ARCH),powerpc)
   ARCH =ppc
 else
+ifeq ($(ARCH),powerpcspe)
+  ARCH =ppc
+else
 ifeq ($(ARCH),hppa)
   ARCH =parisc
 else
 ifneq (,$(findstring arm,$(ARCH)))
   ARCH =arm
 # DEBUG =DEBUG=1
+endif
 endif
 endif
 endif

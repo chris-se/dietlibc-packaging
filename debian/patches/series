@@ -27,3 +27,4 @@
 0034-make-select-testcase-useful.diff
 0035-Use-syscall-_newselect-instead-of-select-on-ppc64.diff
 0036-fix-jmp_buf-size-on-armhf.diff
+0037-support-powerpcspe.diff
