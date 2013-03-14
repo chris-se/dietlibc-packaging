@@ -1,3 +1,10 @@
+dietlibc (0.33~cvs20120325-6) UNRELEASED; urgency=low
+
+  * debian/watch: Update for new download location, 0.33 is out
+    (will work on it, probably this weekend)
+
+ -- Thorsten Glaser <tg@mirbsd.de>  Thu, 14 Mar 2013 11:07:33 +0100
+
 dietlibc (0.33~cvs20120325-5) experimental; urgency=low
 
   [ Roland Stigge ]

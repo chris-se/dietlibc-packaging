@@ -1,2 +1,2 @@
 version=3
-http://www.kernel.org/pub/linux/libs/dietlibc/ dietlibc-(.*)\.tar\.gz
+http://www.fefe.de/dietlibc/ dietlibc-([0-9.]*)\.tar\.bz2
