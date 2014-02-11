@@ -1,9 +1,12 @@
-dietlibc (0.33~cvs20120325-6) UNRELEASED; urgency=low
+dietlibc (0.33~cvs20120325-6) unstable; urgency=low
 
+  * Team upload.
+  * Upload to unstable
   * debian/watch: Update for new download location, 0.33 is out
-    (will work on it, probably this weekend)
+  * Remove myself from Uploaders
+  * debian/control: Use canonical VCS-* URI, says lintian
 
- -- Thorsten Glaser <tg@mirbsd.de>  Thu, 14 Mar 2013 11:07:33 +0100
+ -- Thorsten Glaser <tg@mirbsd.de>  Tue, 11 Feb 2014 21:48:06 +0100
 
 dietlibc (0.33~cvs20120325-5) experimental; urgency=low
 
