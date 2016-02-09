@@ -4,8 +4,8 @@ Priority: optional
 Homepage: http://www.fefe.de/dietlibc/
 Maintainer: Hector Oron <zumbi@debian.org>
 Standards-Version: 3.9.3
-Vcs-git: git://anonscm.debian.org/collab-maint/dietlibc.git
-Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/dietlibc.git
+Vcs-Git: https://alioth.debian.org/anonscm/git/collab-maint/dietlibc.git
+Vcs-Browser: https://anonscm.debian.org/gitweb/?p=collab-maint/dietlibc.git
 
 Package: dietlibc-dev
 Section: libdevel
