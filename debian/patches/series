@@ -25,3 +25,4 @@
 0038-support-native-x32.diff
 0039-reproducible-build.diff
 0040-lltostr-parameters.diff
+0041-parisc-exit.diff

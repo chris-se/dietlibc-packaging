@@ -1,0 +1,17 @@
+Description: Flush streams on return from main on hppa
+ Branch to exit rather than _exit on return from main.
+Author: John David Anglin <dave.anglin@bell.net>
+Bug-Debian: https://bugs.debian.org/743254
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/parisc/start.S
++++ b/parisc/start.S
+@@ -46,7 +46,7 @@ _start:
+ 	bl CALL_IN_STARTCODE, %rp
+ #endif
+ 	ldo R%$global$(%dp), %dp
+-	b _exit
++	b exit
+ 	or %r28, %r28, %r26
+ 	.EXIT
+ 	.PROCEND
