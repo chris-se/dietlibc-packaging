@@ -1,0 +1,19 @@
+TODO list for dietlibc in Debian
+--------------------------------
+
+General:
+
+ - forward all relevant patches upstream and drastically reduce the
+   amount we currently carry (should not be more than 5 ideally!)
+
+Package features:
+
+ - Multi-Arch: same support, to allow for cross-compilation from the
+   native Debian package
+ - debug symbols by default (without package rebuild)
+ - reenable dynamic linking support on architectures
+   that support it
+ - make sure dietlibc uses as many hardening features as possible
+   (this has to be done manually, we often can't just pass in
+   flags from debhelper, because this is so low-level that future
+   additions might break the build)
