@@ -1,8 +1,9 @@
 #!/usr/bin/make -f
 
 # for "debian/rules get-orig-source"
-ORIGTGZ_SOURCE:=	-D'2012/03/25 15:00'
-ORIGTGZ_DESTINATION:=	0.33~cvs20120325
+ORIGTGZ_DATE:=          '2016-02-09 14:30Z'
+ORIGTGZ_SOURCE:=	-D${ORIGTGZ_DATE}
+ORIGTGZ_DESTINATION:=	0.34~cvs20160209.1
 
 # determine whether we are cross-compiling
 DEB_BUILD_GNU_TYPE:=$(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
@@ -162,7 +163,8 @@ include debian/implicit
 
 _ANONCVSROOT:=		:pserver:cvs@cvs.fefe.de:/cvs
 _CVSEXPORT:=		env CVS_RSH=ssh TZ=UTC cvs -qd ${_ANONCVSROOT} -z9 export
-_PACK:=			find dietlibc-${ORIGTGZ_DESTINATION} -type f | sort | \
+_RESET_TIMES:=          find dietlibc-${ORIGTGZ_DESTINATION} -type f | xargs touch -d${ORIGTGZ_DATE}
+_PACK:=			find dietlibc-${ORIGTGZ_DESTINATION} -type f | LC_ALL=C.UTF-8 sort | \
 			    paxcpio -oC512 -Hustar -Mdist
 
 get-orig-source:
@@ -175,7 +177,8 @@ get-orig-source:
 	    xargs -0 perl -pi -e 's/\r$$//' --
 	# then rename and pack it up
 	mv $@.tmp/dietlibc $@.tmp/dietlibc-${ORIGTGZ_DESTINATION}
-	cd $@.tmp; ${_PACK} | gzip -n9 >../dietlibc_${ORIGTGZ_DESTINATION}.orig.tar.gz
+	cd $@.tmp; ${_RESET_TIMES}
+	cd $@.tmp; ${_PACK} | xz -7 >../dietlibc_${ORIGTGZ_DESTINATION}.orig.tar.xz
 	rm -rf $@.tmp
 	# there we are...
-	ls -l dietlibc_${ORIGTGZ_DESTINATION}.orig.tar.gz
+	ls -l dietlibc_${ORIGTGZ_DESTINATION}.orig.tar.xz
