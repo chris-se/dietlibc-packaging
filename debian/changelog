@@ -1,3 +1,25 @@
+dietlibc (0.34~cvs20160209.1-1~exp1) experimental; urgency=medium
+
+  [ Christian Seiler ]
+  * Imported Upstream version 0.34~cvs20160209.1
+    (Closes: #757052, #741882)
+  * Enable support for the x32 architecture
+  * debian/watch: check for GPG signature of releases
+  * debian/control: Add myself to Uploaders
+  * debian/copyright: fix lintian warning, update metadata
+  * debian/rules: update get-orig-source to match current version
+  * Fix __lltostr parameter mismatch (Closes: #748037)
+  * Switch to debhelper and dh-style debian/rules
+
+  [ Reiner Herrmann ]
+  * Reproducible builds: remove gzip timestamps and sort file lists
+    (Closes: #813892)
+
+  [ John David Anglin ]
+  * Flush streams on return from main on hppa (Closes: #743254)
+
+ -- Christian Seiler <christian@iwakd.de>  Wed, 10 Feb 2016 00:48:05 +0100
+
 dietlibc (0.33~cvs20120325-6) unstable; urgency=low
 
   * Team upload.
