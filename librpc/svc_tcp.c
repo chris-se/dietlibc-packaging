@@ -160,6 +160,7 @@ unsigned int recvsize;
 	r->recvsize = recvsize;
 	xprt = (SVCXPRT *) mem_alloc(sizeof(SVCXPRT));
 	if (xprt == NULL) {
+		free(r);
 		(void) fprintf(stderr, "svctcp_create: out of memory\n");
 		return (NULL);
 	}
@@ -177,7 +178,10 @@ unsigned int recvsize;
  * Like svtcp_create(), except the routine takes any *open* UNIX file
  * descriptor as its first input.
  */
-static SVCXPRT *svcfd_create(fd, sendsize, recvsize)
+#ifdef __dietlibc__
+static
+#endif
+SVCXPRT *svcfd_create(fd, sendsize, recvsize)
 int fd;
 unsigned int sendsize;
 unsigned int recvsize;
@@ -229,6 +233,8 @@ static bool_t rendezvous_request(register SVCXPRT *xprt, struct rpc_msg *msg)
 	struct sockaddr_in addr;
 	socklen_t len;
 
+	(void)msg;
+
 	r = (struct tcp_rendezvous *) xprt->xp_p1;
   again:
 	len = sizeof(struct sockaddr_in);
@@ -250,7 +256,7 @@ static bool_t rendezvous_request(register SVCXPRT *xprt, struct rpc_msg *msg)
 
 static enum xprt_stat rendezvous_stat(SVCXPRT *xprt)
 {
-
+  (void)xprt;
 	return (XPRT_IDLE);
 }
 

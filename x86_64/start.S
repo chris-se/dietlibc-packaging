@@ -12,11 +12,13 @@ _start:
 	
 	leaq	8(%rsi,%rdi,8),%rdx	/* %rdx = envp = (8*rdi)+%rsi+8 */
 
+#ifndef IN_LDSO
 #ifdef __DYN_LIB
 	movq	environ@GOTPCREL(%rip), %rax
 	movq	%rdx, (%rax)
 #else
 	movq	%rdx, environ(%rip)
+	.hidden environ
 #endif
 
 #ifdef PROFILING
@@ -37,8 +39,10 @@ _start:
 
 #ifdef WANT_DYNAMIC
 	call	_dyn_start
+	.hidden _dyn_start
 #else
 	call	CALL_IN_STARTCODE
+	.hidden CALL_IN_STARTCODE
 #endif
 
 #ifdef PROFILING
@@ -48,8 +52,22 @@ _start:
 #else
 	movq	%rax, %rdi	/* return value */
 #endif
+
+#else
+	call	main
+	.hidden main
+#endif
+
+#if defined(__ILP32__)
+	mov	$SYS_exit,%eax
+	syscall
+#else
 	call	exit
+#ifndef __DYN_LIB
+	.hidden exit
+#endif
+#endif
 	hlt
 .Lstart:
 	.size	 _start,.Lstart-_start
-
+	.section	.note.GNU-stack,"",@progbits

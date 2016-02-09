@@ -1,5 +1,8 @@
 .text
 .global strnlen
+#ifdef __PIE__
+.hidden strnlen
+#endif
 .type strnlen,@function
 strnlen:
 	/* incoming: rdi = ptr, rsi = len */
@@ -22,3 +25,5 @@ strnlen:
 
 .Lhere:
 	.size	 strnlen,.Lhere-strnlen
+
+	.section	.note.GNU-stack,"",@progbits

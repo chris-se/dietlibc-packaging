@@ -8,6 +8,7 @@
 __BEGIN_DECLS
 
 #if defined(__i386__)
+
 struct stat {
 	uint32_t	st_dev;
 	unsigned long	st_ino;
@@ -489,7 +490,7 @@ struct stat64 {
 	unsigned long long st_ino;
 };
 
-#elif defined(__x86_64__)
+#elif defined(__x86_64__) && !defined(__ILP32__)
 
 struct stat {
 	unsigned long	st_dev;
@@ -510,6 +511,24 @@ struct stat {
 	time_t		st_ctime;
 	unsigned long	st_ctime_nsec;
 	long		__unused[3];
+};
+
+#elif defined(__x86_64__)
+
+/* for X32 */
+
+struct stat {
+	uint64_t	st_dev, st_ino, st_nlink;
+	uint32_t	st_mode, st_uid, st_gid, __pad0;
+	uint64_t	st_rdev;
+	int64_t		st_size, st_blksize, st_blocks;
+	time_t		st_atime;
+	uint64_t	st_atime_nsec;
+	time_t		st_mtime;
+	uint64_t	st_mtime_nsec;
+	time_t		st_ctime;
+	uint64_t	st_ctime_nsec;
+	unsigned int	__unused[3]
 };
 
 #elif defined(__ia64__)
@@ -576,7 +595,7 @@ extern int stat(const char *__file, struct stat *__buf) __THROW;
 extern int fstat(int __fd, struct stat *__buf) __THROW;
 extern int lstat(const char *__file, struct stat *__buf) __THROW;
 
-#if __WORDSIZE == 64
+#if (__WORDSIZE == 64) || defined(__OFF_T_MATCHES_OFF64_T)
 #define __NO_STAT64
 #else
 extern int stat64(const char *__file, struct stat64 *__buf) __THROW;
@@ -606,6 +625,17 @@ extern int mkfifo (const char *__path, mode_t __mode) __THROW;
 #define S_IREAD S_IRUSR
 #define S_IWRITE S_IWUSR
 #define S_IEXEC S_IXUSR
+
+#if defined(_ATFILE_SOURCE) || ((_XOPEN_SOURCE + 0) >= 700) || ((_POSIX_C_SOURCE + 0) >= 200809L)
+/* also include fcntl.h for the AT_* constants */
+
+int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags) __THROW;
+int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags) __THROW;
+int mkdirat(int dirfd, const char *pathname, mode_t mode) __THROW;
+int mknodat(int dirfd, const char *pathname, mode_t mode, dev_t dev) __THROW;
+int mkfifoat(int dirfd, const char *pathname, mode_t mode) __THROW;
+int utimensat(int dirfd, const char *pathname, struct timespec* t,int flags) __THROW;
+#endif
 
 __END_DECLS
 

@@ -29,7 +29,7 @@
 #define WANT_TLS
 
 /* make the startcode, etc. dynamic aware ({con,de}structors) */
-/* #define WANT_DYNAMIC */
+// #define WANT_DYNAMIC
 
 /* GDB support in the dynamic linker */
 #define WANT_LD_SO_GDB_SUPPORT
@@ -145,6 +145,12 @@
 
 
 /* stop uncommenting here ;-) */
+
+/* Several 'syscalls' on x86_64 need vdso set... */
+#if defined(__x86_64__) && ! defined(WANT_STACKGAP)
+#define WANT_STACKGAP
+#endif
+
 #if defined(WANT_SSP) || defined(WANT_STACKGAP) || defined(WANT_TLS)
 #define CALL_IN_STARTCODE stackgap
 #else
@@ -153,13 +159,6 @@
 
 #ifndef WANT_FASTER_STRING_ROUTINES
 #define WANT_SMALL_STRING_ROUTINES
-#endif
-
-#ifdef WANT_THREAD_SAFE
-#ifndef __ASSEMBLER__
-#define errno (*__errno_location())
-#define _REENTRANT
-#endif
 #endif
 
 #ifdef __DYN_LIB
@@ -171,6 +170,10 @@
 #ifdef WANT_SAFEGUARD
 #undef WANT_SAFEGUARD
 #endif
+#endif
+
+#if defined(__x86_64__) && defined(__ILP32__)
+#undef WANT_LARGEFILE_BACKCOMPAT
 #endif
 
 #endif

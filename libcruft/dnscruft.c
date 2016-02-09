@@ -159,10 +159,11 @@ int __dns_decodename(const unsigned char *packet,unsigned int offset,unsigned ch
     if ((*tmp>>6)==3) {		/* goofy DNS decompression */
       unsigned int ofs=((unsigned int)(*tmp&0x3f)<<8)|*(tmp+1);
       if (ofs>=(unsigned int)offset) return -1;	/* RFC1035: "pointer to a _prior_ occurrance" */
+      offset=ofs;
       if (after<tmp+2) after=tmp+2;
       tmp=packet+ofs;
       ok=0;
-    } else {
+    } else if ((*tmp>>6)==0) {
       unsigned int duh;
       if (dest+*tmp+1>max) return -1;
       if (tmp+*tmp+1>=behindpacket) return -1;
@@ -171,7 +172,7 @@ int __dns_decodename(const unsigned char *packet,unsigned int offset,unsigned ch
       *dest++='.'; ok=1;
       ++tmp;
       if (tmp>after) { after=tmp; if (!*tmp) ++after; }
-    }
+    } else return -1;
   }
   if (ok) --dest;
   *dest=0;

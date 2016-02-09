@@ -25,10 +25,11 @@ static void error(const char *message) {
 }
 
 static const char* Os[] = {
-  "i386","-Os","-mpreferred-stack-boundary=2",
+  "i386","-Os","-mpreferred-stack-boundary=4",
 	 "-falign-functions=1","-falign-jumps=1",
 	 "-falign-loops=1","-fomit-frame-pointer",0,
   "x86_64","-Os",0,
+  "x32","-Os",0,
   "sparc","-Os","-mcpu=supersparc",0,
   "sparc64","-Os","-m64","-mhard-quad-float",0,
   "alpha","-Os","-fomit-frame-pointer",0,
@@ -41,7 +42,6 @@ static const char* Os[] = {
   "s390x","-Os","-fomit-frame-pointer",0,
   "sh","-Os","-fomit-frame-pointer",0,
   "ia64","-Os","-fno-omit-frame-pointer",0,
-  "x86_64","-Os","-fstrict-aliasing","-momit-leaf-frame-pointer","-mfancy-math-387",0,
   0};
 
 static void usage(void) {
@@ -120,10 +120,10 @@ int main(int argc,char *argv[]) {
     } else break;
   } while (1);
   {
-    int i;
     m=0;
     for (i=1; i<argc; ++i) {
       if (!strcmp(argv[i],"-m32")) m=32; else
+      if (!strcmp(argv[i],"-mx32")) m=33; else
       if (!strcmp(argv[i],"-m64")) m=64;
     }
   }
@@ -186,21 +186,20 @@ int main(int argc,char *argv[]) {
       shortplatform="parisc";
 #endif
 #ifdef __x86_64__
-      shortplatform=(m==32?"i386":"x86_64");
+      shortplatform=(m==32?"i386":(m==33?"x32":"x86_64"));
 #endif
 #ifdef __ia64__
       shortplatform="ia64";
 #endif
       {
-	char *tmp=platform+strlen(platform);
-	strcpy(tmp,shortplatform);
-	shortplatform=tmp;
+	char *tmp4=platform+strlen(platform);
+	strcpy(tmp4,shortplatform);
+	shortplatform=tmp4;
       }
     }
     /* MIPS needs special handling.  If argv contains -EL, change
      * platform name to mipsel */
     if (!strcmp(shortplatform,"mips")) {
-      int i;
       for (i=1; i<argc; ++i)
 	if (!strcmp(argv[i],"-EL"))
 	  strcpy(shortplatform,"mipsel");
@@ -327,7 +326,7 @@ pp:
 	}
 	if (mangleopts)
 	  if (argv[i][0]=='-' && (argv[i][1]=='O' || argv[i][1]=='f' ||
-				  (argv[i][1]=='m' && argv[i][2]!='3' && argv[i][2]!='6'))) {
+				  (argv[i][1]=='m' && argv[i][2]!='3' && argv[i][2]!='6' && argv[i][2]!='x'))) {
 	    if (strcmp(argv[i],"-fpic") && strcmp(argv[i],"-fno-pic"))
 	      continue;
 	  }
@@ -350,7 +349,7 @@ pp:
 
 	{
 	  int fd;
-	  char* tmp=getenv("HOME");
+	  tmp=getenv("HOME");
 	  if (tmp) {
 	    if (strlen(tmp)+strlen(cc)<900) {
 	      strcpy(manglebuf,tmp);
@@ -361,7 +360,6 @@ pp:
 	      if ((fd=open(manglebuf,O_RDONLY))>=0) {
 		int len=read(fd,manglebuf,1023);
 		if (len>0) {
-		  int i;
 		  manglebuf[len]=0;
 		  *dest++=manglebuf;
 		  for (i=1; i<len; ++i) {
@@ -415,7 +413,6 @@ incorporated:
 #endif
       *dest=0;
       if (verbose) {
-	int i;
 	for (i=0; newargv[i]; i++) {
 	  __write2(newargv[i]);
 	  __write2(" ");
