@@ -1,0 +1,76 @@
+Author: Reiner Herrmann <reiner@reiner-h.de>
+Description: sort order of object files to get reproducible static libraries
+
+--- a/Makefile
++++ b/Makefile
+@@ -118,23 +118,23 @@ INC=-I. -isystem include
+ 
+ VPATH=lib:libstdio:libugly:libcruft:libcrypt:libshell:liblatin1:libcompat:libdl:librpc:libregex:libm:profiling
+ 
+-SYSCALLOBJ=$(patsubst syscalls.s/%.S,$(OBJDIR)/%.o,$(wildcard syscalls.s/*.S))
++SYSCALLOBJ=$(patsubst syscalls.s/%.S,$(OBJDIR)/%.o,$(sort $(wildcard syscalls.s/*.S)))
+ 
+-LIBOBJ=$(patsubst lib/%.c,$(OBJDIR)/%.o,$(wildcard lib/*.c))
+-LIBUGLYOBJ=$(patsubst libugly/%.c,$(OBJDIR)/%.o,$(wildcard libugly/*.c))
+-LIBSTDIOOBJ=$(patsubst libstdio/%.c,$(OBJDIR)/%.o,$(wildcard libstdio/*.c))
+-LIBCRUFTOBJ=$(patsubst libcruft/%.c,$(OBJDIR)/%.o,$(wildcard libcruft/*.c))
+-LIBCRYPTOBJ=$(patsubst libcrypt/%.c,$(OBJDIR)/%.o,$(wildcard libcrypt/*.c))
+-LIBSHELLOBJ=$(patsubst libshell/%.c,$(OBJDIR)/%.o,$(wildcard libshell/*.c))
+-LIBCOMPATOBJ=$(patsubst libcompat/%.c,$(OBJDIR)/%.o,$(wildcard libcompat/*.c)) $(OBJDIR)/syscall.o
+-LIBMATH=$(patsubst libm/%.c,%.o,$(wildcard libm/*.c))
++LIBOBJ=$(patsubst lib/%.c,$(OBJDIR)/%.o,$(sort $(wildcard lib/*.c)))
++LIBUGLYOBJ=$(patsubst libugly/%.c,$(OBJDIR)/%.o,$(sort $(wildcard libugly/*.c)))
++LIBSTDIOOBJ=$(patsubst libstdio/%.c,$(OBJDIR)/%.o,$(sort $(wildcard libstdio/*.c)))
++LIBCRUFTOBJ=$(patsubst libcruft/%.c,$(OBJDIR)/%.o,$(sort $(wildcard libcruft/*.c)))
++LIBCRYPTOBJ=$(patsubst libcrypt/%.c,$(OBJDIR)/%.o,$(sort $(wildcard libcrypt/*.c)))
++LIBSHELLOBJ=$(patsubst libshell/%.c,$(OBJDIR)/%.o,$(sort $(wildcard libshell/*.c)))
++LIBCOMPATOBJ=$(patsubst libcompat/%.c,$(OBJDIR)/%.o,$(sort $(wildcard libcompat/*.c))) $(OBJDIR)/syscall.o
++LIBMATH=$(patsubst libm/%.c,%.o,$(sort $(wildcard libm/*.c)))
+ 
+-LIBRPCOBJ=$(patsubst librpc/%.c,$(OBJDIR)/%.o,$(wildcard librpc/*.c))
+-LIBREGEXOBJ=$(patsubst libregex/%.c,$(OBJDIR)/%.o,$(wildcard libregex/*.c))
++LIBRPCOBJ=$(patsubst librpc/%.c,$(OBJDIR)/%.o,$(sort $(wildcard librpc/*.c)))
++LIBREGEXOBJ=$(patsubst libregex/%.c,$(OBJDIR)/%.o,$(sort $(wildcard libregex/*.c)))
+ 
+-LIBDLOBJ=$(patsubst libdl/%.c,$(OBJDIR)/%.o,$(wildcard libdl/*.c)) $(OBJDIR)/_dl_jump.o
++LIBDLOBJ=$(patsubst libdl/%.c,$(OBJDIR)/%.o,$(sort $(wildcard libdl/*.c))) $(OBJDIR)/_dl_jump.o
+ 
+-LIBPTHREAD_OBJS=$(patsubst libpthread/%.c,$(OBJDIR)/%.o,$(shell ./threadsafe.sh)) $(OBJDIR)/__testandset.o
++LIBPTHREAD_OBJS=$(patsubst libpthread/%.c,$(OBJDIR)/%.o,$(sort $(shell ./threadsafe.sh))) $(OBJDIR)/__testandset.o
+ 
+ LIBGMON_OBJS=$(OBJDIR)/__mcount.o $(OBJDIR)/monitor.o $(OBJDIR)/profil.o
+ 
+@@ -228,7 +228,7 @@ $(OBJDIR)/libcrypt.a: | $(OBJDIR)
+ 
+ dummy.o:
+ 
+-LIBLATIN1_OBJS=$(patsubst liblatin1/%.c,$(OBJDIR)/%.o,$(wildcard liblatin1/*.c))
++LIBLATIN1_OBJS=$(patsubst liblatin1/%.c,$(OBJDIR)/%.o,$(sort $(wildcard liblatin1/*.c)))
+ $(OBJDIR)/liblatin1.a: $(LIBLATIN1_OBJS)
+ 	$(CROSS)ar cru $@ $^
+ 
+--- a/libdl/Makefile
++++ b/libdl/Makefile
+@@ -3,7 +3,7 @@
+ CC  = $(CROSS)gcc
+ DCC = diet $(CC)
+ 
+-SRC = $(wildcard *.c) # test/test.c
++SRC = $(sort $(wildcard *.c)) # test/test.c
+ OBJ = _dl_jump.o $(SRC:.c=.o)
+ 
+ #CFLAGS = -Wall -D__OD_CLEAN_ROOM -DNODIETREF -fPIC -g -O
+--- a/libpthread/Makefile
++++ b/libpthread/Makefile
+@@ -12,9 +12,9 @@ CC=gcc
+ 
+ VPATH=../$(ARCH)/
+ 
+-PTHREAD_OBJS = __testandset.o $(patsubst %.c,%.o,$(wildcard pthread_*.c))
++PTHREAD_OBJS = __testandset.o $(patsubst %.c,%.o,$(sort $(wildcard pthread_*.c)))
+ 
+-TESTS = $(patsubst %.c,%,$(wildcard test-*.c))
++TESTS = $(patsubst %.c,%,$(sort $(wildcard test-*.c)))
+ 
+ %.o : %.c
+ 	$(CC) $(CFLAGS) -c -o $@ $?

@@ -116,7 +116,7 @@ endif
 	fi
 	install -d -m0755 $(DIR)-dev/usr/share/man
 	mv $(DIR)/usr/lib/diet/man/man? $(DIR)-dev/usr/share/man/
-	gzip -9 $(DIR)-dev/usr/share/man/man?/*
+	gzip -9n $(DIR)-dev/usr/share/man/man?/*
 	rmdir $(DIR)/usr/lib/diet/man
 	install -d -m0755 $(DIR)-doc
 	# .in
