@@ -21,7 +21,7 @@
 #include <stdio.h>
 #endif
 
-#ifdef WANT_TLS
+#if defined(WANT_TLS) || defined(WANT_SSP)
 #include <sys/tls.h>
 #endif
 
@@ -283,7 +283,7 @@ static void pthread_handle_sigrestart(int sig) {
 /* cancel signal */
 static void pthread_handle_sigcancel(int sig,siginfo_t*info,void*arg) {
   _pthread_descr this=__thread_self();
-  if (0) { sig=0; arg=0; }
+  (void)sig; (void)arg;
 #ifdef DEBUG
   printf("pthread_handle_sigcancel(%d): sigcancel %d\n",sig,this->pid);
 #endif
@@ -385,6 +385,8 @@ static void* __managed_start(void*arg) {
   memcpy(me,__tdataptr,__tdatasize);
   memset(((char*)me)+__tdatasize,0,__tmemsize-__tdatasize);
   me=(tcbhead_t*)(((char*)me) + __tmemsize);
+#else
+  );
 #endif
   __setup_tls(me);
   me->multiple_threads=1;
@@ -519,7 +521,7 @@ static void*__manager_thread(void*arg) {
   struct pollfd pfd;
   _pthread_descr td;
   int n,status;
-  if (0) arg=0;
+  (void)arg;
   pfd.fd=mgr_recv_fd;
   pfd.events=POLLIN;
 
