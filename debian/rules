@@ -42,19 +42,17 @@ endif
 endif
 endif
 
-DYN =0
-ifneq ($(ARCH),i386)
-  DYN =0
-endif
-
-DIR =$(shell pwd)/debian/dietlibc
 VERSION =$(shell head -n1 debian/changelog |sed -e 's/.*(\(.*\)).*/\1/')
 
-build: deb-checkdir build-stamp
-build-stamp:
-	rm -f parisc/strstr.S
-	$(MAKE) prefix=/usr/lib/diet \
-	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
+%:
+	dh $@
+
+override_dh_auto_configure:
+override_dh_auto_build:
+	@# See Debian bug #523086
+	mv -f parisc/strstr.S parisc/strstr.S.disabled
+	dh_auto_build -- prefix=/usr/lib/diet \
+		MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
 ifeq (${CROSS},0)
 	bin-'$(ARCH)'/diet -v -Os gcc -nostdinc -o ttt test/select.c
 	./ttt
@@ -66,107 +64,40 @@ ifeq (${CROSS},0)
 	./ttt
 	rm -f ttt
 endif
-	test '$(DYN)' -eq 0 || \
-	  $(MAKE) dyn prefix=/usr/lib/diet \
-	    MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
-	touch build-stamp
 
-clean: deb-checkdir deb-checkuid
-	$(MAKE) clean MYARCH='$(ARCH)'
-	rm -f build-stamp install-stamp ttt
-	rm -f dynlinker.README libdl.README libpthread.CHANGES \
-	  libpthread.README profiling.PORTING profiling.README \
-	  sparc64.README ia64.README changelog
-	rm -rf '$(DIR)' '$(DIR)'-dev '$(DIR)'-doc
-	rm -f debian/files debian/substvars debian/dietlibc-dev.postinst \
-	  debian/dietlibc-dev.prerm
+override_dh_auto_clean:
+	dh_auto_clean -- MYARCH='$(ARCH)'
+	rm -f debian/dietlibc-dev.postinst debian/dietlibc-dev.prerm
+	@# See Debian bug #523086
+	[ ! -f parisc/strstr.S.disabled ] || \
+		mv -f parisc/strstr.S.disabled parisc/strstr.S
 
-install: deb-checkdir deb-checkuid install-stamp
-install-stamp: build-stamp
-	rm -rf '$(DIR)' '$(DIR)'-dev '$(DIR)'-doc
-	install -d -m0755 '$(DIR)'/etc
-	$(MAKE) install prefix=/usr/lib/diet DESTDIR='$(DIR)' \
-	  MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
-	# dietlibc dietlibc-dev dietlibc-doc
-	echo '/usr/lib/diet/lib' >'$(DIR)'/etc/diet.ld.conf
-	install -d -m0755 '$(DIR)'-dev/usr/include
-	mv '$(DIR)'/usr/lib/diet/include '$(DIR)'-dev/usr/include/diet
-	install -d -m0755 '$(DIR)'-dev/usr/lib/diet
-	ln -s ../../include/diet '$(DIR)'-dev/usr/lib/diet/include
-	mv '$(DIR)'/usr/lib/diet/lib-'$(ARCH)' '$(DIR)'/usr/lib/diet/lib
-	cp -pr '$(DIR)'/usr/lib/diet/lib '$(DIR)'-dev/usr/lib/diet/
-	rm -f '$(DIR)'/usr/lib/diet/lib/*.[ao]
-	rm -f '$(DIR)'-dev/usr/lib/diet/lib/*.so
-	#ln -s lib '$(DIR)'-dev/usr/lib/diet/lib-'$(ARCH)'
-	mv '$(DIR)'/usr/lib/diet/bin '$(DIR)'-dev/usr/lib/diet/
-	install -d -m0755 '$(DIR)'-dev/usr/bin
-	mv '$(DIR)'-dev/usr/lib/diet/bin/diet* '$(DIR)'-dev/usr/bin/
-	ln -s ../../../bin/diet '$(DIR)'-dev/usr/lib/diet/bin/
-ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-	strip -s -R .comment '$(DIR)'-dev/usr/bin/diet
-	if test '$(DYN)' -eq 1; then \
-	  strip -s -R .comment '$(DIR)'-dev/usr/bin/diet-dyn; \
-	fi
-	strip -s -R .comment '$(DIR)'-dev/usr/lib/diet/bin/dnsd
-	strip -s -R .comment '$(DIR)'-dev/usr/lib/diet/bin/elftrunc
-endif
-	if test '$(DYN)' -eq 1; then \
-	  ln -s ../../../bin/diet-dyn '$(DIR)'-dev/usr/lib/diet/bin/ && \
-	  chmod 0644 '$(DIR)'/usr/lib/diet/lib/*.so && \
-	  chmod 0755 '$(DIR)'/usr/lib/diet/lib/libdl.so; \
-	fi
-	install -d -m0755 $(DIR)-dev/usr/share/man
-	mv $(DIR)/usr/lib/diet/man/man? $(DIR)-dev/usr/share/man/
-	gzip -9n $(DIR)-dev/usr/share/man/man?/*
-	rmdir $(DIR)/usr/lib/diet/man
-	install -d -m0755 $(DIR)-doc
-	# .in
+override_dh_auto_install:
+	mkdir -p debian/tmp/etc
+	dh_auto_install -- prefix=/usr/lib/diet MYARCH='$(ARCH)' VERSION='$(VERSION)' $(DEBUG)
 	sed -e 's/|ARCH|/$(ARCH)/g' <debian/dietlibc-dev.postinst.in \
 	  >debian/dietlibc-dev.postinst
 	sed -e 's/|ARCH|/$(ARCH)/g' <debian/dietlibc-dev.prerm.in \
 	  >debian/dietlibc-dev.prerm
-	# lintian overrides
-	install -d -m0755 '$(DIR)'-dev/usr/share/lintian/overrides
-	install -m0644 debian/dietlibc-dev.lintian \
-	  '$(DIR)'-dev/usr/share/lintian/overrides/dietlibc-dev
-	# doc
-	rm -f dynlinker.README libdl.README libpthread.CHANGES \
-	  libpthread.README profiling.PORTING profiling.README \
-	  sparc64.README ia64.README changelog
-	ln -s dynlinker/README dynlinker.README
-	ln -s libdl/README libdl.README
-	ln -s libpthread/CHANGES libpthread.CHANGES
-	ln -s libpthread/README libpthread.README
-	ln -s profiling/PORTING profiling.PORTING
-	ln -s profiling/README profiling.README
-	ln -s sparc64/README sparc64.README
-	ln -s ia64/README ia64.README
-	ln -s CHANGES changelog
-	touch install-stamp
 
-binary-indep: deb-checkdir deb-checkuid install dietlibc-doc.deb
-	dpkg-gencontrol -isp -pdietlibc-doc -P'$(DIR)'-doc
-	dpkg -b '$(DIR)'-doc ..
-
-binary-arch: deb-checkdir deb-checkuid install dietlibc-dev.deb dietlibc.deb
-	dpkg-gencontrol -isp -pdietlibc-dev -P'$(DIR)'-dev
-	dpkg -b '$(DIR)'-dev ..
-	if test '$(DYN)' -eq 1; then \
-	  dpkg-gencontrol -isp -pdietlibc -P'$(DIR)'; \
-	  dpkg -b '$(DIR)' ..; \
-	fi
-
-binary: binary-indep binary-arch
-.PHONY: build clean install binary-indep binary-arch binary
-
-include debian/implicit
+override_dh_strip:
+	@# Don't generate automatic debug symbol packages, because
+	@# dietlibc's Makefile currently already strips on an
+	@# individual object file level to save as much space as
+	@# possible. TODO: investigate if we can achieve the same
+	@# resulting size after dh_strip without sacrificing debug
+	@# symbol support. (In that case, reenable them.)
+ifeq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
+	dh_strip --no-automatic-dbgsym
+else
+	dh_strip
+endif
 
 _ANONCVSROOT:=		:pserver:cvs@cvs.fefe.de:/cvs
 _CVSEXPORT:=		env CVS_RSH=ssh TZ=UTC cvs -qd ${_ANONCVSROOT} -z9 export
 _RESET_TIMES:=          find dietlibc-${ORIGTGZ_DESTINATION} -type f | xargs touch -d${ORIGTGZ_DATE}
 _PACK:=			find dietlibc-${ORIGTGZ_DESTINATION} -type f | LC_ALL=C.UTF-8 sort | \
 			    paxcpio -oC512 -Hustar -Mdist
-
 get-orig-source:
 	rm -rf $@.tmp
 	mkdir $@.tmp
