@@ -1,0 +1,20 @@
+Description: Fix parameters of __lltostr
+ Make parameters of __lltostr in lib/__lltostr match the definition in
+ include/stdlib.h.
+Author: Christian Seiler <christian@iwakd.de>
+Bug-Debian: https://bugs.debian.org/748037
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/lib/__lltostr.c
++++ b/lib/__lltostr.c
+@@ -1,8 +1,8 @@
+ #include <string.h>
+ 
+-int __lltostr(char *s, int size, unsigned long long i, int base, char UpCase);
++int __lltostr(char *s, unsigned int size, unsigned long long i, unsigned int base, int UpCase);
+ 
+-int __lltostr(char *s, int size, unsigned long long i, int base, char UpCase)
++int __lltostr(char *s, unsigned int size, unsigned long long i, unsigned int base, int UpCase)
+ {
+   char *tmp;
+   unsigned int j=0;
