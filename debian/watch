@@ -1,2 +1,2 @@
 version=3
-http://www.fefe.de/dietlibc/ dietlibc-([0-9.]*)\.tar\.bz2
+opts=pgpsigurlmangle=s/$/.sig/ http://www.fefe.de/dietlibc/ dietlibc-([0-9.]*)\.tar\.bz2
