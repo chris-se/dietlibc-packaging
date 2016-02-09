@@ -24,36 +24,30 @@ In the currently-supported architectures there are four families:
  syscalls.s/umount2.S |    4 +++-
  4 files changed, 11 insertions(+), 1 deletions(-)
 
-Index: pkg-dietlibc/alpha/syscalls.h
-===================================================================
---- pkg-dietlibc.orig/alpha/syscalls.h	2012-03-25 15:07:28.000000000 +0000
-+++ pkg-dietlibc/alpha/syscalls.h	2012-03-25 15:12:38.000000000 +0000
-@@ -413,6 +413,8 @@
- #define __NR_timerfd			477
- #define __NR_eventfd			478
+--- a/alpha/syscalls.h
++++ b/alpha/syscalls.h
+@@ -231,6 +231,8 @@
+ #define __NR_osf_memcntl	260	/* not implemented */
+ #define __NR_osf_fdatasync	261	/* not implemented */
  
 +#define __NR_umount_without_flags __NR_oldumount
 +#define __NR_umount_with_flags __NR_umount
  
- #define syscall_weak(name,wsym,sym) \
- .text ; \
-Index: pkg-dietlibc/ia64/syscalls.h
-===================================================================
---- pkg-dietlibc.orig/ia64/syscalls.h	2012-03-25 15:07:28.000000000 +0000
-+++ pkg-dietlibc/ia64/syscalls.h	2012-03-25 15:12:38.000000000 +0000
-@@ -290,6 +290,8 @@
- #define __NR_timerfd_settime		1311
- #define __NR_timerfd_gettime		1312
+ /*
+  * Linux-specific system calls begin at 300
+--- a/ia64/syscalls.h
++++ b/ia64/syscalls.h
+@@ -318,6 +318,8 @@
+ #define __NR_getrandom			1339
+ #define __NR_memfd_create		1340
  
 +#define __NR_umount_with_flags __NR_umount
 +
  #define syscall(name, sym) \
  .text; \
  .globl sym; \
-Index: pkg-dietlibc/syscalls.s/umount.S
-===================================================================
---- pkg-dietlibc.orig/syscalls.s/umount.S	2012-03-25 15:07:46.000000000 +0000
-+++ pkg-dietlibc/syscalls.s/umount.S	2012-03-25 15:12:38.000000000 +0000
+--- a/syscalls.s/umount.S
++++ b/syscalls.s/umount.S
 @@ -1,5 +1,9 @@
  #include "syscalls.h"
  
@@ -64,10 +58,8 @@ Index: pkg-dietlibc/syscalls.s/umount.S
  syscall(umount,umount)
  #endif
 +#endif
-Index: pkg-dietlibc/syscalls.s/umount2.S
-===================================================================
---- pkg-dietlibc.orig/syscalls.s/umount2.S	2012-03-25 15:07:46.000000000 +0000
-+++ pkg-dietlibc/syscalls.s/umount2.S	2012-03-25 15:12:38.000000000 +0000
+--- a/syscalls.s/umount2.S
++++ b/syscalls.s/umount2.S
 @@ -1,5 +1,7 @@
  #include "syscalls.h"
  

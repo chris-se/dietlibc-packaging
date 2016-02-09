@@ -9,11 +9,10 @@ on #debian-arm with pbrook (Paul Brook) and lindi- (Timo Juhani Lindfors)
 - "This is ARM code. But you've not maked mmap as a function symbol."
 => use the arm-features.h macros
 
-Index: pkg-dietlibc/arm/mmap.S
-===================================================================
---- pkg-dietlibc.orig/arm/mmap.S	2012-03-25 15:07:28.000000000 +0000
-+++ pkg-dietlibc/arm/mmap.S	2012-03-25 15:14:00.000000000 +0000
-@@ -1,22 +1,13 @@
+--- a/arm/mmap.S
++++ b/arm/mmap.S
+@@ -2,23 +2,14 @@
+ 
  #include <errno.h>
  #include "syscalls.h"
 +#include "dietfeatures.h"
@@ -39,13 +38,13 @@ Index: pkg-dietlibc/arm/mmap.S
  	str     r5, [sp, #-4]!
  	ldr     r5, [sp, #8]
  	str     r4, [sp, #-4]!
-@@ -28,11 +19,19 @@
- 	ldr     r4, [sp], #4
- 	ldr     r5, [sp], #4
+@@ -32,9 +23,17 @@ mmap:
  	cmn	r0, #4096
--	mov	pc, lr			@ return
-+	RET
-+
+ 	RET
+ 
+-#else	
+-		
+-mmap:
 +#else
 +
 +@
@@ -56,14 +55,11 @@ Index: pkg-dietlibc/arm/mmap.S
 +@ parameters on the stack - all we need do here is push the first four and
 +@ call the syscall.
 +@
- 
--#else	
--		
--mmap:
++
  	stmdb	sp!, {r0, r1, r2, r3}
  	mov	r0, sp
  	swi	__NR_mmap
-@@ -40,3 +39,5 @@
+@@ -42,3 +41,5 @@ mmap:
  	b	__unified_syscall
  
  #endif

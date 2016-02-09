@@ -1,10 +1,8 @@
 Description: fix errors in the manpage
 Author: Thorsten Glaser
 
-Index: pkg-dietlibc/diet.1
-===================================================================
---- pkg-dietlibc.orig/diet.1	2012-03-25 15:07:28.000000000 +0000
-+++ pkg-dietlibc/diet.1	2012-03-25 15:12:52.000000000 +0000
+--- a/diet.1
++++ b/diet.1
 @@ -4,7 +4,7 @@
  diet \- mangle gcc command line arguments
  .SH SYNOPSIS
@@ -14,7 +12,7 @@ Index: pkg-dietlibc/diet.1
  [\fInormal gcc command line\fP]
  .SH DESCRIPTION
  .PP
-@@ -13,19 +13,19 @@
+@@ -13,19 +13,19 @@ line you specify and try to mangle it so
  the diet libc header files and link against the diet libc itself.
  
  diet tries to be smart for cross compiling.  If the first argument is
@@ -22,7 +20,7 @@ Index: pkg-dietlibc/diet.1
 -compile for sparc and use bin-sparc/dietlibc.a instead of the dietlibc.a
 +not gcc but sparc\-linux\-gcc, diet will guess that you want to cross
 +compile for sparc and use bin\-sparc/dietlibc.a instead of the dietlibc.a
- for your default architecture.
+ for your default architecture. This does not work yet for clang.
  
 -The -v option will make diet print the modified gcc command line before
 +The \-v option will make diet print the modified gcc command line before

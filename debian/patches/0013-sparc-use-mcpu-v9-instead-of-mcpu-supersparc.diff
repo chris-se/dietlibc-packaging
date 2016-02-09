@@ -24,23 +24,19 @@ are v9.
  sparc/Makefile.add |    2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-Index: pkg-dietlibc/diet.c
-===================================================================
---- pkg-dietlibc.orig/diet.c	2012-03-25 15:11:10.000000000 +0000
-+++ pkg-dietlibc/diet.c	2012-03-25 15:12:44.000000000 +0000
-@@ -29,7 +29,7 @@
- 	 "-falign-functions=1","-falign-jumps=1",
+--- a/diet.c
++++ b/diet.c
+@@ -30,7 +30,7 @@ static const char* Os[] = {
  	 "-falign-loops=1","-fomit-frame-pointer",0,
    "x86_64","-Os",0,
+   "x32","-Os",0,
 -  "sparc","-Os","-mcpu=supersparc",0,
 +  "sparc","-Os","-mcpu=v9",0,
    "sparc64","-Os","-m64","-mhard-quad-float",0,
    "alpha","-Os","-fomit-frame-pointer",0,
    "arm","-Os","-fomit-frame-pointer",0,
-Index: pkg-dietlibc/sparc/Makefile.add
-===================================================================
---- pkg-dietlibc.orig/sparc/Makefile.add	2012-03-25 15:07:46.000000000 +0000
-+++ pkg-dietlibc/sparc/Makefile.add	2012-03-25 15:12:44.000000000 +0000
+--- a/sparc/Makefile.add
++++ b/sparc/Makefile.add
 @@ -1,5 +1,5 @@
  
 -CFLAGS+=-mcpu=supersparc -Os

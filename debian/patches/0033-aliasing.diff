@@ -7,37 +7,38 @@ union of the char buffer and the dirent struct, for seekdir.c, is
 not sufficient since other code does pointer arithmetics and cast
 afterwards. This must be fixed upstream.
 
-Index: pkg-dietlibc/Makefile
-===================================================================
---- pkg-dietlibc.orig/Makefile	2012-03-25 15:44:59.000000000 +0000
-+++ pkg-dietlibc/Makefile	2012-03-25 15:49:43.000000000 +0000
-@@ -528,3 +528,29 @@
- 
+--- a/Makefile
++++ b/Makefile
+@@ -553,6 +553,32 @@ $(OBJDIR)/stackgap.o $(PICODIR)/stackgap
  # WANT_MALLOC_ZERO
  $(OBJDIR)/strndup.o: dietfeatures.h
-+
+ 
 +# work around aliasing rules abuse; fixing the code is nontrivial
 +
 +$(OBJDIR)/seekdir.o: lib/seekdir.c
-+	$(CROSS)$(CC) $(INC) $(CFLAGS) -c $< -o $@ -D__dietlibc__ -fno-strict-aliasing
-+	$(COMMENT) -$(CROSS)strip -x -R .comment -R .note $@
++	$(CCC) $(INC) $(CFLAGS) $(EXTRACFLAGS) -c $< -o $@ -D__dietlibc__ -fno-strict-aliasing
++	-$(STRIP) -x -R .comment -R .note $@
 +
 +$(OBJDIR)/clnt_raw.o: librpc/clnt_raw.c
-+	$(CROSS)$(CC) $(INC) $(CFLAGS) -c $< -o $@ -D__dietlibc__ -fno-strict-aliasing
-+	$(COMMENT) -$(CROSS)strip -x -R .comment -R .note $@
++	$(CCC) $(INC) $(CFLAGS) $(EXTRACFLAGS) -c $< -o $@ -D__dietlibc__ -fno-strict-aliasing
++	-$(STRIP) -x -R .comment -R .note $@
 +
 +$(OBJDIR)/clnt_udp.o: librpc/clnt_udp.c
-+	$(CROSS)$(CC) $(INC) $(CFLAGS) -c $< -o $@ -D__dietlibc__ -fno-strict-aliasing
-+	$(COMMENT) -$(CROSS)strip -x -R .comment -R .note $@
++	$(CCC) $(INC) $(CFLAGS) $(EXTRACFLAGS) -c $< -o $@ -D__dietlibc__ -fno-strict-aliasing
++	-$(STRIP) -x -R .comment -R .note $@
 +
 +$(PICODIR)/seekdir.o: lib/seekdir.c
-+	$(CROSS)$(CC) $(INC) $(CFLAGS) -fPIC -D__DYN_LIB -c $< -o $@ -fno-strict-aliasing
-+	$(COMMENT) $(CROSS)strip -x -R .comment -R .note $@
++	$(CCC) $(INC) $(CFLAGS) $(EXTRACFLAGS) -fPIC -D__DYN_LIB -c $< -o $@ -fno-strict-aliasing
++	$(STRIP) -x -R .comment -R .note $@
 +
 +$(PICODIR)/clnt_raw.o: librpc/clnt_raw.c
-+	$(CROSS)$(CC) $(INC) $(CFLAGS) -fPIC -D__DYN_LIB -c $< -o $@ -fno-strict-aliasing
-+	$(COMMENT) $(CROSS)strip -x -R .comment -R .note $@
++	$(CCC) $(INC) $(CFLAGS) $(EXTRACFLAGS) -fPIC -D__DYN_LIB -c $< -o $@ -fno-strict-aliasing
++	$(STRIP) -x -R .comment -R .note $@
 +
 +$(PICODIR)/clnt_udp.o: librpc/clnt_udp.c
-+	$(CROSS)$(CC) $(INC) $(CFLAGS) -fPIC -D__DYN_LIB -c $< -o $@ -fno-strict-aliasing
-+	$(COMMENT) $(CROSS)strip -x -R .comment -R .note $@
++	$(CCC) $(INC) $(CFLAGS) $(EXTRACFLAGS) -fPIC -D__DYN_LIB -c $< -o $@ -fno-strict-aliasing
++	$(STRIP) -x -R .comment -R .note $@
++
+ # dietdirent.h dependencies
+ $(OBJDIR)/closedir.o $(OBJDIR)/fdopendir.o $(OBJDIR)/ftw.o $(OBJDIR)/ftw64.o $(OBJDIR)/opendir.o $(OBJDIR)/readdir.o $(OBJDIR)/readdir64.o $(OBJDIR)/readdir_r.o $(OBJDIR)/rewinddir.o $(OBJDIR)/seekdir.o $(OBJDIR)/telldir.o $(OBJDIR)/dirfd.o: dietdirent.h
+ 
